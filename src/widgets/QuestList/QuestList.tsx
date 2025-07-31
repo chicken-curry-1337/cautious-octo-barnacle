@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './QuestList.module.css';
 import { GuildStore } from '../../entities/Guild/Guild.store';
 import QuestCard from '../QuestCard/QuestCard';
 import { container } from 'tsyringe';
+import { useMemo } from 'react';
 
-const QuestList = observer(() => {
+export const QuestList = observer(() => {
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
-  const { quests, heroes, timeStore: {currentDay} } = guildStore;
+  const { quests, timeStore: {currentDay} } = guildStore;
 
   const handleAssign = (questId: string, heroIds: string[]) => {
     guildStore.assignHeroesToQuest(heroIds, questId);
@@ -28,7 +28,6 @@ const QuestList = observer(() => {
             <QuestCard
               key={quest.id}
               quest={quest}
-              heroes={heroes}
               currentDay={currentDay}
               onAssign={handleAssign}
               onStart={handleStart}
@@ -39,5 +38,3 @@ const QuestList = observer(() => {
     </div>
   );
 });
-
-export default QuestList;

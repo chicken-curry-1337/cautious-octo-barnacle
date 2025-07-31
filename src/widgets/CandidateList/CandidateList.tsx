@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './CandidateList.module.css';
 import { GuildStore } from '../../entities/Guild/Guild.store';
@@ -10,7 +10,7 @@ const typeEmojis: Record<string, string> = {
   rogue: '🗡️',
 };
 
-const CandidateList: React.FC = observer(() => {
+const CandidateList = observer(() => {
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
 
   if (guildStore.candidates.length === 0) return <p>Новых героев пока нет.</p>;

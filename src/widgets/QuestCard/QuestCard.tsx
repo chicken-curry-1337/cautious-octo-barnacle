@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import styles from './QuestCard.module.css';
-import type { Hero, Quest } from '../../entities/Guild/Guild.store';
+import { GuildStore, type Hero, type Quest } from '../../entities/Guild/Guild.store';
+import { container } from 'tsyringe';
+import { observer } from 'mobx-react-lite';
 
 interface QuestCardProps {
   quest: Quest;
-  heroes: Hero[];
   currentDay: number;
   onAssign: (questId: string, heroIds: string[]) => void;
   onStart: (questId: string) => void;
 }
 
-const QuestCard: React.FC<QuestCardProps> = ({ quest, heroes, currentDay, onAssign, onStart }) => {
+const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAssign, onStart }) => {
+    const {heroes}  = useMemo(() => container.resolve(GuildStore), []);
   const [selectedHeroes, setSelectedHeroes] = useState<string[]>([]);
 
   const toggleHero = (id: string) => {
@@ -110,6 +112,6 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, heroes, currentDay, onAssi
       )}
     </li>
   );
-};
+});
 
 export default QuestCard;

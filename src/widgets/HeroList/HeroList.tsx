@@ -1,16 +1,11 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './HeroList.module.css';
 import { GuildStore } from '../../entities/Guild/Guild.store';
 import { container } from 'tsyringe';
-import { toJS } from 'mobx';
 
 const HeroList: React.FC = observer(() => {
-  const guildStore = container.resolve(GuildStore);
-
-  useEffect(() => {
-    console.log(toJS(guildStore.heroes))
-  }, [guildStore])
+  const guildStore = useMemo(() => container.resolve(GuildStore), []);
 
   const getQuestTitle = (questId: string | null) => {
     if (!questId) return '—';
