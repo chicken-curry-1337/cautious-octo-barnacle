@@ -1,0 +1,16 @@
+.create-user {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 300px;
+    gap: 10px;
+}
+
+.create-user-field {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 5px;
+}

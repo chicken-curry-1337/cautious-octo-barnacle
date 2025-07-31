@@ -1,0 +1,72 @@
+/* QuestList.module.css */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.title {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #444;
+  text-align: center;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin-top: 40px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.card p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.card strong {
+  color: #222;
+}
+
+.card ul {
+  list-style: disc inside;
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  font-size: 14px;
+}
+
+.card ul li {
+  margin-bottom: 4px;
+}
+

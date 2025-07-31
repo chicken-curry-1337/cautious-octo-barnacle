@@ -1,0 +1,34 @@
+.DialogWindow {
+  background-color: #e2b27e;
+  border: solid;
+  border-image: url('/borderbox_simple.png') 25 / 10px 10px 10px 10px stretch;
+  padding: 15px;
+  width: 300px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.dialogTitle {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.DialogMessage {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.dialogFooter {
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 15px;
+  text-align: right;
+  color: #333;
+}
+
+.dialogFooter:hover {
+  color: #000;
+  text-decoration: underline;
+}
