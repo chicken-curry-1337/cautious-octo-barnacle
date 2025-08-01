@@ -4,7 +4,6 @@ import { DialogueStore } from '../Dialogue/Dialogue.store';
 import introDialogue from '../../assets/dialogues/introDialogue';
 import questDialogue from '../../assets/dialogues/questDialogue';
 
-
 @singleton()
 export class TimeStore {
   currentDay = 1;
@@ -15,13 +14,13 @@ export class TimeStore {
     reaction(
       () => this.currentDay,
       (day) => {
-        console.log(introDialogue)
+        console.log(introDialogue);
         if (day === 3) {
-            console.log(1)
-            this.dialogueStore.startDialogue(introDialogue);
+          console.log(1);
+          this.dialogueStore.startDialogue(introDialogue);
         }
         if (day === 5) {
-            this.dialogueStore.startDialogue(questDialogue);
+          this.dialogueStore.startDialogue(questDialogue);
         }
       }
     );
@@ -29,5 +28,5 @@ export class TimeStore {
 
   nextDay = () => {
     this.currentDay++;
-  }
+  };
 }

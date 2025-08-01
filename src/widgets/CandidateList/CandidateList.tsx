@@ -33,21 +33,25 @@ const CandidateList = observer(() => {
   return (
     <div className={styles.list}>
       <h3>Кандидаты на найм</h3>
-      {guildStore.candidates.map(hero => {
+      {guildStore.candidates.map((hero) => {
         const canAfford = financeStore.canAffordGold(hero.recruitCost);
 
-        console.log({canAfford})
+        console.log({ canAfford });
 
         return (
           <div key={hero.id} className={styles.card}>
             <div>
-              <strong>{hero.name}</strong> (ур. {hero.level}) — <em>{typeEmojis[hero.type]} {hero.type}</em> — исчезнет через {hero.daysRemaining} дн.
+              <strong>{hero.name}</strong> (ур. {hero.level}) —{' '}
+              <em>
+                {typeEmojis[hero.type]} {hero.type}
+              </em>{' '}
+              — исчезнет через {hero.daysRemaining} дн.
             </div>
             <div className="stats">
               💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
             </div>
             <p className={styles.minStake}>
-                Минимальная ставка: <strong>{hero.minStake} золота</strong>
+              Минимальная ставка: <strong>{hero.minStake} золота</strong>
             </p>
             <p className={styles[getDescriptionClass(hero.type)]}>
               {hero.description}
@@ -55,7 +59,7 @@ const CandidateList = observer(() => {
             <div className={styles.recruitCost}>💰 {hero.recruitCost}</div>
             <button
               onClick={() => canAfford && guildStore.hireCandidate(hero.id)}
-              className={`${styles.hire} ${canAfford ? '' : styles.hireDisabled }`}
+              className={`${styles.hire} ${canAfford ? '' : styles.hireDisabled}`}
               disabled={!canAfford}
             >
               Нанять

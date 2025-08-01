@@ -1,18 +1,18 @@
-import { makeAutoObservable } from "mobx";
-import { UserStore } from "../../entities/User/User.store";
-import { GameScreen } from "./Game.enum";
+import { makeAutoObservable } from 'mobx';
+import { UserStore } from '../../entities/User/User.store';
+import { GameScreen } from './Game.enum';
 
 export class GameStore {
-    userStore: UserStore;
-    gameScreen: keyof typeof GameScreen = GameScreen.UserCreation;
+  userStore: UserStore;
+  gameScreen: keyof typeof GameScreen = GameScreen.UserCreation;
 
-    constructor() {
-        this.userStore = new UserStore();
+  constructor() {
+    this.userStore = new UserStore();
 
-        makeAutoObservable(this);
-    }
+    makeAutoObservable(this);
+  }
 
-    setGameScreen = (gameScreen: keyof typeof GameScreen) => {
-        this.gameScreen = gameScreen;
-    }
+  setGameScreen = (gameScreen: keyof typeof GameScreen) => {
+    this.gameScreen = gameScreen;
+  };
 }

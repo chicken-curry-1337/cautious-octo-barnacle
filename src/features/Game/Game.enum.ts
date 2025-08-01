@@ -1,5 +1,5 @@
 export const enum GameScreen {
-    UserCreation = 'UserCreation',
-    UserCreationDone = 'UserCreationDone',
-    Game = 'Game'
+  UserCreation = 'UserCreation',
+  UserCreationDone = 'UserCreationDone',
+  Game = 'Game',
 }

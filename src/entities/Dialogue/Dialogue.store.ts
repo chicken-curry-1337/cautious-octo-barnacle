@@ -1,5 +1,5 @@
-import { makeAutoObservable } from "mobx";
-import { singleton } from "tsyringe";
+import { makeAutoObservable } from 'mobx';
+import { singleton } from 'tsyringe';
 
 export interface Character {
   id: string;
@@ -33,23 +33,25 @@ export class DialogueStore {
     makeAutoObservable(this);
   }
 
-  startDialogue = (dialogueData: DialogueData, startId = "start") => {
+  startDialogue = (dialogueData: DialogueData, startId = 'start') => {
     this.dialogueData = dialogueData;
     this.currentId = startId;
-  }
+  };
 
   setCurrentId = (id: string) => {
     this.currentId = id;
-  }
+  };
 
   clearDialogue = () => {
     this.dialogueData = null;
     this.currentId = null;
-  }
+  };
 
-   get currentNode() {
+  get currentNode() {
     if (!this.dialogueData) return null;
-    return this.dialogueData.nodes.find((node) => node.id === this.currentId) ?? null;
+    return (
+      this.dialogueData.nodes.find((node) => node.id === this.currentId) ?? null
+    );
   }
 
   get characters() {

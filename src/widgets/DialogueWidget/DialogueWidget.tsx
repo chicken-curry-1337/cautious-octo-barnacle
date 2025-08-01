@@ -1,8 +1,8 @@
-import styles from "./DialogueWidget.module.css";
-import { DialogueStore } from "../../entities/Dialogue/Dialogue.store";
-import { useMemo } from "react";
-import { container } from "tsyringe";
-import { observer } from "mobx-react-lite";
+import styles from './DialogueWidget.module.css';
+import { DialogueStore } from '../../entities/Dialogue/Dialogue.store';
+import { useMemo } from 'react';
+import { container } from 'tsyringe';
+import { observer } from 'mobx-react-lite';
 
 export const DialogueWidget = observer(() => {
   const dialogueStore = useMemo(() => container.resolve(DialogueStore), []);
@@ -35,7 +35,9 @@ export const DialogueWidget = observer(() => {
               alt={char.name}
               title={char.name}
               className={`${styles.characterImg} ${
-                isActive ? styles.characterImgActive : styles.characterImgInactive
+                isActive
+                  ? styles.characterImgActive
+                  : styles.characterImgInactive
               }`}
             />
           );
@@ -45,13 +47,15 @@ export const DialogueWidget = observer(() => {
       <div
         className={styles.text}
         onClick={handleDialogueClick}
-        style={{ cursor: currentNode.options.length <= 1 ? "pointer" : "default" }}
+        style={{
+          cursor: currentNode.options.length <= 1 ? 'pointer' : 'default',
+        }}
         title={
           currentNode.options.length === 1
-            ? "Клик для продолжения"
+            ? 'Клик для продолжения'
             : currentNode.options.length === 0
-            ? "Клик для закрытия диалога"
-            : undefined
+              ? 'Клик для закрытия диалога'
+              : undefined
         }
       >
         {currentNode.text}

@@ -1,6 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import styles from './QuestCard.module.css';
-import { GuildStore, QuestStatus, type Hero, type Quest } from '../../entities/Guild/Guild.store';
+import {
+  GuildStore,
+  QuestStatus,
+  type Hero,
+  type Quest,
+} from '../../entities/Guild/Guild.store';
 import { container } from 'tsyringe';
 import { observer } from 'mobx-react-lite';
 
@@ -11,161 +16,202 @@ interface QuestCardProps {
   onStart: (questId: string) => void;
 }
 
-const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAssign, onStart }) => {
-  // Получаем стор ОДИН раз — useMemo не нужен
-  const guildStore = container.resolve(GuildStore);
+const QuestCard: React.FC<QuestCardProps> = observer(
+  ({ quest, currentDay, onAssign, onStart }) => {
+    // Получаем стор ОДИН раз — useMemo не нужен
+    const guildStore = container.resolve(GuildStore);
 
-  // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
-  const { heroes } = guildStore;
+    // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
+    const { heroes } = guildStore;
 
-  const [selectedHeroes, setSelectedHeroes] = useState<string[]>([]);
+    const [selectedHeroes, setSelectedHeroes] = useState<string[]>([]);
 
-  const toggleHero = (id: string) => {
-    setSelectedHeroes(prev =>
-      prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id]
+    const toggleHero = (id: string) => {
+      setSelectedHeroes((prev) =>
+        prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]
+      );
+    };
+
+    const assignedHeroes = quest.assignedHeroIds
+      .map((id) => heroes.find((h) => h.id === id))
+      .filter(Boolean) as Hero[];
+
+    const totalStrength = assignedHeroes.reduce(
+      (sum, h) => sum + h.strength,
+      0
     );
-  };
+    const totalAgility = assignedHeroes.reduce((sum, h) => sum + h.agility, 0);
+    const totalIntelligence = assignedHeroes.reduce(
+      (sum, h) => sum + h.intelligence,
+      0
+    );
 
-  const assignedHeroes = quest.assignedHeroIds
-    .map(id => heroes.find(h => h.id === id))
-    .filter(Boolean) as Hero[];
+    const daysLeft = quest.deadlineDay - currentDay;
 
-  const totalStrength = assignedHeroes.reduce((sum, h) => sum + h.strength, 0);
-  const totalAgility = assignedHeroes.reduce((sum, h) => sum + h.agility, 0);
-  const totalIntelligence = assignedHeroes.reduce((sum, h) => sum + h.intelligence, 0);
+    const status = useMemo(() => {
+      if (quest.status === QuestStatus.NotStarted) return 'Ожидает';
+      if (quest.status === QuestStatus.InProgress) return 'В процессе';
+      if (quest.status === QuestStatus.FailedDeadline) return 'Просрочено';
+      if (quest.status === QuestStatus.CompletedFail) return 'Неуспешно';
+      return 'Выполнено';
+    }, [quest.status]);
 
-  const daysLeft = quest.deadlineDay - currentDay;
+    const availableHeroes = heroes.filter(
+      (h) => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null
+    );
 
-  const status = useMemo(() => {
-    if (quest.status === QuestStatus.NotStarted) return 'Ожидает';
-    if (quest.status === QuestStatus.InProgress) return 'В процессе';
-    if (quest.status === QuestStatus.FailedDeadline) return 'Просрочено';
-    if (quest.status === QuestStatus.CompletedFail) return 'Неуспешно';
-    return 'Выполнено';
-  }, [quest.status]);
+    const successChance = useMemo(
+      () => guildStore.getQuestSuccessChance(quest.id, selectedHeroes),
+      [guildStore, quest.id, selectedHeroes]
+    );
 
-  const availableHeroes = heroes.filter(h => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null);
-
-  const successChance = useMemo(() => guildStore.getQuestSuccessChance(quest.id, selectedHeroes), [guildStore, quest.id, selectedHeroes]);
-
-  // Функция для цвета прогресса по шансу успеха
-  const getProgressColor = (percent: number) => {
-    if (percent < 40) return '#e53935'; // красный
-    if (percent < 70) return '#fbc02d'; // жёлтый
-    return '#43a047'; // зелёный
-  };
+    // Функция для цвета прогресса по шансу успеха
+    const getProgressColor = (percent: number) => {
+      if (percent < 40) return '#e53935'; // красный
+      if (percent < 70) return '#fbc02d'; // жёлтый
+      return '#43a047'; // зелёный
+    };
 
     const availableHeroesCommission = useMemo(() => {
-        if (quest.status === QuestStatus.NotStarted) return availableHeroes.filter(h => selectedHeroes.includes(h.id)).reduce((sum, h) => sum + (h.minStake ?? 0), 0);
-        return assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0)
+      if (quest.status === QuestStatus.NotStarted)
+        return availableHeroes
+          .filter((h) => selectedHeroes.includes(h.id))
+          .reduce((sum, h) => sum + (h.minStake ?? 0), 0);
+      return assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0);
     }, [assignedHeroes, availableHeroes, quest.status, selectedHeroes]);
 
     const guildProfit = quest.reward - availableHeroesCommission;
 
-  return (
-    <li className={styles.card}>
-      <h3>{quest.title}</h3>
-      <p>
-        {quest.status === QuestStatus.NotStarted && quest.description}
-        {quest.status === QuestStatus.CompletedSuccess && quest.successResult}
-        {quest.status === QuestStatus.CompletedFail && quest.failResult}
-        {quest.status === QuestStatus.FailedDeadline && quest.deadlineResult}
-        </p>
-      {(quest.status === QuestStatus.NotStarted || quest.status === QuestStatus.InProgress) && <p>Дедлайн: {daysLeft >= 0 ? `через ${daysLeft} дн.` : `просрочено на ${-daysLeft} дн.`}</p>}
-      <p>Статус: <strong>{status}</strong></p>
-
-      <p>
-        Награда: <span className={styles.reward}>💰 {quest.reward} золота</span>
-    </p>
-
+    return (
+      <li className={styles.card}>
+        <h3>{quest.title}</h3>
         <p>
-        Комиссия героев: <span>{availableHeroesCommission} золота</span>
+          {quest.status === QuestStatus.NotStarted && quest.description}
+          {quest.status === QuestStatus.CompletedSuccess && quest.successResult}
+          {quest.status === QuestStatus.CompletedFail && quest.failResult}
+          {quest.status === QuestStatus.FailedDeadline && quest.deadlineResult}
         </p>
-
-        <p>
-        Итоговая выгода гильдии:{' '}
-        <span
-            style={{ color: guildProfit >= 0 ? '#43a047' : '#e53935', fontWeight: '600' }}
-        >
-            {guildProfit} золота
-        </span>
-        </p>
-
-      {quest.status === QuestStatus.NotStarted && <div className={styles.successChance}>
-        <strong>Шанс успеха:</strong>
-        <div className={styles.progressBar}>
-          <div
-            className={styles.progressFill}
-            style={{ width: `${successChance}%`, backgroundColor: getProgressColor(successChance) }}
-            title={`${successChance}%`}
-          />
-        </div>
-        <span>{successChance}%</span>
-      </div>}
-
-      <div>
-        <strong>Назначенные герои:</strong>
-        {assignedHeroes.length === 0 ? (
-          <span> — нет</span>
-        ) : (
-          <ul className={styles.assignedHeroesList}>
-            {assignedHeroes.map(hero => (
-              <li key={hero.id}>
-                {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
-              </li>
-            ))}
-          </ul>
+        {(quest.status === QuestStatus.NotStarted ||
+          quest.status === QuestStatus.InProgress) && (
+          <p>
+            Дедлайн:{' '}
+            {daysLeft >= 0
+              ? `через ${daysLeft} дн.`
+              : `просрочено на ${-daysLeft} дн.`}
+          </p>
         )}
-      </div>
+        <p>
+          Статус: <strong>{status}</strong>
+        </p>
 
-      <div>
-        <strong>Требования по статам:</strong> 💪 {quest.requiredStrength} | 🎯 {quest.requiredAgility} | 🧠 {quest.requiredIntelligence}
-      </div>
+        <p>
+          Награда:{' '}
+          <span className={styles.reward}>💰 {quest.reward} золота</span>
+        </p>
 
-      <div>
-        <strong>Суммарные статы героев:</strong> 💪 {totalStrength} | 🎯 {totalAgility} | 🧠 {totalIntelligence}
-      </div>
+        <p>
+          Комиссия героев: <span>{availableHeroesCommission} золота</span>
+        </p>
 
-      {quest.status === QuestStatus.NotStarted && <div className={styles.heroSelector}>
-        <strong>Доступные герои для назначения:</strong>
-            {availableHeroes.length === 0 ? (
-            <p>Нет доступных героев</p>
-            ) : (
-            <ul className={styles.heroList}>
-                {availableHeroes.map(hero => (
+        <p>
+          Итоговая выгода гильдии:{' '}
+          <span
+            style={{
+              color: guildProfit >= 0 ? '#43a047' : '#e53935',
+              fontWeight: '600',
+            }}
+          >
+            {guildProfit} золота
+          </span>
+        </p>
+
+        {quest.status === QuestStatus.NotStarted && (
+          <div className={styles.successChance}>
+            <strong>Шанс успеха:</strong>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{
+                  width: `${successChance}%`,
+                  backgroundColor: getProgressColor(successChance),
+                }}
+                title={`${successChance}%`}
+              />
+            </div>
+            <span>{successChance}%</span>
+          </div>
+        )}
+
+        <div>
+          <strong>Назначенные герои:</strong>
+          {assignedHeroes.length === 0 ? (
+            <span> — нет</span>
+          ) : (
+            <ul className={styles.assignedHeroesList}>
+              {assignedHeroes.map((hero) => (
                 <li key={hero.id}>
+                  {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯{' '}
+                  {hero.agility} | 🧠 {hero.intelligence}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <strong>Требования по статам:</strong> 💪 {quest.requiredStrength} |
+          🎯 {quest.requiredAgility} | 🧠 {quest.requiredIntelligence}
+        </div>
+
+        <div>
+          <strong>Суммарные статы героев:</strong> 💪 {totalStrength} | 🎯{' '}
+          {totalAgility} | 🧠 {totalIntelligence}
+        </div>
+
+        {quest.status === QuestStatus.NotStarted && (
+          <div className={styles.heroSelector}>
+            <strong>Доступные герои для назначения:</strong>
+            {availableHeroes.length === 0 ? (
+              <p>Нет доступных героев</p>
+            ) : (
+              <ul className={styles.heroList}>
+                {availableHeroes.map((hero) => (
+                  <li key={hero.id}>
                     <label>
-                    <input
+                      <input
                         type="checkbox"
                         checked={selectedHeroes.includes(hero.id)}
                         onChange={() => toggleHero(hero.id)}
-                    />
-                    {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
+                      />
+                      {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯{' '}
+                      {hero.agility} | 🧠 {hero.intelligence}
                     </label>
-                </li>
+                  </li>
                 ))}
-            </ul>
+              </ul>
             )}
-        </div>}
+          </div>
+        )}
 
-      <button
-        className={styles.assignBtn}
-        disabled={selectedHeroes.length === 0}
-        onClick={() => {
-          onAssign(quest.id, selectedHeroes);
-          setSelectedHeroes([]);
-        }}
-      >
-        Назначить героев
-      </button>
-
-      {!quest.completed && (
-        <button className={styles.startBtn} onClick={() => onStart(quest.id)}>
-          Начать выполнение
+        <button
+          className={styles.assignBtn}
+          disabled={selectedHeroes.length === 0}
+          onClick={() => {
+            onAssign(quest.id, selectedHeroes);
+            setSelectedHeroes([]);
+          }}
+        >
+          Назначить героев
         </button>
-      )}
-    </li>
-  );
-});
+
+        {!quest.completed && (
+          <button className={styles.startBtn} onClick={() => onStart(quest.id)}>
+            Начать выполнение
+          </button>
+        )}
+      </li>
+    );
+  }
+);
 
 export default QuestCard;

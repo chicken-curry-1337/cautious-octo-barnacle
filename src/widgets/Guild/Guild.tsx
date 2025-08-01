@@ -25,20 +25,20 @@ export const Guild = observer(() => {
         placeholder="Название"
         className={styles.input}
         value={title}
-        onChange={e => setTitle(e.target.value)}
+        onChange={(e) => setTitle(e.target.value)}
       />
       <textarea
         placeholder="Описание"
         className={styles.textarea}
         value={description}
-        onChange={e => setDescription(e.target.value)}
+        onChange={(e) => setDescription(e.target.value)}
       />
       <input
         type="number"
         placeholder="Награда"
         className={styles.input}
         value={reward}
-        onChange={e => setReward(Number(e.target.value))}
+        onChange={(e) => setReward(Number(e.target.value))}
       />
       <button
         onClick={() => {

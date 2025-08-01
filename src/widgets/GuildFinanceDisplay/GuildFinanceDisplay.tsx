@@ -9,14 +9,17 @@ const GuildFinanceDisplay = observer(() => {
 
   return (
     <div className={styles['guild-finance-display']}>
-      <p>💰 Золото: <span>{financeStore.gold}</span></p>
+      <p>
+        💰 Золото: <span>{financeStore.gold}</span>
+      </p>
 
       {Object.entries(financeStore.resources).map(([resource, amount]) => (
         <p key={resource}>
           {resource === 'wood' && '🪵'}
           {resource === 'iron' && '🪓'}
           {resource === 'herbs' && '🌿'}
-          {resource.charAt(0).toUpperCase() + resource.slice(1)}: <span>{amount}</span>
+          {resource.charAt(0).toUpperCase() + resource.slice(1)}:{' '}
+          <span>{amount}</span>
         </p>
       ))}
     </div>

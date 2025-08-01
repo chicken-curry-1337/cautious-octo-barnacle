@@ -1,7 +1,7 @@
 import { makeAutoObservable, reaction, runInAction, toJS } from 'mobx';
-import { TimeStore } from '../TimeStore/TimeStore';
 import { inject, singleton } from 'tsyringe';
 import { GuildFinanceStore } from '../Finance/Finance.store';
+import { TimeStore } from '../TimeStore/TimeStore';
 
 // Типы героя
 export type HeroType = 'warrior' | 'mage' | 'rogue';
@@ -17,7 +17,7 @@ export interface Hero {
   intelligence: number;
   type: HeroType;
   description: string;
-   minStake: number;
+  minStake: number;
 }
 
 export interface RecruitCandidate extends Hero {
@@ -26,12 +26,12 @@ export interface RecruitCandidate extends Hero {
 }
 
 export enum QuestStatus {
-    NotStarted = 'NotStarted',
-    InProgress = 'InProgress',
-    CompletedSuccess = 'CompletedSuccess',
-    CompletedFail = 'CompletedFail',
-    FailedDeadline = 'FailedDeadline',
-    Cancelled = 'Cancelled', // если понадобится
+  NotStarted = 'NotStarted',
+  InProgress = 'InProgress',
+  CompletedSuccess = 'CompletedSuccess',
+  CompletedFail = 'CompletedFail',
+  FailedDeadline = 'FailedDeadline',
+  Cancelled = 'Cancelled', // если понадобится
 }
 
 export interface Quest {
@@ -58,69 +58,77 @@ export class GuildStore {
   quests: Quest[] = [];
   candidates: RecruitCandidate[] = [];
   funnyDescriptionsByType: Record<HeroType, string[]> = {
-  warrior: [
-    'Думает, что его меч — это волшебная палочка, только громче и тяжелее.',
-    'Считает, что шлем — лучший аксессуар для стильного образа в бою.',
-    'Может пробежать марафон, но предпочитает остановиться у ближайшей таверны.',
-    'Любит рассказывать истории, которые начинаются с "А вот когда я один раз...".',
-    'Его любимая поза — стоять и смотреть в даль, чтобы все подумали, что он о чём-то важном задумался.',
-  ],
-  mage: [
-    'Верит, что книга заклинаний — лучшее чтение перед сном.',
-    'Любит эксперименты с огненной магией, но только на безопасном расстоянии.',
-    'Всегда находит способ объяснить, почему магия — это не просто фокусы.',
-    'Никогда не выходит из дома без своего любимого амулета удачи.',
-    'Может приготовить зелье, которое улучшит настроение на весь день.',
-  ],
-  rogue: [
-    'Мастер скрытности, который иногда забывает, куда спрятал ключи.',
-    'Ловко крадёт внимание, а потом карманы — в таком порядке.',
-    'Лучший друг в споре — быстрые ноги и чувство юмора.',
-    'Любит шутить, что у него девять жизней, и он уже потратил восемь.',
-    'Умеет исчезать так быстро, что даже его тень теряется.',
-  ],
-};
+    warrior: [
+      'Думает, что его меч — это волшебная палочка, только громче и тяжелее.',
+      'Считает, что шлем — лучший аксессуар для стильного образа в бою.',
+      'Может пробежать марафон, но предпочитает остановиться у ближайшей таверны.',
+      'Любит рассказывать истории, которые начинаются с "А вот когда я один раз...".',
+      'Его любимая поза — стоять и смотреть в даль, чтобы все подумали, что он о чём-то важном задумался.',
+    ],
+    mage: [
+      'Верит, что книга заклинаний — лучшее чтение перед сном.',
+      'Любит эксперименты с огненной магией, но только на безопасном расстоянии.',
+      'Всегда находит способ объяснить, почему магия — это не просто фокусы.',
+      'Никогда не выходит из дома без своего любимого амулета удачи.',
+      'Может приготовить зелье, которое улучшит настроение на весь день.',
+    ],
+    rogue: [
+      'Мастер скрытности, который иногда забывает, куда спрятал ключи.',
+      'Ловко крадёт внимание, а потом карманы — в таком порядке.',
+      'Лучший друг в споре — быстрые ноги и чувство юмора.',
+      'Любит шутить, что у него девять жизней, и он уже потратил восемь.',
+      'Умеет исчезать так быстро, что даже его тень теряется.',
+    ],
+  };
 
-
-  constructor(@inject(TimeStore) public timeStore: TimeStore, @inject(GuildFinanceStore) public financeStore: GuildFinanceStore) {
+  constructor(
+    @inject(TimeStore) public timeStore: TimeStore,
+    @inject(GuildFinanceStore) public financeStore: GuildFinanceStore
+  ) {
     makeAutoObservable(this);
 
-    reaction(() => this.timeStore.currentDay, () => {
+    reaction(
+      () => this.timeStore.currentDay,
+      () => {
         this.onNextDay();
-    })
+      }
+    );
 
-    reaction(() => this.heroes, (heroes) => {
+    reaction(
+      () => this.heroes,
+      (heroes) => {
         runInAction(() => {
-            console.log({heroes: toJS(heroes)});
-        })
-    })
+          console.log({ heroes: toJS(heroes) });
+        });
+      }
+    );
   }
 
- createHero = (name: string, type: HeroType) => {
-  const stats = this.generateRandomStats(type);
-  const level = 1;
-  const minStake = this.calculateMinStake(level, type);
+  createHero = (name: string, type: HeroType) => {
+    const stats = this.generateRandomStats(type);
+    const level = 1;
+    const minStake = this.calculateMinStake(level, type);
 
-  const newHero: Hero = {
-    id: crypto.randomUUID(),
-    name,
-    type,
-    level,
-    assignedQuestId: null,
-    ...stats,
-    minStake,
+    const newHero: Hero = {
+      id: crypto.randomUUID(),
+      name,
+      type,
+      level,
+      assignedQuestId: null,
+      ...stats,
+      minStake,
+    };
+    this.heroes.push(newHero);
   };
-  this.heroes.push(newHero);
-}
 
-  createQuest = (title: string, description: string, reward?: number) =>{
-  const questReward = reward ?? this.randomInRange(50, 150);
-  const deadlineDay = this.timeStore.currentDay + this.randomInRange(3, 5);
+  createQuest = (title: string, description: string, reward?: number) => {
+    const questReward = reward ?? this.randomInRange(50, 150);
+    const deadlineDay = this.timeStore.currentDay + this.randomInRange(3, 5);
 
-  // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
-  const requiredStrength = this.randomInRange(5, 15);
-  const requiredAgility = this.randomInRange(5, 15);
-  const requiredIntelligence = this.randomInRange(5, 15);
+    // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
+    const requiredStrength = this.randomInRange(5, 15);
+    const requiredAgility = this.randomInRange(5, 15);
+    const requiredIntelligence = this.randomInRange(5, 15);
     const newQuest: Quest = {
       id: crypto.randomUUID(),
       title,
@@ -128,99 +136,104 @@ export class GuildStore {
       reward: questReward,
       assignedHeroIds: [],
       completed: false,
-    requiredStrength,
-     requiredAgility,
-     requiredIntelligence,
-    deadlineDay,
-    status: QuestStatus.NotStarted
+      requiredStrength,
+      requiredAgility,
+      requiredIntelligence,
+      deadlineDay,
+      status: QuestStatus.NotStarted,
     };
     this.quests.push(newQuest);
-  }
+  };
 
   assignHeroToQuest = (heroId: string, questId: string) => {
-  const hero = this.heroes.find(h => h.id === heroId);
-  const quest = this.quests.find(q => q.id === questId);
-  if (hero && quest && !quest.completed) {
-    // Проверяем, что герой не назначен на другой квест
-    if (hero.assignedQuestId && hero.assignedQuestId !== questId) {
-      // Герой уже занят другим квестом — не назначаем
-      return false;
-    }
+    const hero = this.heroes.find((h) => h.id === heroId);
+    const quest = this.quests.find((q) => q.id === questId);
+    if (hero && quest && !quest.completed) {
+      // Проверяем, что герой не назначен на другой квест
+      if (hero.assignedQuestId && hero.assignedQuestId !== questId) {
+        // Герой уже занят другим квестом — не назначаем
+        return false;
+      }
 
-    // Если герой уже назначен на этот квест, ничего не меняем
-    if (hero.assignedQuestId === questId) {
+      // Если герой уже назначен на этот квест, ничего не меняем
+      if (hero.assignedQuestId === questId) {
+        return true;
+      }
+
+      hero.assignedQuestId = questId;
+      quest.assignedHeroIds.push(heroId);
+      quest.status = QuestStatus.InProgress;
       return true;
     }
-
-    hero.assignedQuestId = questId;
-    quest.assignedHeroIds.push(heroId);
-    quest.status = QuestStatus.InProgress;
-    return true;
-  }
-  return false;
-}
+    return false;
+  };
 
   assignHeroesToQuest = (heroes: string[], questId: string) => {
     // todo: добавить итоговую комиссию в квест, потому что после квеста может измениться уровень героев, что сломает комиссию в результате
     heroes.forEach((hero) => this.assignHeroToQuest(hero, questId));
-  }
+  };
 
   increaseHeroLevel = (hero: Hero) => {
-  hero.assignedQuestId = null;
-  hero.level += 1;
+    hero.assignedQuestId = null;
+    hero.level += 1;
 
-  switch (hero.type) {
-    case 'warrior':
-      hero.strength += 3;
-      hero.agility += 1;
-      hero.intelligence += 1;
-      break;
-    case 'mage':
-      hero.strength += 1;
-      hero.agility += 1;
-      hero.intelligence += 3;
-      break;
-    case 'rogue':
-      hero.strength += 1;
-      hero.agility += 3;
-      hero.intelligence += 1;
-      break;
-  }
+    switch (hero.type) {
+      case 'warrior':
+        hero.strength += 3;
+        hero.agility += 1;
+        hero.intelligence += 1;
+        break;
+      case 'mage':
+        hero.strength += 1;
+        hero.agility += 1;
+        hero.intelligence += 3;
+        break;
+      case 'rogue':
+        hero.strength += 1;
+        hero.agility += 3;
+        hero.intelligence += 1;
+        break;
+    }
 
-  hero.minStake = this.calculateMinStake(hero.level, hero.type);
-}
+    hero.minStake = this.calculateMinStake(hero.level, hero.type);
+  };
 
   completeQuest = (questId: string) => {
-  const quest = this.quests.find(q => q.id === questId);
-  if (quest && !quest.completed) {
-    quest.status = QuestStatus.CompletedSuccess;
+    const quest = this.quests.find((q) => q.id === questId);
+    if (quest && !quest.completed) {
+      quest.status = QuestStatus.CompletedSuccess;
 
-    const assignedHeroes = this.heroes.filter(h => quest.assignedHeroIds.includes(h.id));
-    const totalMinStake = assignedHeroes.reduce((sum, hero) => sum + hero.minStake, 0);
-    const reward = quest.reward;
+      const assignedHeroes = this.heroes.filter((h) =>
+        quest.assignedHeroIds.includes(h.id)
+      );
+      const totalMinStake = assignedHeroes.reduce(
+        (sum, hero) => sum + hero.minStake,
+        0
+      );
+      const reward = quest.reward;
 
-    if (reward >= totalMinStake) {
-      const guildProfit = reward - totalMinStake;
-      this.financeStore.addGold(guildProfit);
-    } else {
-      const shortage = totalMinStake - reward;
-      if (this.financeStore.canAffordGold(shortage)) {
-        this.financeStore.spendGold(shortage);
+      if (reward >= totalMinStake) {
+        const guildProfit = reward - totalMinStake;
+        this.financeStore.addGold(guildProfit);
       } else {
-        const affordableShortage = Math.min(shortage, this.financeStore.gold);
-        this.financeStore.spendGold(affordableShortage);
-        console.warn('Гильдия не может полностью покрыть ставки героев!');
+        const shortage = totalMinStake - reward;
+        if (this.financeStore.canAffordGold(shortage)) {
+          this.financeStore.spendGold(shortage);
+        } else {
+          const affordableShortage = Math.min(shortage, this.financeStore.gold);
+          this.financeStore.spendGold(affordableShortage);
+          console.warn('Гильдия не может полностью покрыть ставки героев!');
+        }
+      }
+
+      for (const hero of assignedHeroes) {
+        this.increaseHeroLevel(hero);
+        hero.assignedQuestId = null;
       }
     }
+  };
 
-    for (const hero of assignedHeroes) {
-      this.increaseHeroLevel(hero);
-      hero.assignedQuestId = null;
-    }
-  }
-}
-
-  generateRandomStats =(type: HeroType) =>{
+  generateRandomStats = (type: HeroType) => {
     switch (type) {
       case 'warrior':
         return {
@@ -241,95 +254,106 @@ export class GuildStore {
           intelligence: this.randomBetween(2, 5),
         };
     }
-  }
+  };
 
   randomBetween = (min: number, max: number) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+  };
 
   onNextDay = () => {
-  // Обновляем срок действия кандидатов
-  this.candidates = this.candidates
-    .map(c => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
-    .filter(c => c.daysRemaining > 0);
+    // Обновляем срок действия кандидатов
+    this.candidates = this.candidates
+      .map((c) => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
+      .filter((c) => c.daysRemaining > 0);
 
-  // Проверяем задания с дедлайном — выполнить или удалить
-  this.quests = this.quests.filter(quest => {
-    if (quest.status === QuestStatus.CompletedSuccess) return true; // Уже выполнено — оставляем
+    // Проверяем задания с дедлайном — выполнить или удалить
+    this.quests = this.quests.filter((quest) => {
+      if (quest.status === QuestStatus.CompletedSuccess) return true; // Уже выполнено — оставляем
 
-    if (this.timeStore.currentDay > quest.deadlineDay) {
-      // Дедлайн прошёл — проверяем героев
-      const assignedHeroes = this.heroes.filter(h => quest.assignedHeroIds.includes(h.id));
-      
-      if (assignedHeroes.length === 0) {
-        quest.status = QuestStatus.FailedDeadline;
-        // Задание провалено из-за отсутствия героев — удаляем задание
-        if (this.timeStore.currentDay > quest.deadlineDay + 2) {
+      if (this.timeStore.currentDay > quest.deadlineDay) {
+        // Дедлайн прошёл — проверяем героев
+        const assignedHeroes = this.heroes.filter((h) =>
+          quest.assignedHeroIds.includes(h.id)
+        );
+
+        if (assignedHeroes.length === 0) {
+          quest.status = QuestStatus.FailedDeadline;
+          // Задание провалено из-за отсутствия героев — удаляем задание
+          if (this.timeStore.currentDay > quest.deadlineDay + 2) {
             return false;
+          }
+
+          return true;
         }
 
+        // Проверяем требования
+        const chance = this.getQuestSuccessChance(quest.id);
+        const roll = Math.random() * 100;
+        const success = roll <= chance;
+
+        if (success) {
+          quest.status = QuestStatus.CompletedSuccess;
+          const heroComission = assignedHeroes.reduce(
+            (sum, h) => sum + (h.minStake ?? 0),
+            0
+          );
+          console.log(`hero comission: ${heroComission}`);
+          this.financeStore.addGold(quest.reward - heroComission);
+          assignedHeroes.forEach((h) => this.increaseHeroLevel(h));
+          console.log(`hero comission: ${heroComission}`);
+        } else {
+          quest.status = QuestStatus.CompletedFail;
+        }
         return true;
       }
 
-      // Проверяем требования
-    const chance = this.getQuestSuccessChance(quest.id);
-    const roll = Math.random() * 100;
-    const success = roll <= chance;
-
-    if (success) {
-        quest.status = QuestStatus.CompletedSuccess;
-        const heroComission = assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0)
-        console.log(`hero comission: ${heroComission}`)
-        this.financeStore.addGold(quest.reward - heroComission);
-        assignedHeroes.forEach(h => this.increaseHeroLevel(h));
-        console.log(`hero comission: ${heroComission}`)
-    } else {
-        quest.status = QuestStatus.CompletedFail;
-    }
-      return true;
-    }
-
-    return true; // Если дедлайн ещё не наступил — задание остаётся
-  });
-
-  const CANDIDATE_LENGTH_MAX = 5;
-  const CANDIDATE_GENERATE_COUNT = 5;
-
-   if (this.candidates.length < CANDIDATE_LENGTH_MAX) {
-    // Генерация новых кандидатов
-    const newHeroesCount = Math.floor(Math.random() * (CANDIDATE_GENERATE_COUNT - this.candidates.length));
-    for (let i = 0; i < newHeroesCount; i++) {
-      const name = this.generateRandomName();
-      const type = this.generateRandomHeroType();
-      const stats = this.generateRandomStats(type);
-      const recruitCost = this.calculateRecruitCost(stats);
-      const minStake = this.calculateMinStake(1, type); // у новичка уровень 1
-      const description = this.funnyDescriptionsByType[type][Math.floor(Math.random() * this.funnyDescriptionsByType[type].length)];
-
-    this.candidates.push({
-        id: crypto.randomUUID(),
-        name,
-        type,
-        level: 1,
-        assignedQuestId: null,
-        daysRemaining: 5,
-        recruitCost,
-        description,
-        minStake,
-        ...stats,
+      return true; // Если дедлайн ещё не наступил — задание остаётся
     });
-    }
 
-   }
+    const CANDIDATE_LENGTH_MAX = 5;
+    const CANDIDATE_GENERATE_COUNT = 5;
+
+    if (this.candidates.length < CANDIDATE_LENGTH_MAX) {
+      // Генерация новых кандидатов
+      const newHeroesCount = Math.floor(
+        Math.random() * (CANDIDATE_GENERATE_COUNT - this.candidates.length)
+      );
+      for (let i = 0; i < newHeroesCount; i++) {
+        const name = this.generateRandomName();
+        const type = this.generateRandomHeroType();
+        const stats = this.generateRandomStats(type);
+        const recruitCost = this.calculateRecruitCost(stats);
+        const minStake = this.calculateMinStake(1, type); // у новичка уровень 1
+        const description =
+          this.funnyDescriptionsByType[type][
+            Math.floor(
+              Math.random() * this.funnyDescriptionsByType[type].length
+            )
+          ];
+
+        this.candidates.push({
+          id: crypto.randomUUID(),
+          name,
+          type,
+          level: 1,
+          assignedQuestId: null,
+          daysRemaining: 5,
+          recruitCost,
+          description,
+          minStake,
+          ...stats,
+        });
+      }
+    }
     const newQuestsCount = Math.floor(Math.random() * 3);
     for (let i = 0; i < newQuestsCount; i++) {
-        const quest = this.generateRandomQuest();
-        this.quests.push(quest);
+      const quest = this.generateRandomQuest();
+      this.quests.push(quest);
     }
-  }
+  };
 
   hireCandidate = (id: string) => {
-    const candidateIndex = this.candidates.findIndex(c => c.id === id);
+    const candidateIndex = this.candidates.findIndex((c) => c.id === id);
     if (candidateIndex === -1) return;
 
     const candidate = this.candidates[candidateIndex];
@@ -350,111 +374,120 @@ export class GuildStore {
   };
 
   generateRandomName = (): string => {
-    const names = ['Лира', 'Гром', 'Серена', 'Тракс', 'Вэлл', 'Кора', 'Арчибальд', 'Фелис'];
+    const names = [
+      'Лира',
+      'Гром',
+      'Серена',
+      'Тракс',
+      'Вэлл',
+      'Кора',
+      'Арчибальд',
+      'Фелис',
+    ];
     return names[Math.floor(Math.random() * names.length)];
-  }
+  };
 
   generateRandomHeroType = (): HeroType => {
     const types: HeroType[] = ['warrior', 'mage', 'rogue'];
     return types[Math.floor(Math.random() * types.length)];
-  }
+  };
 
   generateStatsByType = (type: 'warrior' | 'mage' | 'rogue') => {
-  switch (type) {
-    case 'warrior':
-      return {
-        strength: this.randomInRange(7, 10),
-        agility: this.randomInRange(3, 7),
-        intelligence: this.randomInRange(1, 4),
-      };
-    case 'mage':
-      return {
-        strength: this.randomInRange(1, 4),
-        agility: this.randomInRange(3, 6),
-        intelligence: this.randomInRange(7, 10),
-      };
-    case 'rogue':
-      return {
-        strength: this.randomInRange(3, 6),
-        agility: this.randomInRange(7, 10),
-        intelligence: this.randomInRange(3, 6),
-      };
-  }
-}
-
-randomInRange = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-generateRandomQuest = (): Quest => {
-  const titles = [
-    'Спасти деревню',
-    'Найти древний артефакт',
-    'Защитить караван',
-    'Исследовать заброшенный храм',
-    'Поймать разбойников',
-  ];
-
-  const descriptions = [
-    'Деревня подвергается нападениям бандитов. Нужно защитить жителей.',
-    'Артефакт обладает магической силой и должен быть возвращён в гильдию.',
-    'Караван с товарами под угрозой нападения, нужна охрана.',
-    'В заброшенном храме появляются странные создания, нужно разобраться.',
-    'Группа разбойников терроризирует окрестности, необходимо их поймать.',
-  ];
-
-  const successResults = [
-  'Деревня спасена, жители устроили пир в вашу честь.',
-  'Артефакт найден и доставлен в гильдию. Мудрецы уже изучают его свойства.',
-  'Караван благополучно добрался до города. Торговцы щедро отблагодарили героев.',
-  'Храм очищен от чудовищ. Исследователи гильдии начали его изучение.',
-  'Разбойники схвачены и переданы местным властям. Мир восстановлен.',
-];
-
-const failResults = [
-  'Деревня сожжена, уцелевшие жители в панике бежали.',
-  'Артефакт так и не был найден. Его сила может попасть не в те руки.',
-  'Караван был разграблен. Остатки сожжены, торговцы разорены.',
-  'Герои не вернулись из храма. Оттуда доносятся всё более зловещие звуки.',
-  'Разбойники ускользнули и теперь действуют ещё более дерзко.',
-];
-
-const timeoutResults = [
-  'Пока герои собирались, деревня была уничтожена. Спасать уже некого.',
-  'Артефакт исчез из места силы. Кто-то другой успел первым.',
-  'Караван ушёл без защиты и был атакован. Остались лишь обугленные повозки.',
-  'Существа в храме усилились. Теперь туда не осмеливается сунуться ни один герой.',
-  'Разбойники ушли в подполье. Теперь их будет куда сложнее выследить.',
-];
-
-  const idx = Math.floor(Math.random() * titles.length);
-  const reward = this.randomInRange(50, 150);
-  const deadlineDay = this.timeStore.currentDay + this.randomInRange(3, 5);
-
-  // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
-  const requiredStrength = this.randomInRange(5, 15);
-  const requiredAgility = this.randomInRange(5, 15);
-  const requiredIntelligence = this.randomInRange(5, 15);
-
-  return {
-    id: crypto.randomUUID(),
-    title: titles[idx],
-    description: descriptions[idx],
-    successResult: successResults[idx],
-    failResult: failResults[idx],
-    deadlineResult: timeoutResults[idx],
-    reward,
-    assignedHeroIds: [],
-    completed: false,
-    deadlineDay,
-    requiredStrength,
-    requiredAgility,
-    requiredIntelligence,
-    status: QuestStatus.NotStarted
+    switch (type) {
+      case 'warrior':
+        return {
+          strength: this.randomInRange(7, 10),
+          agility: this.randomInRange(3, 7),
+          intelligence: this.randomInRange(1, 4),
+        };
+      case 'mage':
+        return {
+          strength: this.randomInRange(1, 4),
+          agility: this.randomInRange(3, 6),
+          intelligence: this.randomInRange(7, 10),
+        };
+      case 'rogue':
+        return {
+          strength: this.randomInRange(3, 6),
+          agility: this.randomInRange(7, 10),
+          intelligence: this.randomInRange(3, 6),
+        };
+    }
   };
-}
-    startQuest = (questId: string) => {
-    const quest = this.quests.find(q => q.id === questId);
+
+  randomInRange = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  generateRandomQuest = (): Quest => {
+    const titles = [
+      'Спасти деревню',
+      'Найти древний артефакт',
+      'Защитить караван',
+      'Исследовать заброшенный храм',
+      'Поймать разбойников',
+    ];
+
+    const descriptions = [
+      'Деревня подвергается нападениям бандитов. Нужно защитить жителей.',
+      'Артефакт обладает магической силой и должен быть возвращён в гильдию.',
+      'Караван с товарами под угрозой нападения, нужна охрана.',
+      'В заброшенном храме появляются странные создания, нужно разобраться.',
+      'Группа разбойников терроризирует окрестности, необходимо их поймать.',
+    ];
+
+    const successResults = [
+      'Деревня спасена, жители устроили пир в вашу честь.',
+      'Артефакт найден и доставлен в гильдию. Мудрецы уже изучают его свойства.',
+      'Караван благополучно добрался до города. Торговцы щедро отблагодарили героев.',
+      'Храм очищен от чудовищ. Исследователи гильдии начали его изучение.',
+      'Разбойники схвачены и переданы местным властям. Мир восстановлен.',
+    ];
+
+    const failResults = [
+      'Деревня сожжена, уцелевшие жители в панике бежали.',
+      'Артефакт так и не был найден. Его сила может попасть не в те руки.',
+      'Караван был разграблен. Остатки сожжены, торговцы разорены.',
+      'Герои не вернулись из храма. Оттуда доносятся всё более зловещие звуки.',
+      'Разбойники ускользнули и теперь действуют ещё более дерзко.',
+    ];
+
+    const timeoutResults = [
+      'Пока герои собирались, деревня была уничтожена. Спасать уже некого.',
+      'Артефакт исчез из места силы. Кто-то другой успел первым.',
+      'Караван ушёл без защиты и был атакован. Остались лишь обугленные повозки.',
+      'Существа в храме усилились. Теперь туда не осмеливается сунуться ни один герой.',
+      'Разбойники ушли в подполье. Теперь их будет куда сложнее выследить.',
+    ];
+
+    const idx = Math.floor(Math.random() * titles.length);
+    const reward = this.randomInRange(50, 150);
+    const deadlineDay = this.timeStore.currentDay + this.randomInRange(3, 5);
+
+    // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
+    const requiredStrength = this.randomInRange(5, 15);
+    const requiredAgility = this.randomInRange(5, 15);
+    const requiredIntelligence = this.randomInRange(5, 15);
+
+    return {
+      id: crypto.randomUUID(),
+      title: titles[idx],
+      description: descriptions[idx],
+      successResult: successResults[idx],
+      failResult: failResults[idx],
+      deadlineResult: timeoutResults[idx],
+      reward,
+      assignedHeroIds: [],
+      completed: false,
+      deadlineDay,
+      requiredStrength,
+      requiredAgility,
+      requiredIntelligence,
+      status: QuestStatus.NotStarted,
+    };
+  };
+  startQuest = (questId: string) => {
+    const quest = this.quests.find((q) => q.id === questId);
     if (!quest) {
       console.warn(`Квест с id ${questId} не найден`);
       return;
@@ -466,13 +499,15 @@ const timeoutResults = [
     }
 
     if (quest.assignedHeroIds.length === 0) {
-      console.warn(`Нельзя стартовать квест "${quest.title}" без назначенных героев`);
+      console.warn(
+        `Нельзя стартовать квест "${quest.title}" без назначенных героев`
+      );
       return;
     }
 
     // Назначаем героям этот квест, если ещё не назначен
-    quest.assignedHeroIds.forEach(heroId => {
-      const hero = this.heroes.find(h => h.id === heroId);
+    quest.assignedHeroIds.forEach((heroId) => {
+      const hero = this.heroes.find((h) => h.id === heroId);
       if (hero && hero.assignedQuestId !== questId) {
         hero.assignedQuestId = questId;
       }
@@ -481,50 +516,71 @@ const timeoutResults = [
     console.log(`Квест "${quest.title}" стартовал`);
     quest.status = QuestStatus.InProgress;
     // Тут можно добавить дополнительную логику старта, если понадобится
-  }
+  };
 
-  getQuestSuccessChance = (questId: string, heroesToAssign?: string[]): number => {
-    const quest = this.quests.find(q => q.id === questId);
+  getQuestSuccessChance = (
+    questId: string,
+    heroesToAssign?: string[]
+  ): number => {
+    const quest = this.quests.find((q) => q.id === questId);
     if (!quest) return 0;
 
     const heroes = heroesToAssign ?? quest.assignedHeroIds;
 
-    const assignedHeroes = this.heroes.filter(h => heroes.includes(h.id));
+    const assignedHeroes = this.heroes.filter((h) => heroes.includes(h.id));
     if (assignedHeroes.length === 0) return 0;
 
-    const totalStrength = assignedHeroes.reduce((sum, h) => sum + h.strength, 0);
+    const totalStrength = assignedHeroes.reduce(
+      (sum, h) => sum + h.strength,
+      0
+    );
     const totalAgility = assignedHeroes.reduce((sum, h) => sum + h.agility, 0);
-    const totalIntelligence = assignedHeroes.reduce((sum, h) => sum + h.intelligence, 0);
+    const totalIntelligence = assignedHeroes.reduce(
+      (sum, h) => sum + h.intelligence,
+      0
+    );
 
-    const strengthRatio = quest.requiredStrength > 0 ? totalStrength / quest.requiredStrength : 1;
-    const agilityRatio = quest.requiredAgility > 0 ? totalAgility / quest.requiredAgility : 1;
-    const intelligenceRatio = quest.requiredIntelligence > 0 ? totalIntelligence / quest.requiredIntelligence : 1;
+    const strengthRatio =
+      quest.requiredStrength > 0 ? totalStrength / quest.requiredStrength : 1;
+    const agilityRatio =
+      quest.requiredAgility > 0 ? totalAgility / quest.requiredAgility : 1;
+    const intelligenceRatio =
+      quest.requiredIntelligence > 0
+        ? totalIntelligence / quest.requiredIntelligence
+        : 1;
 
     // Усредняем и ограничиваем максимум 1
-    const averageRatio = Math.min((strengthRatio + agilityRatio + intelligenceRatio) / 3, 1);
+    const averageRatio = Math.min(
+      (strengthRatio + agilityRatio + intelligenceRatio) / 3,
+      1
+    );
 
     // Возвращаем процент (0–100)
     return Math.round(averageRatio * 100);
   };
 
-  calculateRecruitCost = (hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>): number => {
+  calculateRecruitCost = (
+    hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>
+  ): number => {
     const baseCost = 10;
-    return baseCost + hero.strength * 2 + hero.agility * 2 + hero.intelligence * 3;
-    }
-
-    calculateMinStake = (level: number, type: HeroType): number => {
-  const base = 10;
-  const typeMultiplier = {
-    warrior: 1.2,
-    mage: 1.1,
-    rogue: 1.3,
+    return (
+      baseCost + hero.strength * 2 + hero.agility * 2 + hero.intelligence * 3
+    );
   };
 
-  return Math.floor(base * level * (typeMultiplier[type] || 1));
-}
-    getMinStake(heroId: string): number {
+  calculateMinStake = (level: number, type: HeroType): number => {
+    const base = 10;
+    const typeMultiplier = {
+      warrior: 1.2,
+      mage: 1.1,
+      rogue: 1.3,
+    };
+
+    return Math.floor(base * level * (typeMultiplier[type] || 1));
+  };
+  getMinStake(heroId: string): number {
     // Вернём minStake из героя, если он есть, иначе 0
     // Предполагаю, что в объекте героя есть поле minStake
-    return this.heroes.find(h => h.id = heroId)?.minStake ?? 0;
-    }
+    return this.heroes.find((h) => (h.id = heroId))?.minStake ?? 0;
+  }
 }

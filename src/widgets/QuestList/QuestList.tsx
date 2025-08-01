@@ -7,7 +7,10 @@ import { useMemo } from 'react';
 
 export const QuestList = observer(() => {
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
-  const { quests, timeStore: {currentDay} } = guildStore;
+  const {
+    quests,
+    timeStore: { currentDay },
+  } = guildStore;
 
   const handleAssign = (questId: string, heroIds: string[]) => {
     guildStore.assignHeroesToQuest(heroIds, questId);
@@ -24,7 +27,7 @@ export const QuestList = observer(() => {
         <p className={styles.empty}>Нет заданий</p>
       ) : (
         <ul className={styles.list}>
-          {quests.map(quest => (
+          {quests.map((quest) => (
             <QuestCard
               key={quest.id}
               quest={quest}

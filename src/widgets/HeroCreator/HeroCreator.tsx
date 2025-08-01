@@ -34,4 +34,3 @@ const HeroCreator: React.FC = observer(() => {
 });
 
 export default HeroCreator;
-

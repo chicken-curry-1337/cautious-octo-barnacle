@@ -24,7 +24,12 @@ export class QuestStore {
     makeAutoObservable(this);
   }
 
-  createQuest(title: string, description: string, reward?: number, currentDay?: number) {
+  createQuest(
+    title: string,
+    description: string,
+    reward?: number,
+    currentDay?: number
+  ) {
     const questReward = reward ?? this.randomInRange(50, 150);
     const deadlineDay = (currentDay ?? 1) + this.randomInRange(3, 5);
     const requiredStrength = this.randomInRange(5, 15);
@@ -48,7 +53,7 @@ export class QuestStore {
   }
 
   assignHeroToQuest(questId: string, heroId: string) {
-    const quest = this.quests.find(q => q.id === questId);
+    const quest = this.quests.find((q) => q.id === questId);
     if (!quest || quest.completed) return false;
 
     if (!quest.assignedHeroIds.includes(heroId)) {
@@ -59,11 +64,11 @@ export class QuestStore {
   }
 
   completeQuest(questId: string, heroes: Hero[]) {
-    const quest = this.quests.find(q => q.id === questId);
+    const quest = this.quests.find((q) => q.id === questId);
     if (quest && !quest.completed) {
       quest.completed = true;
       for (const heroId of quest.assignedHeroIds) {
-        const hero = heroes.find(h => h.id === heroId);
+        const hero = heroes.find((h) => h.id === heroId);
         if (hero) {
           hero.level += 1; // или вызвать метод из GuildStore для повышения уровня
         }
