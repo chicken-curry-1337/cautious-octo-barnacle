@@ -1,17 +1,15 @@
-import React, { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import React, { useState } from 'react';
 import styles from './HeroCreator.module.css';
-import { GuildStore } from '../../entities/Guild/Guild.store';
-import { container } from 'tsyringe';
 
 const HeroCreator: React.FC = observer(() => {
   const [name, setName] = useState('');
-  const guildStore = useMemo(() => container.resolve(GuildStore), []);
+  // const guildStore = useMemo(() => container.resolve(GuildStore), []);
 
   const handleCreate = () => {
     const trimmed = name.trim();
     if (trimmed.length > 0) {
-      guildStore.createHero(trimmed);
+      // guildStore.createHero(trimmed);
       setName('');
     }
   };

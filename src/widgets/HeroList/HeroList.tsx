@@ -1,15 +1,18 @@
-import React, { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import styles from './HeroList.module.css';
-import { GuildStore, type HeroType } from '../../entities/Guild/Guild.store';
+import React, { useMemo } from 'react';
 import { container } from 'tsyringe';
+import { HeroesStore } from '../../entities/Heroes/Heroes.store';
+import { QuestStore } from '../../entities/Quest/Quest.store';
+import type { HeroType } from '../../shared/types/hero';
+import styles from './HeroList.module.css';
 
 const HeroList: React.FC = observer(() => {
-  const guildStore = useMemo(() => container.resolve(GuildStore), []);
+  const heroesStore = useMemo(() => container.resolve(HeroesStore), []);
+  const questStore = useMemo(() => container.resolve(QuestStore), []);
 
   const getQuestTitle = (questId: string | null) => {
     if (!questId) return '—';
-    const quest = guildStore.quests.find((q) => q.id === questId);
+    const quest = questStore.quests.find((q) => q.id === questId);
     return quest ? quest.title : 'Неизвестное задание';
   };
 
@@ -43,11 +46,11 @@ const HeroList: React.FC = observer(() => {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Герои</h2>
-      {guildStore.heroes.length === 0 ? (
+      {heroesStore.heroes.length === 0 ? (
         <p className={styles.empty}>Нет героев</p>
       ) : (
         <ul className={styles.list}>
-          {guildStore.heroes.map((hero) => (
+          {heroesStore.heroes.map((hero) => (
             <li key={hero.id} className={styles.card}>
               <div className={styles.name}>
                 {hero.name} <em>({getTypeLabel(hero.type)})</em>

@@ -1,16 +1,17 @@
 import { observer } from 'mobx-react-lite';
-import styles from './QuestList.module.css';
-import { GuildStore } from '../../entities/Guild/Guild.store';
-import QuestCard from '../QuestCard/QuestCard';
-import { container } from 'tsyringe';
 import { useMemo } from 'react';
+import { container } from 'tsyringe';
+import { GuildStore } from '../../entities/Guild/Guild.store';
+import { QuestStore } from '../../entities/Quest/Quest.store';
+import QuestCard from '../QuestCard/QuestCard';
+import styles from './QuestList.module.css';
 
 export const QuestList = observer(() => {
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
   const {
-    quests,
     timeStore: { currentDay },
   } = guildStore;
+  const questStore = useMemo(() => container.resolve(QuestStore), []);
 
   const handleAssign = (questId: string, heroIds: string[]) => {
     guildStore.assignHeroesToQuest(heroIds, questId);
@@ -23,11 +24,11 @@ export const QuestList = observer(() => {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Задания</h2>
-      {quests.length === 0 ? (
+      {questStore.quests.length === 0 ? (
         <p className={styles.empty}>Нет заданий</p>
       ) : (
         <ul className={styles.list}>
-          {quests.map((quest) => (
+          {questStore.quests.map((quest) => (
             <QuestCard
               key={quest.id}
               quest={quest}

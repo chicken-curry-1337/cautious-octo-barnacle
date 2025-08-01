@@ -1,13 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import styles from './QuestCard.module.css';
-import {
-  GuildStore,
-  QuestStatus,
-  type Hero,
-  type Quest,
-} from '../../entities/Guild/Guild.store';
-import { container } from 'tsyringe';
 import { observer } from 'mobx-react-lite';
+import React, { useMemo, useState } from 'react';
+import { container } from 'tsyringe';
+import { GuildStore } from '../../entities/Guild/Guild.store';
+import { HeroesStore } from '../../entities/Heroes/Heroes.store';
+import type { Hero } from '../../shared/types/hero';
+import { QuestStatus, type Quest } from '../../shared/types/quest';
+import styles from './QuestCard.module.css';
 
 interface QuestCardProps {
   quest: Quest;
@@ -20,9 +18,10 @@ const QuestCard: React.FC<QuestCardProps> = observer(
   ({ quest, currentDay, onAssign, onStart }) => {
     // Получаем стор ОДИН раз — useMemo не нужен
     const guildStore = container.resolve(GuildStore);
+    const heroesStore = container.resolve(HeroesStore);
 
     // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
-    const { heroes } = guildStore;
+    const { heroes } = heroesStore;
 
     const [selectedHeroes, setSelectedHeroes] = useState<string[]>([]);
 

@@ -1,15 +1,15 @@
-import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { GuildStore } from '../../entities/Guild/Guild.store';
-import styles from './Guild.module.css';
+import { useMemo, useState } from 'react';
 import { container } from 'tsyringe';
+import { QuestStore } from '../../entities/Quest/Quest.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
+import styles from './Guild.module.css';
 
 export const Guild = observer(() => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [reward, setReward] = useState(0);
-  const guildStore = useMemo(() => container.resolve(GuildStore), []);
+  const questStore = useMemo(() => container.resolve(QuestStore), []);
   const timeStore = useMemo(() => container.resolve(TimeStore), []);
 
   return (
@@ -42,7 +42,7 @@ export const Guild = observer(() => {
       />
       <button
         onClick={() => {
-          guildStore.createQuest(title, description, reward);
+          questStore.createQuest(title, description, '', '', '', reward);
           setTitle('');
           setDescription('');
           setReward(0);

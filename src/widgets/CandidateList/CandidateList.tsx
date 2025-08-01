@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import styles from './CandidateList.module.css';
-import { GuildStore, type HeroType } from '../../entities/Guild/Guild.store';
-import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
+import { useMemo } from 'react';
 import { container } from 'tsyringe';
+import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
+import { GuildStore } from '../../entities/Guild/Guild.store';
+import { RecruitStore } from '../../entities/Recruit/Recruit.store';
+import type { HeroType } from '../../shared/types/hero';
+import styles from './CandidateList.module.css';
 
 const typeEmojis: Record<string, string> = {
   warrior: '🛡️',
@@ -12,6 +14,7 @@ const typeEmojis: Record<string, string> = {
 };
 
 const CandidateList = observer(() => {
+  const recruitStore = useMemo(() => container.resolve(RecruitStore), []);
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
   const financeStore = useMemo(() => container.resolve(GuildFinanceStore), []);
 
@@ -28,12 +31,13 @@ const CandidateList = observer(() => {
     }
   }
 
-  if (guildStore.candidates.length === 0) return <p>Новых героев пока нет.</p>;
+  if (recruitStore.candidates.length === 0)
+    return <p>Новых героев пока нет.</p>;
 
   return (
     <div className={styles.list}>
       <h3>Кандидаты на найм</h3>
-      {guildStore.candidates.map((hero) => {
+      {recruitStore.candidates.map((hero) => {
         const canAfford = financeStore.canAffordGold(hero.recruitCost);
 
         console.log({ canAfford });

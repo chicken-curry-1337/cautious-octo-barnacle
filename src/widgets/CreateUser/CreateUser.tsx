@@ -1,13 +1,9 @@
-import { observer } from 'mobx-react-lite';
-import { useForm } from 'react-hook-form';
-import type { SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { observer } from 'mobx-react-lite';
+import type { SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import type {
-  IUserAbilities,
-  TUser,
-  UserAbility,
-} from '../../entities/User/User.store';
+import type { TUser, UserAbility } from '../../entities/User/User.store';
 import styles from './CreateUser.module.css';
 
 const nameSurnameSchema = yup.string().required().min(1);
@@ -42,11 +38,7 @@ export const CreateUser = observer(
     createUser(data: TUser): void;
     defaultUser: TUser;
   }) => {
-    const {
-      register,
-      handleSubmit,
-      formState: { errors },
-    } = useForm({
+    const { register, handleSubmit } = useForm({
       defaultValues: {
         ...defaultUser,
       },
