@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction, runInAction, toJS } from 'mobx';
 import { TimeStore } from '../TimeStore/TimeStore';
 import { inject, singleton } from 'tsyringe';
+import { GuildFinanceStore } from '../Finance/Finance.store';
 
 // Типы героя
 export type HeroType = 'warrior' | 'mage' | 'rogue';
@@ -73,7 +74,7 @@ export class GuildStore {
     ],
   };
 
-  constructor(@inject(TimeStore) public timeStore: TimeStore) {
+  constructor(@inject(TimeStore) public timeStore: TimeStore, @inject(GuildFinanceStore) public financeStore: GuildFinanceStore) {
     makeAutoObservable(this);
 
     reaction(() => this.timeStore.currentDay, () => {
@@ -295,17 +296,24 @@ export class GuildStore {
 
   hireCandidate = (id: string) => {
     const candidateIndex = this.candidates.findIndex(c => c.id === id);
-    if (candidateIndex !== -1) {
-      const candidate = this.candidates[candidateIndex];
+    if (candidateIndex === -1) return;
 
-      runInAction(() => {
-          this.heroes.push({
-            ...candidate,
-          });
-          this.candidates.splice(candidateIndex, 1);
-      })
+    const candidate = this.candidates[candidateIndex];
+
+    // Проверяем, хватает ли золота
+    if (!this.financeStore.canAffordGold(candidate.recruitCost)) {
+      console.warn(`Недостаточно золота, чтобы нанять ${candidate.name}`);
+      return;
     }
-  }
+
+    // Снимаем золото
+    this.financeStore.spendGold(candidate.recruitCost);
+
+    this.heroes.push({
+      ...candidate,
+    });
+    this.candidates.splice(candidateIndex, 1);
+  };
 
   generateRandomName = (): string => {
     const names = ['Лира', 'Гром', 'Серена', 'Тракс', 'Вэлл', 'Кора', 'Арчибальд', 'Фелис'];

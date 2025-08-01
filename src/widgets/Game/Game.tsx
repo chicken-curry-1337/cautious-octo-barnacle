@@ -4,10 +4,12 @@ import { Guild } from "../Guild/Guild";
 import HeroList from "../HeroList/HeroList";
 import CandidateList from "../CandidateList/CandidateList";
 import { QuestList } from "../QuestList/QuestList";
+import GuildFinanceDisplay from "../GuildFinanceDisplay/GuildFinanceDisplay";
 
 export const Game = observer(() => {
     return <div>
 
+    <GuildFinanceDisplay />
       <CandidateList />
         <HeroList />
         {/* <HeroCreator /> */}
