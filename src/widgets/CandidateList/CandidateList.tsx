@@ -46,6 +46,9 @@ const CandidateList = observer(() => {
             <div className="stats">
               💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
             </div>
+            <p className={styles.minStake}>
+                Минимальная ставка: <strong>{hero.minStake} золота</strong>
+            </p>
             <p className={styles[getDescriptionClass(hero.type)]}>
               {hero.description}
             </p>

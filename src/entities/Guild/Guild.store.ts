@@ -17,6 +17,7 @@ export interface Hero {
   intelligence: number;
   type: HeroType;
   description: string;
+   minStake: number;
 }
 
 export interface RecruitCandidate extends Hero {
@@ -88,18 +89,22 @@ export class GuildStore {
     })
   }
 
-  createHero = (name: string, type: HeroType) => {
-    const stats = this.generateRandomStats(type);
-    const newHero: Hero = {
-      id: crypto.randomUUID(),
-      name,
-      type,
-      level: 1,
-      assignedQuestId: null,
-      ...stats,
-    };
-    this.heroes.push(newHero);
-  }
+ createHero = (name: string, type: HeroType) => {
+  const stats = this.generateRandomStats(type);
+  const level = 1;
+  const minStake = this.calculateMinStake(level, type);
+
+  const newHero: Hero = {
+    id: crypto.randomUUID(),
+    name,
+    type,
+    level,
+    assignedQuestId: null,
+    ...stats,
+    minStake,
+  };
+  this.heroes.push(newHero);
+}
 
   createQuest = (title: string, description: string, reward?: number) =>{
   const questReward = reward ?? this.randomInRange(50, 150);
@@ -149,48 +154,64 @@ export class GuildStore {
 }
 
   assignHeroesToQuest = (heroes: string[], questId: string) => {
+    // todo: добавить итоговую комиссию в квест, потому что после квеста может измениться уровень героев, что сломает комиссию в результате
     heroes.forEach((hero) => this.assignHeroToQuest(hero, questId));
   }
 
   increaseHeroLevel = (hero: Hero) => {
-    hero.assignedQuestId = null;
-    hero.level += 1;
+  hero.assignedQuestId = null;
+  hero.level += 1;
 
-    switch (hero.type) {
-        case 'warrior':
-        // Воин: +3 к силе, +1 к ловкости, +1 к интеллекту
-        hero.strength += 3;
-        hero.agility += 1;
-        hero.intelligence += 1;
-        break;
-        case 'mage':
-        // Маг: +1 к силе, +1 к ловкости, +3 к интеллекту
-        hero.strength += 1;
-        hero.agility += 1;
-        hero.intelligence += 3;
-        break;
-        case 'rogue':
-        // Вор: +1 к силе, +3 к ловкости, +1 к интеллекту
-        hero.strength += 1;
-        hero.agility += 3;
-        hero.intelligence += 1;
-        break;
-        }
-    }
+  switch (hero.type) {
+    case 'warrior':
+      hero.strength += 3;
+      hero.agility += 1;
+      hero.intelligence += 1;
+      break;
+    case 'mage':
+      hero.strength += 1;
+      hero.agility += 1;
+      hero.intelligence += 3;
+      break;
+    case 'rogue':
+      hero.strength += 1;
+      hero.agility += 3;
+      hero.intelligence += 1;
+      break;
+  }
+
+  hero.minStake = this.calculateMinStake(hero.level, hero.type);
+}
 
   completeQuest = (questId: string) => {
-     const quest = this.quests.find(q => q.id === questId);
+  const quest = this.quests.find(q => q.id === questId);
   if (quest && !quest.completed) {
     quest.status = QuestStatus.CompletedSuccess;
-    for (const heroId of quest.assignedHeroIds) {
-      const hero = this.heroes.find(h => h.id === heroId);
-      if (hero) {
-        this.increaseHeroLevel(hero);
-        hero.assignedQuestId = null;
+
+    const assignedHeroes = this.heroes.filter(h => quest.assignedHeroIds.includes(h.id));
+    const totalMinStake = assignedHeroes.reduce((sum, hero) => sum + hero.minStake, 0);
+    const reward = quest.reward;
+
+    if (reward >= totalMinStake) {
+      const guildProfit = reward - totalMinStake;
+      this.financeStore.addGold(guildProfit);
+    } else {
+      const shortage = totalMinStake - reward;
+      if (this.financeStore.canAffordGold(shortage)) {
+        this.financeStore.spendGold(shortage);
+      } else {
+        const affordableShortage = Math.min(shortage, this.financeStore.gold);
+        this.financeStore.spendGold(affordableShortage);
+        console.warn('Гильдия не может полностью покрыть ставки героев!');
       }
     }
+
+    for (const hero of assignedHeroes) {
+      this.increaseHeroLevel(hero);
+      hero.assignedQuestId = null;
+    }
   }
-  }
+}
 
   generateRandomStats =(type: HeroType) =>{
     switch (type) {
@@ -250,7 +271,11 @@ export class GuildStore {
 
     if (success) {
         quest.status = QuestStatus.CompletedSuccess;
+        const heroComission = assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0)
+        console.log(`hero comission: ${heroComission}`)
+        this.financeStore.addGold(quest.reward - heroComission);
         assignedHeroes.forEach(h => this.increaseHeroLevel(h));
+        console.log(`hero comission: ${heroComission}`)
     } else {
         quest.status = QuestStatus.CompletedFail;
     }
@@ -272,6 +297,7 @@ export class GuildStore {
       const type = this.generateRandomHeroType();
       const stats = this.generateRandomStats(type);
       const recruitCost = this.calculateRecruitCost(stats);
+      const minStake = this.calculateMinStake(1, type); // у новичка уровень 1
       const description = this.funnyDescriptionsByType[type][Math.floor(Math.random() * this.funnyDescriptionsByType[type].length)];
 
     this.candidates.push({
@@ -283,6 +309,7 @@ export class GuildStore {
         daysRemaining: 2,
         recruitCost,
         description,
+        minStake,
         ...stats,
     });
     }
@@ -476,5 +503,21 @@ const timeoutResults = [
   calculateRecruitCost = (hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>): number => {
     const baseCost = 10;
     return baseCost + hero.strength * 2 + hero.agility * 2 + hero.intelligence * 3;
+    }
+
+    calculateMinStake = (level: number, type: HeroType): number => {
+  const base = 10;
+  const typeMultiplier = {
+    warrior: 1.2,
+    mage: 1.1,
+    rogue: 1.3,
+  };
+
+  return Math.floor(base * level * (typeMultiplier[type] || 1));
+}
+    getMinStake(heroId: string): number {
+    // Вернём minStake из героя, если он есть, иначе 0
+    // Предполагаю, что в объекте героя есть поле minStake
+    return this.heroes.find(h => h.id = heroId)?.minStake ?? 0;
     }
 }

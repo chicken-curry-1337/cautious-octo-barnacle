@@ -49,6 +49,9 @@ const HeroList: React.FC = observer(() => {
                 {hero.name} <em>({getTypeLabel(hero.type)})</em>
               </div>
               <div>Уровень: {hero.level}</div>
+              <p className={styles.minStake}>
+                    Минимальная ставка: <strong>{hero.minStake} золота</strong>
+                </p>
               <p className={styles[getDescriptionClass(hero.type)]}>
                 {hero.description}
             </p>

@@ -87,3 +87,10 @@
   cursor: not-allowed;
   color: #dddddd;
 }
+
+.minStake {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  color: #444;
+  user-select: none;
+}

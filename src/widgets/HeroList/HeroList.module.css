@@ -53,3 +53,10 @@
   color: #222222; /* чуть темнее при наведении */
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
+
+.minStake {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  color: #444;
+  user-select: none;
+}

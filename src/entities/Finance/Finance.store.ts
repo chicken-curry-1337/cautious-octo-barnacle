@@ -14,7 +14,7 @@ export class GuildFinanceStore {
     makeAutoObservable(this);
   }
 
-  addGold(amount: number) {
+  async addGold(amount: number) {
     this.gold += amount;
   }
 

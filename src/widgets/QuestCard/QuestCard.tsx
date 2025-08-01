@@ -55,6 +55,13 @@ const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAss
     return '#43a047'; // зелёный
   };
 
+    const availableHeroesCommission = useMemo(() => {
+        if (quest.status === QuestStatus.NotStarted) return availableHeroes.filter(h => selectedHeroes.includes(h.id)).reduce((sum, h) => sum + (h.minStake ?? 0), 0);
+        return assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0)
+    }, [assignedHeroes, availableHeroes, quest.status, selectedHeroes]);
+
+    const guildProfit = quest.reward - availableHeroesCommission;
+
   return (
     <li className={styles.card}>
       <h3>{quest.title}</h3>
@@ -66,6 +73,23 @@ const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAss
         </p>
       {(quest.status === QuestStatus.NotStarted || quest.status === QuestStatus.InProgress) && <p>Дедлайн: {daysLeft >= 0 ? `через ${daysLeft} дн.` : `просрочено на ${-daysLeft} дн.`}</p>}
       <p>Статус: <strong>{status}</strong></p>
+
+      <p>
+        Награда: <span className={styles.reward}>💰 {quest.reward} золота</span>
+    </p>
+
+        <p>
+        Комиссия героев: <span>{availableHeroesCommission} золота</span>
+        </p>
+
+        <p>
+        Итоговая выгода гильдии:{' '}
+        <span
+            style={{ color: guildProfit >= 0 ? '#43a047' : '#e53935', fontWeight: '600' }}
+        >
+            {guildProfit} золота
+        </span>
+        </p>
 
       {quest.status === QuestStatus.NotStarted && <div className={styles.successChance}>
         <strong>Шанс успеха:</strong>

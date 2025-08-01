@@ -65,3 +65,10 @@ p {
   background: linear-gradient(90deg, #4caf50 0%, #81c784 100%);
   transition: width 0.3s ease;
 }
+
+.reward {
+  font-weight: 600;
+  color: #b8860b; /* тёмный золотой оттенок */
+  user-select: none;
+  margin-left: 0.25rem;
+}
