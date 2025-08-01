@@ -58,22 +58,29 @@ export class GuildStore {
   quests: Quest[] = [];
   candidates: RecruitCandidate[] = [];
   funnyDescriptionsByType: Record<HeroType, string[]> = {
-    warrior: [
-      'Когда-то пытался стать бардом, но медведь украл его лютню.',
-      'Уверен, что его меч — это на самом деле дракон.',
-      'Мастер маскировки. Теряется даже в очереди.',
-    ],
-    mage: [
-      'Считает, что огненные шары — отличный способ готовить завтрак.',
-      'Скрывается от налоговой магов.',
-      'Говорит с крысами. Иногда они отвечают.',
-    ],
-    rogue: [
-      'Никогда не снимает капюшон. Даже в бане.',
-      'Считает себя экспертом в побеге от драконов. Успешным — один раз.',
-      'Пытался однажды приручить тролля. У тролля теперь травма.',
-    ],
-  };
+  warrior: [
+    'Думает, что его меч — это волшебная палочка, только громче и тяжелее.',
+    'Считает, что шлем — лучший аксессуар для стильного образа в бою.',
+    'Может пробежать марафон, но предпочитает остановиться у ближайшей таверны.',
+    'Любит рассказывать истории, которые начинаются с "А вот когда я один раз...".',
+    'Его любимая поза — стоять и смотреть в даль, чтобы все подумали, что он о чём-то важном задумался.',
+  ],
+  mage: [
+    'Верит, что книга заклинаний — лучшее чтение перед сном.',
+    'Любит эксперименты с огненной магией, но только на безопасном расстоянии.',
+    'Всегда находит способ объяснить, почему магия — это не просто фокусы.',
+    'Никогда не выходит из дома без своего любимого амулета удачи.',
+    'Может приготовить зелье, которое улучшит настроение на весь день.',
+  ],
+  rogue: [
+    'Мастер скрытности, который иногда забывает, куда спрятал ключи.',
+    'Ловко крадёт внимание, а потом карманы — в таком порядке.',
+    'Лучший друг в споре — быстрые ноги и чувство юмора.',
+    'Любит шутить, что у него девять жизней, и он уже потратил восемь.',
+    'Умеет исчезать так быстро, что даже его тень теряется.',
+  ],
+};
+
 
   constructor(@inject(TimeStore) public timeStore: TimeStore, @inject(GuildFinanceStore) public financeStore: GuildFinanceStore) {
     makeAutoObservable(this);
@@ -285,13 +292,12 @@ export class GuildStore {
     return true; // Если дедлайн ещё не наступил — задание остаётся
   });
 
-    // Обновляем срок действия кандидатов
-    this.candidates = this.candidates
-      .map(c => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
-      .filter(c => c.daysRemaining > 0);
+  const CANDIDATE_LENGTH_MAX = 5;
+  const CANDIDATE_GENERATE_COUNT = 5;
 
+   if (this.candidates.length < CANDIDATE_LENGTH_MAX) {
     // Генерация новых кандидатов
-    const newHeroesCount = Math.floor(Math.random() * 3);
+    const newHeroesCount = Math.floor(Math.random() * (CANDIDATE_GENERATE_COUNT - this.candidates.length));
     for (let i = 0; i < newHeroesCount; i++) {
       const name = this.generateRandomName();
       const type = this.generateRandomHeroType();
@@ -306,7 +312,7 @@ export class GuildStore {
         type,
         level: 1,
         assignedQuestId: null,
-        daysRemaining: 2,
+        daysRemaining: 5,
         recruitCost,
         description,
         minStake,
@@ -314,6 +320,7 @@ export class GuildStore {
     });
     }
 
+   }
     const newQuestsCount = Math.floor(Math.random() * 3);
     for (let i = 0; i < newQuestsCount; i++) {
         const quest = this.generateRandomQuest();
