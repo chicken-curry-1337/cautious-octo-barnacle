@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './HeroList.module.css';
-import { GuildStore } from '../../entities/Guild/Guild.store';
+import { GuildStore, type HeroType } from '../../entities/Guild/Guild.store';
 import { container } from 'tsyringe';
 
 const HeroList: React.FC = observer(() => {
@@ -22,6 +22,19 @@ const HeroList: React.FC = observer(() => {
       default: return 'Неизвестно';
     }
   };
+  
+  function getDescriptionClass(type: HeroType) {
+      switch (type) {
+          case 'warrior':
+          return 'descWarrior';
+          case 'mage':
+          return 'descMage';
+          case 'rogue':
+          return 'descRogue';
+          default:
+          return '';
+      }
+    }
 
   return (
     <div className={styles.container}>
@@ -36,6 +49,9 @@ const HeroList: React.FC = observer(() => {
                 {hero.name} <em>({getTypeLabel(hero.type)})</em>
               </div>
               <div>Уровень: {hero.level}</div>
+              <p className={styles[getDescriptionClass(hero.type)]}>
+                {hero.description}
+            </p>
               <div>
                 Назначен на: <strong>{getQuestTitle(hero.assignedQuestId)}</strong>
               </div>

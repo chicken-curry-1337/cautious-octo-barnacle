@@ -8,6 +8,7 @@
 .card {
   display: flex;
   justify-content: space-between;
+  flex-flow: row wrap;
   align-items: center;
   background: #fffbf0;
   padding: 0.75rem;
@@ -33,4 +34,24 @@
   font-size: 0.85rem;
   color: #555;
   margin-top: 4px;
+}
+
+.descWarrior,
+.descMage,
+.descRogue {
+  font-size: 0.875rem; /* ~14px */
+  font-style: italic;
+  color: #555555; /* нейтральный тёмно-серый */
+  line-height: 1.4;
+  margin-top: 4px;
+  user-select: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: color 0.3s ease;
+}
+
+.descWarrior:hover,
+.descMage:hover,
+.descRogue:hover {
+  color: #222222; /* чуть темнее при наведении */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styles from './QuestCard.module.css';
-import { GuildStore, type Hero, type Quest } from '../../entities/Guild/Guild.store';
+import { GuildStore, QuestStatus, type Hero, type Quest } from '../../entities/Guild/Guild.store';
 import { container } from 'tsyringe';
 import { observer } from 'mobx-react-lite';
 
@@ -12,7 +12,12 @@ interface QuestCardProps {
 }
 
 const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAssign, onStart }) => {
-    const {heroes}  = useMemo(() => container.resolve(GuildStore), []);
+  // Получаем стор ОДИН раз — useMemo не нужен
+  const guildStore = container.resolve(GuildStore);
+
+  // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
+  const { heroes } = guildStore;
+
   const [selectedHeroes, setSelectedHeroes] = useState<string[]>([]);
 
   const toggleHero = (id: string) => {
@@ -31,23 +36,48 @@ const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAss
 
   const daysLeft = quest.deadlineDay - currentDay;
 
-  const status = (() => {
-    if (!quest.completed) {
-      if (currentDay > quest.deadlineDay) return 'Просрочено';
-      return 'В процессе';
-    }
-    if (quest.failed) return 'Неуспешно';
+  const status = useMemo(() => {
+    if (quest.status === QuestStatus.NotStarted) return 'Ожидает';
+    if (quest.status === QuestStatus.InProgress) return 'В процессе';
+    if (quest.status === QuestStatus.FailedDeadline) return 'Просрочено';
+    if (quest.status === QuestStatus.CompletedFail) return 'Неуспешно';
     return 'Выполнено';
-  })();
+  }, [quest.status]);
 
-  const availableHeroes = heroes.filter(h => !quest.assignedHeroIds.includes(h.id));
+  const availableHeroes = heroes.filter(h => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null);
+
+  const successChance = useMemo(() => guildStore.getQuestSuccessChance(quest.id, selectedHeroes), [guildStore, quest.id, selectedHeroes]);
+
+  // Функция для цвета прогресса по шансу успеха
+  const getProgressColor = (percent: number) => {
+    if (percent < 40) return '#e53935'; // красный
+    if (percent < 70) return '#fbc02d'; // жёлтый
+    return '#43a047'; // зелёный
+  };
 
   return (
     <li className={styles.card}>
       <h3>{quest.title}</h3>
-      <p>{quest.description}</p>
-      <p>Дедлайн: {daysLeft >= 0 ? `через ${daysLeft} дн.` : `просрочено на ${-daysLeft} дн.`}</p>
+      <p>
+        {quest.status === QuestStatus.NotStarted && quest.description}
+        {quest.status === QuestStatus.CompletedSuccess && quest.successResult}
+        {quest.status === QuestStatus.CompletedFail && quest.failResult}
+        {quest.status === QuestStatus.FailedDeadline && quest.deadlineResult}
+        </p>
+      {(quest.status === QuestStatus.NotStarted || quest.status === QuestStatus.InProgress) && <p>Дедлайн: {daysLeft >= 0 ? `через ${daysLeft} дн.` : `просрочено на ${-daysLeft} дн.`}</p>}
       <p>Статус: <strong>{status}</strong></p>
+
+      {quest.status === QuestStatus.NotStarted && <div className={styles.successChance}>
+        <strong>Шанс успеха:</strong>
+        <div className={styles.progressBar}>
+          <div
+            className={styles.progressFill}
+            style={{ width: `${successChance}%`, backgroundColor: getProgressColor(successChance) }}
+            title={`${successChance}%`}
+          />
+        </div>
+        <span>{successChance}%</span>
+      </div>}
 
       <div>
         <strong>Назначенные герои:</strong>
@@ -72,27 +102,27 @@ const QuestCard: React.FC<QuestCardProps> = observer(({ quest, currentDay, onAss
         <strong>Суммарные статы героев:</strong> 💪 {totalStrength} | 🎯 {totalAgility} | 🧠 {totalIntelligence}
       </div>
 
-      <div className={styles.heroSelector}>
+      {quest.status === QuestStatus.NotStarted && <div className={styles.heroSelector}>
         <strong>Доступные герои для назначения:</strong>
-        {availableHeroes.length === 0 ? (
-          <p>Нет доступных героев</p>
-        ) : (
-          <ul className={styles.heroList}>
-            {availableHeroes.map(hero => (
-              <li key={hero.id}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedHeroes.includes(hero.id)}
-                    onChange={() => toggleHero(hero.id)}
-                  />
-                  {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+            {availableHeroes.length === 0 ? (
+            <p>Нет доступных героев</p>
+            ) : (
+            <ul className={styles.heroList}>
+                {availableHeroes.map(hero => (
+                <li key={hero.id}>
+                    <label>
+                    <input
+                        type="checkbox"
+                        checked={selectedHeroes.includes(hero.id)}
+                        onChange={() => toggleHero(hero.id)}
+                    />
+                    {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
+                    </label>
+                </li>
+                ))}
+            </ul>
+            )}
+        </div>}
 
       <button
         className={styles.assignBtn}

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import styles from './CandidateList.module.css';
-import { GuildStore } from '../../entities/Guild/Guild.store';
+import { GuildStore, type HeroType } from '../../entities/Guild/Guild.store';
 import { container } from 'tsyringe';
 
 const typeEmojis: Record<string, string> = {
@@ -12,6 +12,19 @@ const typeEmojis: Record<string, string> = {
 
 const CandidateList = observer(() => {
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
+  
+  function getDescriptionClass(type: HeroType) {
+    switch (type) {
+        case 'warrior':
+        return 'descWarrior';
+        case 'mage':
+        return 'descMage';
+        case 'rogue':
+        return 'descRogue';
+        default:
+        return '';
+    }
+    }
 
   if (guildStore.candidates.length === 0) return <p>Новых героев пока нет.</p>;
 
@@ -26,6 +39,10 @@ const CandidateList = observer(() => {
           <div className="stats">
             💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
           </div>
+          <p className={styles[getDescriptionClass(hero.type)]}>
+            {hero.description}
+        </p>
+
           <button onClick={() => guildStore.hireCandidate(hero.id)} className={styles.hire}>
             Нанять
           </button>
