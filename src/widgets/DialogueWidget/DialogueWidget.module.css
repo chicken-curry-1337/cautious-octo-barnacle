@@ -1,12 +1,25 @@
 .container {
-  max-width: 36rem; /* max-w-xl */
-  margin: 2.5rem auto 0; /* mt-10 */
-  padding: 1rem; /* p-4 */
-  background-color: white;
-  border-radius: 1rem; /* rounded-2xl */
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow */
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.wrapper {
+  max-width: 800px;
+  margin: auto;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
 }
 
 .characters {
@@ -36,9 +49,14 @@
 }
 
 .options {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   gap: 0.5rem; /* space-y-2 */
+  min-width: 400px;
 }
 
 .button {

@@ -32,6 +32,10 @@
 .name {
   font-weight: 600;
   font-size: 1.1rem;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .descWarrior,
@@ -67,4 +71,15 @@
   margin-top: 8px;
   font-size: 0.9rem;
   user-select: none;
+}
+
+.fireButton {
+  background-color: #f44336; /* красный цвет */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem; /* ~14px */
+  margin-left: auto;
 }

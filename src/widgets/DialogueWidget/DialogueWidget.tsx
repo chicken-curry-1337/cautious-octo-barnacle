@@ -1,8 +1,8 @@
-import styles from './DialogueWidget.module.css';
-import { DialogueStore } from '../../entities/Dialogue/Dialogue.store';
+import { observer } from 'mobx-react-lite';
 import { useMemo } from 'react';
 import { container } from 'tsyringe';
-import { observer } from 'mobx-react-lite';
+import { DialogueStore } from '../../entities/Dialogue/Dialogue.store';
+import styles from './DialogueWidget.module.css';
 
 export const DialogueWidget = observer(() => {
   const dialogueStore = useMemo(() => container.resolve(DialogueStore), []);
@@ -23,7 +23,7 @@ export const DialogueWidget = observer(() => {
   if (!currentNode || !characters) return null;
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} onClick={handleDialogueClick}>
       <div className={styles.characters}>
         {characters.map((char) => {
           // Активен, если его id есть в массиве activeCharacterIds
@@ -44,21 +44,22 @@ export const DialogueWidget = observer(() => {
         })}
       </div>
 
-      <div
-        className={styles.text}
-        onClick={handleDialogueClick}
-        style={{
-          cursor: currentNode.options.length <= 1 ? 'pointer' : 'default',
-        }}
-        title={
-          currentNode.options.length === 1
-            ? 'Клик для продолжения'
-            : currentNode.options.length === 0
-              ? 'Клик для закрытия диалога'
-              : undefined
-        }
-      >
-        {currentNode.text}
+      <div className={styles.wrapper}>
+        <div
+          className={styles.text}
+          style={{
+            cursor: currentNode.options.length <= 1 ? 'pointer' : 'default',
+          }}
+          title={
+            currentNode.options.length === 1
+              ? 'Клик для продолжения'
+              : currentNode.options.length === 0
+                ? 'Клик для закрытия диалога'
+                : undefined
+          }
+        >
+          {currentNode.text}
+        </div>
       </div>
 
       <div className={styles.options}>

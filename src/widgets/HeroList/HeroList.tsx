@@ -53,8 +53,17 @@ const HeroList: React.FC = observer(() => {
           {heroesStore.heroes.map((hero) => (
             <li key={hero.id} className={styles.card}>
               <div className={styles.name}>
-                {hero.name} <em>({getTypeLabel(hero.type)})</em>
+                {hero.name}&nbsp;<em>({getTypeLabel(hero.type)})</em>
+                {!hero.assignedQuestId && (
+                  <button
+                    onClick={() => heroesStore.fireHero(hero.id)}
+                    className={styles.fireButton}
+                  >
+                    hire hero
+                  </button>
+                )}
               </div>
+
               {hero.injured && (
                 <div className={styles.injured}>
                   Герой ранен и не может участвовать в заданиях!

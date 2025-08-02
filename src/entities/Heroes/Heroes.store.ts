@@ -51,8 +51,18 @@ export class HeroesStore {
       ...stats,
       minStake,
       injured: false,
+      recruitCost: this.calculateRecruitCost(stats),
     };
     this.heroes.push(newHero);
+  };
+
+  calculateRecruitCost = (
+    hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>
+  ): number => {
+    const baseCost = 10;
+    return (
+      baseCost + hero.strength * 2 + hero.agility * 2 + hero.intelligence * 3
+    );
   };
 
   increaseHeroLevel = (hero: Hero) => {
@@ -101,6 +111,20 @@ export class HeroesStore {
       ...candidate,
     });
     this.recruitStore.recruits.splice(candidateIndex, 1);
+  };
+
+  fireHero = (id: string) => {
+    const heroIndex = this.heroes.findIndex((h) => h.id === id);
+    if (heroIndex === -1) return;
+
+    const hero = this.heroes[heroIndex];
+
+    if (hero.assignedQuestId !== null) return; // нельзя уволить героя, который в квесте
+    this.financeStore.addGold(
+      +Number(hero.recruitCost * hero.level * 0.5).toFixed(2)
+    );
+    // Удаляем героя из списка
+    this.heroes.splice(heroIndex, 1);
   };
 
   generateStatsByType = (type: 'warrior' | 'mage' | 'rogue') => {

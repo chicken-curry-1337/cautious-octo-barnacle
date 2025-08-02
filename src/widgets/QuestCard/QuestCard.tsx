@@ -214,8 +214,13 @@ const QuestCard: React.FC<QuestCardProps> = observer(
                         checked={selectedHeroesIds.includes(hero.id)}
                         onChange={() => toggleHero(hero.id)}
                       />
-                      {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯{' '}
-                      {hero.agility} | 🧠 {hero.intelligence}
+                      {hero.name} ({hero.type} {hero.level} lvl) — 💪{' '}
+                      {hero.strength} | 🎯 {hero.agility} | 🧠{' '}
+                      {hero.intelligence}
+                      <span className={styles.minStake}>
+                        {' '}
+                        — мин. ставка: {hero.minStake} золота
+                      </span>
                     </label>
                   </li>
                 ))}
