@@ -45,6 +45,7 @@ export class QuestStore {
       id: crypto.randomUUID(),
       title,
       description,
+      date: this.timeStore.currentDay,
       reward: questReward,
       assignedHeroIds: [],
       completed: false,
