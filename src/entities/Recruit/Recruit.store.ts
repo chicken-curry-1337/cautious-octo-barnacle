@@ -5,7 +5,7 @@ import { TimeStore } from '../TimeStore/TimeStore';
 
 @singleton()
 export class RecruitStore {
-  candidates: RecruitCandidate[] = [];
+  recruits: RecruitCandidate[] = [];
   descriptionsByType: Record<HeroType, string[]> = {
     warrior: [
       'Думает, что его меч — это волшебная палочка, только громче и тяжелее.',
@@ -43,17 +43,17 @@ export class RecruitStore {
 
   onNextDay = () => {
     // Обновляем срок действия кандидатов
-    this.candidates = this.candidates
+    this.recruits = this.recruits
       .map((c) => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
       .filter((c) => c.daysRemaining > 0);
 
     const CANDIDATE_LENGTH_MAX = 5;
     const CANDIDATE_GENERATE_COUNT = 5;
 
-    if (this.candidates.length < CANDIDATE_LENGTH_MAX) {
+    if (this.recruits.length < CANDIDATE_LENGTH_MAX) {
       // Генерация новых кандидатов
       const newHeroesCount = Math.floor(
-        Math.random() * (CANDIDATE_GENERATE_COUNT - this.candidates.length)
+        Math.random() * (CANDIDATE_GENERATE_COUNT - this.recruits.length)
       );
       for (let i = 0; i < newHeroesCount; i++) {
         const name = this.generateRandomName();
@@ -66,7 +66,7 @@ export class RecruitStore {
             Math.floor(Math.random() * this.descriptionsByType[type].length)
           ];
 
-        this.candidates.push({
+        this.recruits.push({
           id: crypto.randomUUID(),
           name,
           type,

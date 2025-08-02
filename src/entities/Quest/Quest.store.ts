@@ -2,15 +2,19 @@ import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 import { QuestStatus, type Quest } from '../../shared/types/quest';
 import { GuildFinanceStore } from '../Finance/Finance.store';
+import { HeroesStore } from '../Heroes/Heroes.store';
 import { TimeStore } from '../TimeStore/TimeStore';
 
 @singleton()
 export class QuestStore {
+  newQuests: Quest[] = [];
   quests: Quest[] = [];
+  completedQuests: Quest[] = [];
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
-    @inject(GuildFinanceStore) public financeStore: GuildFinanceStore
+    @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
+    @inject(HeroesStore) public heroesStore: HeroesStore
   ) {
     makeAutoObservable(this);
 
@@ -60,14 +64,158 @@ export class QuestStore {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   };
 
+  takeQuestIntoWork = (quest: Quest) => {
+    this.quests.push(quest);
+  };
+
   onNextDay = () => {
     // Проверяем задания с дедлайном — выполнить или удалить
+    this.quests = this.quests.filter((quest) => {
+      if (quest.status === QuestStatus.CompletedSuccess) return true; // Уже выполнено — оставляем
 
-    const newQuestsCount = Math.floor(Math.random() * 3);
-    for (let i = 0; i < newQuestsCount; i++) {
-      const quest = this.generateRandomQuest();
-      this.quests.push(quest);
+      if (this.timeStore.currentDay >= quest.deadlineDay) {
+        // Дедлайн прошёл — проверяем героев
+        const assignedHeroes = this.heroesStore.heroes.filter((h) =>
+          quest.assignedHeroIds.includes(h.id)
+        );
+
+        if (assignedHeroes.length === 0) {
+          quest.status = QuestStatus.FailedDeadline;
+          // Задание провалено из-за отсутствия героев — удаляем задание
+          if (this.timeStore.currentDay > quest.deadlineDay + 2) {
+            return false;
+          }
+
+          return true;
+        }
+
+        // Проверяем требования
+        const chance = this.getQuestSuccessChance(quest.id);
+        const roll = Math.random() * 100;
+        const success = roll <= chance;
+
+        if (success) {
+          quest.status = QuestStatus.CompletedSuccess;
+          const heroComission = assignedHeroes.reduce(
+            (sum, h) => sum + (h.minStake ?? 0),
+            0
+          );
+          console.log(`hero comission: ${heroComission}`);
+          this.financeStore.addGold(quest.reward - heroComission);
+          assignedHeroes.forEach((h) => this.heroesStore.increaseHeroLevel(h));
+          console.log(`hero comission: ${heroComission}`);
+        } else {
+          quest.status = QuestStatus.CompletedFail;
+        }
+        return true;
+      }
+
+      return true; // Если дедлайн ещё не наступил — задание остаётся
+    });
+
+    this.completedQuests.push(
+      ...this.quests.filter((q) => q.status === QuestStatus.CompletedSuccess)
+    );
+    this.quests = this.quests.filter(
+      (q) =>
+        q.status !== QuestStatus.CompletedSuccess &&
+        q.status !== QuestStatus.CompletedFail
+    );
+
+    const QUEST_LENGTH_MAX = 5;
+    const QUEST_GENERATE_COUNT = 5;
+    if (this.newQuests.length < QUEST_LENGTH_MAX) {
+      const newQuestsCount = Math.floor(
+        Math.random() * (QUEST_GENERATE_COUNT - this.newQuests.length)
+      );
+
+      for (let i = 0; i < newQuestsCount; i++) {
+        const quest = this.generateRandomQuest();
+        this.newQuests.push(quest);
+      }
     }
+  };
+
+  getQuestSuccessChance = (
+    questId: string,
+    heroesToAssign?: string[]
+  ): number => {
+    const quest = this.quests.find((q) => q.id === questId);
+    if (!quest) return 0;
+
+    const heroes = heroesToAssign ?? quest.assignedHeroIds;
+
+    const assignedHeroes = this.heroesStore.heroes.filter((h) =>
+      heroes.includes(h.id)
+    );
+    if (assignedHeroes.length === 0) return 0;
+
+    const totalStrength = assignedHeroes.reduce(
+      (sum, h) => sum + h.strength,
+      0
+    );
+    const totalAgility = assignedHeroes.reduce((sum, h) => sum + h.agility, 0);
+    const totalIntelligence = assignedHeroes.reduce(
+      (sum, h) => sum + h.intelligence,
+      0
+    );
+
+    const strengthRatio =
+      quest.requiredStrength > 0 ? totalStrength / quest.requiredStrength : 1;
+    const agilityRatio =
+      quest.requiredAgility > 0 ? totalAgility / quest.requiredAgility : 1;
+    const intelligenceRatio =
+      quest.requiredIntelligence > 0
+        ? totalIntelligence / quest.requiredIntelligence
+        : 1;
+
+    // Усредняем и ограничиваем максимум 1
+    const averageRatio = Math.min(
+      (strengthRatio + agilityRatio + intelligenceRatio) / 3,
+      1
+    );
+
+    // Возвращаем процент (0–100)
+    return Math.round(averageRatio * 100);
+  };
+
+  assignHeroToQuest = (heroId: string, questId: string) => {
+    const hero = this.heroesStore.heroes.find((h) => h.id === heroId);
+    const quest = this.newQuests.find((q) => q.id === questId);
+    // todo: выбрасывать ошибки вместо return
+    if (hero && quest && !quest.completed) {
+      // Проверяем, что герой не назначен на другой квест
+      if (hero.assignedQuestId && hero.assignedQuestId !== questId) {
+        // Герой уже занят другим квестом — не назначаем
+        return false;
+      }
+
+      // Если герой уже назначен на этот квест, ничего не меняем
+      if (hero.assignedQuestId === questId) {
+        return true;
+      }
+
+      hero.assignedQuestId = questId;
+      quest.assignedHeroIds.push(heroId);
+      quest.status = QuestStatus.InProgress;
+      this.newQuests = this.newQuests.filter((q) => q.id !== questId);
+      this.quests.push(quest);
+      return true;
+    }
+    return false;
+  };
+
+  assignHeroesToQuest = (heroes: string[], questId: string) => {
+    // todo: добавить итоговую комиссию в квест, потому что после квеста может измениться уровень героев, что сломает комиссию в результате
+    heroes.forEach((hero) => this.assignHeroToQuest(hero, questId));
+  };
+
+  startQuest = (questId: string, heroIds: string[]) => {
+    const quest = this.newQuests.find((q) => q.id === questId);
+
+    if (!quest) throw new Error('Quest not found');
+
+    this.assignHeroesToQuest(heroIds, questId);
   };
 
   randomInRange = (min: number, max: number) => {
@@ -141,4 +289,26 @@ export class QuestStore {
       status: QuestStatus.NotStarted,
     };
   };
+
+  get sortedQuests() {
+    return this.quests.slice().sort((a, b) => {
+      if (
+        a.status === QuestStatus.NotStarted &&
+        b.status !== QuestStatus.NotStarted
+      ) {
+        return -1; // a раньше b
+      }
+      if (
+        b.status === QuestStatus.NotStarted &&
+        a.status !== QuestStatus.NotStarted
+      ) {
+        return 1; // b раньше a
+      }
+      return a.deadlineDay - b.deadlineDay; // сортируем по дедлайну
+    });
+  }
+
+  get activeQuests() {
+    return this.quests.filter((q) => q.status === QuestStatus.InProgress);
+  }
 }

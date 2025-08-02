@@ -1,0 +1,36 @@
+.container {
+  width: 100%;
+}
+
+.tabList {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #444;
+}
+
+.tabButton {
+  padding: 8px 16px;
+  background-color: #333;
+  color: #ccc;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.tabButton:hover {
+  background-color: #444;
+}
+
+.activeTab {
+  background-color: #1a1a1a;
+  color: #fff;
+  border: 1px solid #555;
+  border-bottom: none;
+  font-weight: bold;
+}
+
+.tabContent {
+  padding-top: 4px;
+}

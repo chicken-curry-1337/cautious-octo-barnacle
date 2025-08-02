@@ -31,16 +31,13 @@ const CandidateList = observer(() => {
     }
   }
 
-  if (recruitStore.candidates.length === 0)
-    return <p>Новых героев пока нет.</p>;
+  if (recruitStore.recruits.length === 0) return <p>Новых героев пока нет.</p>;
 
   return (
     <div className={styles.list}>
       <h3>Кандидаты на найм</h3>
-      {recruitStore.candidates.map((hero) => {
+      {recruitStore.recruits.map((hero) => {
         const canAfford = financeStore.canAffordGold(hero.recruitCost);
-
-        console.log({ canAfford });
 
         return (
           <div key={hero.id} className={styles.card}>

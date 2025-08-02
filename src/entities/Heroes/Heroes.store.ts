@@ -61,12 +61,12 @@ export class HeroesStore {
   };
 
   hireCandidate = (id: string) => {
-    const candidateIndex = this.recruitStore.candidates.findIndex(
+    const candidateIndex = this.recruitStore.recruits.findIndex(
       (c) => c.id === id
     );
     if (candidateIndex === -1) return;
 
-    const candidate = this.recruitStore.candidates[candidateIndex];
+    const candidate = this.recruitStore.recruits[candidateIndex];
 
     // Проверяем, хватает ли золота
     if (!this.financeStore.canAffordGold(candidate.recruitCost)) {
@@ -80,7 +80,7 @@ export class HeroesStore {
     this.heroes.push({
       ...candidate,
     });
-    this.recruitStore.candidates.splice(candidateIndex, 1);
+    this.recruitStore.recruits.splice(candidateIndex, 1);
   };
 
   generateStatsByType = (type: 'warrior' | 'mage' | 'rogue') => {

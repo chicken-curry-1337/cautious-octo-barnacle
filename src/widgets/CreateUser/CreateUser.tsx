@@ -48,7 +48,6 @@ export const CreateUser = observer(
     });
 
     const onSubmit: SubmitHandler<TUser> = (data) => {
-      console.log(data);
       createUser(data);
     };
 

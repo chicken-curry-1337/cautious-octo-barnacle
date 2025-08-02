@@ -3,42 +3,40 @@ import { useMemo } from 'react';
 import { container } from 'tsyringe';
 import { GuildStore } from '../../entities/Guild/Guild.store';
 import { QuestStore } from '../../entities/Quest/Quest.store';
+import type { Quest } from '../../shared/types/quest';
 import QuestCard from '../QuestCard/QuestCard';
 import styles from './QuestList.module.css';
 
-export const QuestList = observer(() => {
-  const guildStore = useMemo(() => container.resolve(GuildStore), []);
-  const {
-    timeStore: { currentDay },
-  } = guildStore;
-  const questStore = useMemo(() => container.resolve(QuestStore), []);
+export const QuestList = observer(
+  ({ title, quests }: { title: string; quests: Quest[] }) => {
+    const guildStore = useMemo(() => container.resolve(GuildStore), []);
+    const questStore = useMemo(() => container.resolve(QuestStore), []);
+    const {
+      timeStore: { currentDay },
+    } = guildStore;
 
-  const handleAssign = (questId: string, heroIds: string[]) => {
-    guildStore.assignHeroesToQuest(heroIds, questId);
-  };
+    const handleAssign = (questId: string, heroIds: string[]) => {
+      questStore.startQuest(questId, heroIds);
+    };
 
-  const handleStart = (questId: string) => {
-    guildStore.startQuest(questId); // Тут логика старта (твой метод)
-  };
-
-  return (
-    <div className={styles.container}>
-      <h2 className={styles.title}>Задания</h2>
-      {questStore.quests.length === 0 ? (
-        <p className={styles.empty}>Нет заданий</p>
-      ) : (
-        <ul className={styles.list}>
-          {questStore.quests.map((quest) => (
-            <QuestCard
-              key={quest.id}
-              quest={quest}
-              currentDay={currentDay}
-              onAssign={handleAssign}
-              onStart={handleStart}
-            />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-});
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>{title}</h2>
+        {quests.length === 0 ? (
+          <p className={styles.empty}>Нет заданий</p>
+        ) : (
+          <ul className={styles.list}>
+            {quests.map((quest) => (
+              <QuestCard
+                key={quest.id}
+                quest={quest}
+                currentDay={currentDay}
+                onAssign={handleAssign}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+);

@@ -1,10 +1,10 @@
 import { observer } from 'mobx-react-lite';
+import CandidateList from '../CandidateList/CandidateList';
 import { DialogueWidget } from '../DialogueWidget/DialogueWidget';
 import { Guild } from '../Guild/Guild';
-import HeroList from '../HeroList/HeroList';
-import CandidateList from '../CandidateList/CandidateList';
-import { QuestList } from '../QuestList/QuestList';
 import GuildFinanceDisplay from '../GuildFinanceDisplay/GuildFinanceDisplay';
+import HeroList from '../HeroList/HeroList';
+import QuestTabs from '../QuestList/ui/QuestTabs/QuestTabs';
 
 export const Game = observer(() => {
   return (
@@ -15,7 +15,7 @@ export const Game = observer(() => {
       {/* <HeroCreator /> */}
       <DialogueWidget />
       <Guild />
-      <QuestList />
+      <QuestTabs />
       {/* <Notifications /> */}
     </div>
   );

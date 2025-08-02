@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite';
 import React, { useMemo, useState } from 'react';
 import { container } from 'tsyringe';
-import { GuildStore } from '../../entities/Guild/Guild.store';
 import { HeroesStore } from '../../entities/Heroes/Heroes.store';
+import { QuestStore } from '../../entities/Quest/Quest.store';
 import type { Hero } from '../../shared/types/hero';
 import { QuestStatus, type Quest } from '../../shared/types/quest';
 import styles from './QuestCard.module.css';
@@ -11,13 +11,12 @@ interface QuestCardProps {
   quest: Quest;
   currentDay: number;
   onAssign: (questId: string, heroIds: string[]) => void;
-  onStart: (questId: string) => void;
 }
 
 const QuestCard: React.FC<QuestCardProps> = observer(
-  ({ quest, currentDay, onAssign, onStart }) => {
+  ({ quest, currentDay, onAssign }) => {
     // Получаем стор ОДИН раз — useMemo не нужен
-    const guildStore = container.resolve(GuildStore);
+    const questStore = container.resolve(QuestStore);
     const heroesStore = container.resolve(HeroesStore);
 
     // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
@@ -60,8 +59,8 @@ const QuestCard: React.FC<QuestCardProps> = observer(
     );
 
     const successChance = useMemo(
-      () => guildStore.getQuestSuccessChance(quest.id, selectedHeroes),
-      [guildStore, quest.id, selectedHeroes]
+      () => questStore.getQuestSuccessChance(quest.id, selectedHeroes),
+      [questStore, quest.id, selectedHeroes]
     );
 
     // Функция для цвета прогресса по шансу успеха
@@ -192,20 +191,16 @@ const QuestCard: React.FC<QuestCardProps> = observer(
           </div>
         )}
 
-        <button
-          className={styles.assignBtn}
-          disabled={selectedHeroes.length === 0}
-          onClick={() => {
-            onAssign(quest.id, selectedHeroes);
-            setSelectedHeroes([]);
-          }}
-        >
-          Назначить героев
-        </button>
-
-        {!quest.completed && (
-          <button className={styles.startBtn} onClick={() => onStart(quest.id)}>
-            Начать выполнение
+        {quest.status === QuestStatus.NotStarted && (
+          <button
+            className={styles.assignBtn}
+            disabled={availableHeroes.length === 0}
+            onClick={() => {
+              onAssign(quest.id, selectedHeroes);
+              setSelectedHeroes([]);
+            }}
+          >
+            Назначить героев
           </button>
         )}
       </li>

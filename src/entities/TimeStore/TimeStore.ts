@@ -1,8 +1,8 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
-import { DialogueStore } from '../Dialogue/Dialogue.store';
 import introDialogue from '../../assets/dialogues/introDialogue';
 import questDialogue from '../../assets/dialogues/questDialogue';
+import { DialogueStore } from '../Dialogue/Dialogue.store';
 
 @singleton()
 export class TimeStore {
@@ -14,9 +14,7 @@ export class TimeStore {
     reaction(
       () => this.currentDay,
       (day) => {
-        console.log(introDialogue);
         if (day === 3) {
-          console.log(1);
           this.dialogueStore.startDialogue(introDialogue);
         }
         if (day === 5) {

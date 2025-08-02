@@ -1,4 +1,4 @@
-import { makeAutoObservable, reaction } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 
 export enum UserAbility {
   Strength = 'strength',
@@ -46,13 +46,6 @@ export class UserStore {
 
   constructor() {
     makeAutoObservable(this);
-
-    reaction(
-      () => this.user,
-      (user) => {
-        console.log(user);
-      }
-    );
   }
 
   createUser = ({ userAbilities, playerName }: TUser) => {
