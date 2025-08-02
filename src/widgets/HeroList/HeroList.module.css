@@ -60,3 +60,11 @@
   color: #444;
   user-select: none;
 }
+
+.injured {
+  color: #d9534f; /* красный цвет для раненых героев */
+  font-weight: bold;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  user-select: none;
+}

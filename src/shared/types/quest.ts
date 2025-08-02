@@ -9,6 +9,7 @@ export enum QuestStatus {
 
 export interface Quest {
   id: string;
+  date: number; // день создания квеста
   title: string;
   description: string;
   successResult: string;
@@ -23,4 +24,9 @@ export interface Quest {
   requiredAgility: number;
   requiredIntelligence: number;
   status: QuestStatus;
+  resourcePenalty?: {
+    goldLoss?: number;
+    injuryChance?: number;
+    itemLossChance?: number;
+  };
 }

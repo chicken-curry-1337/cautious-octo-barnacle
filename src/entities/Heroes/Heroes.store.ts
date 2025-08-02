@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 import type { Hero, HeroType } from '../../shared/types/hero';
 import { GuildFinanceStore } from '../Finance/Finance.store';
@@ -15,7 +15,26 @@ export class HeroesStore {
     @inject(GuildFinanceStore) public financeStore: GuildFinanceStore
   ) {
     makeAutoObservable(this);
+
+    reaction(
+      () => this.timeStore.currentDay,
+      () => {
+        this.onNextDay();
+      }
+    );
   }
+
+  onNextDay = () => {
+    this.heroes.forEach((hero) => {
+      if (hero.injured && hero.inhuredTimeout) {
+        hero.inhuredTimeout -= 1;
+        if (hero.inhuredTimeout <= 0) {
+          hero.injured = false; // герой выздоравливает
+          hero.inhuredTimeout = undefined; // сбрасываем таймаут
+        }
+      }
+    });
+  };
 
   createHero = (name: string, type: HeroType, description: string) => {
     const stats = this.generateStatsByType(type);
@@ -31,6 +50,7 @@ export class HeroesStore {
       assignedQuestId: null,
       ...stats,
       minStake,
+      injured: false,
     };
     this.heroes.push(newHero);
   };
@@ -124,4 +144,10 @@ export class HeroesStore {
 
     return Math.floor(base * level * (typeMultiplier[type] || 1));
   };
+
+  get availableHeroes() {
+    return this.heroes.filter(
+      (hero) => hero.assignedQuestId === null && !hero.injured
+    );
+  }
 }

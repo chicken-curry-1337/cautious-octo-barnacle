@@ -20,7 +20,12 @@ const QuestTabs = observer(() => {
     },
   ];
   return (
-    <Tabs tabs={tabs}>
+    <Tabs
+      tabs={tabs.map((tab) => ({
+        ...tab,
+        label: `${tab.label} (${tab.quests.length})`,
+      }))}
+    >
       {tabs.map((tab) => (
         <QuestList title={tab.label} quests={tab.quests} />
       ))}

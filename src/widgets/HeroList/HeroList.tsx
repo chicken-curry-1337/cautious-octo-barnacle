@@ -55,6 +55,13 @@ const HeroList: React.FC = observer(() => {
               <div className={styles.name}>
                 {hero.name} <em>({getTypeLabel(hero.type)})</em>
               </div>
+              {hero.injured && (
+                <div className={styles.injured}>
+                  Герой ранен и не может участвовать в заданиях!
+                  <br />
+                  Восстановится через {hero.inhuredTimeout} дн.
+                </div>
+              )}
               <div>Уровень: {hero.level}</div>
               <p className={styles.minStake}>
                 Минимальная ставка: <strong>{hero.minStake} золота</strong>

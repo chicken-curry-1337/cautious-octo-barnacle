@@ -76,6 +76,7 @@ export class RecruitStore {
           recruitCost,
           description,
           minStake,
+          injured: false, // todo: может быть injured с вероятностью
           ...stats,
         });
       }
