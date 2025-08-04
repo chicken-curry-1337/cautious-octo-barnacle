@@ -14,15 +14,17 @@ export class GuildFinanceStore {
     makeAutoObservable(this);
   }
 
-  async addGold(amount: number) {
+  addGold(amount: number) {
     this.gold += amount;
   }
 
   spendGold(amount: number) {
     if (this.gold >= amount) {
       this.gold -= amount;
+
       return true;
     }
+
     return false;
   }
 
@@ -34,8 +36,10 @@ export class GuildFinanceStore {
   spendResource(type: string, amount: number) {
     if ((this.resources[type] ?? 0) >= amount) {
       this.resources[type] -= amount;
+
       return true;
     }
+
     return false;
   }
 

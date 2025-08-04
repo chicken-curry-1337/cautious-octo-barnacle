@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
+
 import introDialogue from '../../assets/dialogues/introDialogue';
 import questDialogue from '../../assets/dialogues/questDialogue';
 import { DialogueStore } from '../Dialogue/Dialogue.store';
@@ -17,10 +18,11 @@ export class TimeStore {
         if (day === 3) {
           this.dialogueStore.startDialogue(introDialogue);
         }
+
         if (day === 5) {
           this.dialogueStore.startDialogue(questDialogue);
         }
-      }
+      },
     );
   }
 

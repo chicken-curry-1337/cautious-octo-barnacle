@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react-lite';
+
 import CandidateList from '../CandidateList/CandidateList';
 import { DialogueWidget } from '../DialogueWidget/DialogueWidget';
 import { Guild } from '../Guild/Guild';

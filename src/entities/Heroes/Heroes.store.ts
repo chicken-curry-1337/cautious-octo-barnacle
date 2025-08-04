@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
+
 import type { Hero, HeroType } from '../../shared/types/hero';
 import { GuildFinanceStore } from '../Finance/Finance.store';
 import { RecruitStore } from '../Recruit/Recruit.store';
@@ -12,7 +13,7 @@ export class HeroesStore {
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
     @inject(RecruitStore) public recruitStore: RecruitStore,
-    @inject(GuildFinanceStore) public financeStore: GuildFinanceStore
+    @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
   ) {
     makeAutoObservable(this);
 
@@ -20,7 +21,7 @@ export class HeroesStore {
       () => this.timeStore.currentDay,
       () => {
         this.onNextDay();
-      }
+      },
     );
   }
 
@@ -28,6 +29,7 @@ export class HeroesStore {
     this.heroes.forEach((hero) => {
       if (hero.injured && hero.inhuredTimeout) {
         hero.inhuredTimeout -= 1;
+
         if (hero.inhuredTimeout <= 0) {
           hero.injured = false; // герой выздоравливает
           hero.inhuredTimeout = undefined; // сбрасываем таймаут
@@ -57,9 +59,10 @@ export class HeroesStore {
   };
 
   calculateRecruitCost = (
-    hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>
+    hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>,
   ): number => {
     const baseCost = 10;
+
     return (
       baseCost + hero.strength * 2 + hero.agility * 2 + hero.intelligence * 3
     );
@@ -92,7 +95,7 @@ export class HeroesStore {
 
   hireCandidate = (id: string) => {
     const candidateIndex = this.recruitStore.recruits.findIndex(
-      (c) => c.id === id
+      c => c.id === id,
     );
     if (candidateIndex === -1) return;
 
@@ -101,6 +104,7 @@ export class HeroesStore {
     // Проверяем, хватает ли золота
     if (!this.financeStore.canAffordGold(candidate.recruitCost)) {
       console.warn(`Недостаточно золота, чтобы нанять ${candidate.name}`);
+
       return;
     }
 
@@ -114,14 +118,14 @@ export class HeroesStore {
   };
 
   fireHero = (id: string) => {
-    const heroIndex = this.heroes.findIndex((h) => h.id === id);
+    const heroIndex = this.heroes.findIndex(h => h.id === id);
     if (heroIndex === -1) return;
 
     const hero = this.heroes[heroIndex];
 
     if (hero.assignedQuestId !== null) return; // нельзя уволить героя, который в квесте
     this.financeStore.addGold(
-      +Number(hero.recruitCost * hero.level * 0.5).toFixed(2)
+      +Number(hero.recruitCost * hero.level * 0.5).toFixed(2),
     );
     // Удаляем героя из списка
     this.heroes.splice(heroIndex, 1);
@@ -171,7 +175,7 @@ export class HeroesStore {
 
   get availableHeroes() {
     return this.heroes.filter(
-      (hero) => hero.assignedQuestId === null && !hero.injured
+      hero => hero.assignedQuestId === null && !hero.injured,
     );
   }
 }

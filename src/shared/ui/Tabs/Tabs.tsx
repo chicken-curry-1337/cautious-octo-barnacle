@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+
 import styles from './Tabs.module.css';
 
 export type Tab = {
@@ -18,7 +19,7 @@ const Tabs = ({ tabs, children, defaultTab }: TabsProps) => {
   return (
     <div className={styles.container}>
       <div className={styles.tabList}>
-        {tabs.map((tab) => (
+        {tabs.map(tab => (
           <button
             key={tab.id}
             className={`${styles.tabButton} ${
@@ -31,7 +32,7 @@ const Tabs = ({ tabs, children, defaultTab }: TabsProps) => {
         ))}
       </div>
       <div className={styles.tabContent}>
-        {children[tabs.findIndex((tab) => tab.id === activeTab)]}
+        {children[tabs.findIndex(tab => tab.id === activeTab)]}
       </div>
     </div>
   );

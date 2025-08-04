@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
+
 import { observer } from 'mobx-react-lite';
-import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { container } from 'tsyringe';
+
+import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
+
 import styles from './GuildFinanceDisplay.module.css';
 
 const GuildFinanceDisplay = observer(() => {
@@ -10,7 +13,9 @@ const GuildFinanceDisplay = observer(() => {
   return (
     <div className={styles['guild-finance-display']}>
       <p>
-        💰 Золото: <span>{financeStore.gold}</span>
+        💰 Золото:
+        {' '}
+        <span>{financeStore.gold}</span>
       </p>
 
       {Object.entries(financeStore.resources).map(([resource, amount]) => (
@@ -18,7 +23,9 @@ const GuildFinanceDisplay = observer(() => {
           {resource === 'wood' && '🪵'}
           {resource === 'iron' && '🪓'}
           {resource === 'herbs' && '🌿'}
-          {resource.charAt(0).toUpperCase() + resource.slice(1)}:{' '}
+          {resource.charAt(0).toUpperCase() + resource.slice(1)}
+          :
+          {' '}
           <span>{amount}</span>
         </p>
       ))}

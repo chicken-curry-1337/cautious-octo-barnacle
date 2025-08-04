@@ -1,5 +1,7 @@
-import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
+
+import { observer } from 'mobx-react-lite';
+
 import styles from './HeroCreator.module.css';
 
 const HeroCreator: React.FC = observer(() => {
@@ -8,6 +10,7 @@ const HeroCreator: React.FC = observer(() => {
 
   const handleCreate = () => {
     const trimmed = name.trim();
+
     if (trimmed.length > 0) {
       // guildStore.createHero(trimmed);
       setName('');
@@ -22,7 +25,7 @@ const HeroCreator: React.FC = observer(() => {
         type="text"
         value={name}
         placeholder="Имя героя"
-        onChange={(e) => setName(e.target.value)}
+        onChange={e => setName(e.target.value)}
       />
       <button className={styles.button} onClick={handleCreate}>
         Добавить героя

@@ -13,6 +13,7 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "baseUrl": "./src",
     "jsx": "react-jsx",
 
     /* Linting */
@@ -23,7 +24,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "allowJs": true,
   },
-  "include": ["src"]
+  "include": ["src"],
 }

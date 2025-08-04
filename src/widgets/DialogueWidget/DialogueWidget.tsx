@@ -1,7 +1,10 @@
-import { observer } from 'mobx-react-lite';
 import { useMemo } from 'react';
+
+import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
+
 import { DialogueStore } from '../../entities/Dialogue/Dialogue.store';
+
 import styles from './DialogueWidget.module.css';
 
 export const DialogueWidget = observer(() => {
@@ -28,6 +31,7 @@ export const DialogueWidget = observer(() => {
         {characters.map((char) => {
           // Активен, если его id есть в массиве activeCharacterIds
           const isActive = currentNode.activeCharacterIds.includes(char.id);
+
           return (
             <img
               key={char.id}
@@ -63,8 +67,8 @@ export const DialogueWidget = observer(() => {
       </div>
 
       <div className={styles.options}>
-        {currentNode.options.length > 1 &&
-          currentNode.options.map((option, index) => (
+        {currentNode.options.length > 1
+          && currentNode.options.map((option, index) => (
             <button
               key={index}
               onClick={() => dialogueStore.setCurrentId(option.nextId)}

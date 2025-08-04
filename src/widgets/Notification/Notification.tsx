@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import styles from './Notification.module.css';
 
 type Notification = {
@@ -11,14 +12,14 @@ export function Notifications() {
 
   const addNotification = (message: string) => {
     const id = Date.now();
-    setNotifications((prev) => [...prev, { id, message }]);
+    setNotifications(prev => [...prev, { id, message }]);
     setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      setNotifications(prev => prev.filter(n => n.id !== id));
     }, 4000);
   };
 
   const removeNotification = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
   // Для теста
@@ -28,7 +29,7 @@ export function Notifications() {
 
   return (
     <div className={styles.container}>
-      {notifications.map((n) => (
+      {notifications.map(n => (
         <div key={n.id} className={`${styles.notification} ${styles.fadeIn}`}>
           <div className={styles.icon}>⚔️</div>
           <div className={styles.message}>{n.message}</div>

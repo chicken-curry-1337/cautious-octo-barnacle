@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { inject, singleton } from 'tsyringe';
+
 import type { Hero, HeroType } from '../../shared/types/hero';
 import { QuestStatus } from '../../shared/types/quest';
 import { GuildFinanceStore } from '../Finance/Finance.store';
@@ -15,7 +16,7 @@ export class GuildStore {
     @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
     @inject(RecruitStore) public recruitStore: RecruitStore,
     @inject(HeroesStore) public heroesStore: HeroesStore,
-    @inject(QuestStore) public questStore: QuestStore
+    @inject(QuestStore) public questStore: QuestStore,
   ) {
     makeAutoObservable(this);
   }
@@ -46,16 +47,17 @@ export class GuildStore {
   };
 
   completeQuest = (questId: string) => {
-    const quest = this.questStore.quests.find((q) => q.id === questId);
+    const quest = this.questStore.quests.find(q => q.id === questId);
+
     if (quest && !quest.completed) {
       quest.status = QuestStatus.CompletedSuccess;
 
-      const assignedHeroes = this.heroesStore.heroes.filter((h) =>
-        quest.assignedHeroIds.includes(h.id)
+      const assignedHeroes = this.heroesStore.heroes.filter(h =>
+        quest.assignedHeroIds.includes(h.id),
       );
       const totalMinStake = assignedHeroes.reduce(
         (sum, hero) => sum + hero.minStake,
-        0
+        0,
       );
       const reward = quest.reward;
 
@@ -64,6 +66,7 @@ export class GuildStore {
         this.financeStore.addGold(guildProfit);
       } else {
         const shortage = totalMinStake - reward;
+
         if (this.financeStore.canAffordGold(shortage)) {
           this.financeStore.spendGold(shortage);
         } else {
@@ -86,7 +89,7 @@ export class GuildStore {
 
   hireCandidate = (id: string) => {
     const candidateIndex = this.recruitStore.recruits.findIndex(
-      (c) => c.id === id
+      c => c.id === id,
     );
     if (candidateIndex === -1) return;
 
@@ -95,6 +98,7 @@ export class GuildStore {
     // Проверяем, хватает ли золота
     if (!this.financeStore.canAffordGold(candidate.recruitCost)) {
       console.warn(`Недостаточно золота, чтобы нанять ${candidate.name}`);
+
       return;
     }
 

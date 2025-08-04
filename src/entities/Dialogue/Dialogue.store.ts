@@ -49,8 +49,9 @@ export class DialogueStore {
 
   get currentNode() {
     if (!this.dialogueData) return null;
+
     return (
-      this.dialogueData.nodes.find((node) => node.id === this.currentId) ?? null
+      this.dialogueData.nodes.find(node => node.id === this.currentId) ?? null
     );
   }
 
@@ -63,8 +64,8 @@ export class DialogueStore {
   get activeCharacters() {
     if (!this.currentNode || !this.characters) return [];
 
-    return this.characters.filter((c) =>
-      this.currentNode!.activeCharacterIds.includes(c.id)
+    return this.characters.filter(c =>
+      this.currentNode!.activeCharacterIds.includes(c.id),
     );
   }
 }

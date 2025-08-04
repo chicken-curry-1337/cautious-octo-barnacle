@@ -1,7 +1,9 @@
 import { observer } from 'mobx-react-lite';
+
 import type { TUser } from '../../entities/User/User.store';
-import styles from './UserCreationDone.module.css';
 import { GameScreen } from '../../features/Game/Game.enum';
+
+import styles from './UserCreationDone.module.css';
 
 export const UserCreationDone = observer(
   ({
@@ -9,17 +11,22 @@ export const UserCreationDone = observer(
     setGameScreen,
   }: {
     user: TUser;
-    setGameScreen(gameScreen: GameScreen): void;
+    setGameScreen: (gameScreen: GameScreen) => void;
   }) => {
     const { userAbilities, playerName } = user;
+
     return (
       <div className={styles.userCreationDone}>
         <div>
-          {playerName.name} {playerName.surname}
+          {playerName.name}
+          {' '}
+          {playerName.surname}
         </div>
         {Object.entries(userAbilities).map(([key, value]) => (
           <div key={key}>
-            {key}: {value}
+            {key}
+            :
+            {value}
           </div>
         ))}
         <button
@@ -38,5 +45,5 @@ export const UserCreationDone = observer(
         </button>
       </div>
     );
-  }
+  },
 );

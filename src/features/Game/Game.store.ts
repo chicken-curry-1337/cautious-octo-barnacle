@@ -1,5 +1,7 @@
 import { makeAutoObservable } from 'mobx';
+
 import { UserStore } from '../../entities/User/User.store';
+
 import { GameScreen } from './Game.enum';
 
 export class GameStore {

@@ -1,6 +1,6 @@
 import './App.css';
-import { GamePage } from './pages/GamePage/GamePage';
 import { GameStore } from './features/Game/Game.store';
+import { GamePage } from './pages/GamePage/GamePage';
 
 const gameStore = new GameStore();
 

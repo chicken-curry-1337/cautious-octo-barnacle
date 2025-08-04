@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
+
 import type { Hero, HeroType, RecruitCandidate } from '../../shared/types/hero';
 import { TimeStore } from '../TimeStore/TimeStore';
 
@@ -37,15 +38,15 @@ export class RecruitStore {
       () => this.timeStore.currentDay,
       () => {
         this.onNextDay();
-      }
+      },
     );
   }
 
   onNextDay = () => {
     // Обновляем срок действия кандидатов
     this.recruits = this.recruits
-      .map((c) => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
-      .filter((c) => c.daysRemaining > 0);
+      .map(c => ({ ...c, daysRemaining: c.daysRemaining - 1 }))
+      .filter(c => c.daysRemaining > 0);
 
     const CANDIDATE_LENGTH_MAX = 5;
     const CANDIDATE_GENERATE_COUNT = 5;
@@ -53,16 +54,17 @@ export class RecruitStore {
     if (this.recruits.length < CANDIDATE_LENGTH_MAX) {
       // Генерация новых кандидатов
       const newHeroesCount = Math.floor(
-        Math.random() * (CANDIDATE_GENERATE_COUNT - this.recruits.length)
+        Math.random() * (CANDIDATE_GENERATE_COUNT - this.recruits.length),
       );
+
       for (let i = 0; i < newHeroesCount; i++) {
         const name = this.generateRandomName();
         const type = this.generateRandomHeroType();
         const stats = this.generateStatsByType(type);
         const recruitCost = this.calculateRecruitCost(stats);
         const minStake = this.calculateMinStake(1, type); // у новичка уровень 1
-        const description =
-          this.descriptionsByType[type][
+        const description
+          = this.descriptionsByType[type][
             Math.floor(Math.random() * this.descriptionsByType[type].length)
           ];
 
@@ -94,11 +96,13 @@ export class RecruitStore {
       'Арчибальд',
       'Фелис',
     ];
+
     return names[Math.floor(Math.random() * names.length)];
   };
 
   generateRandomHeroType = (): HeroType => {
     const types: HeroType[] = ['warrior', 'mage', 'rogue'];
+
     return types[Math.floor(Math.random() * types.length)];
   };
 
@@ -130,9 +134,10 @@ export class RecruitStore {
   };
 
   calculateRecruitCost = (
-    hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>
+    hero: Pick<Hero, 'strength' | 'agility' | 'intelligence'>,
   ): number => {
     const baseCost = 10;
+
     return (
       baseCost + hero.strength * 2 + hero.agility * 2 + hero.intelligence * 3
     );

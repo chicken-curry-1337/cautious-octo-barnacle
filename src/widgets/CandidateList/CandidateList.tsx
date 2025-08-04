@@ -1,10 +1,13 @@
-import { observer } from 'mobx-react-lite';
 import { useMemo } from 'react';
+
+import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
+
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { GuildStore } from '../../entities/Guild/Guild.store';
 import { RecruitStore } from '../../entities/Recruit/Recruit.store';
 import type { HeroType } from '../../shared/types/hero';
+
 import styles from './CandidateList.module.css';
 
 const typeEmojis: Record<string, string> = {
@@ -42,22 +45,53 @@ const CandidateList = observer(() => {
         return (
           <div key={hero.id} className={styles.card}>
             <div>
-              <strong>{hero.name}</strong> (ур. {hero.level}) —{' '}
+              <strong>{hero.name}</strong>
+              {' '}
+              (ур.
+              {hero.level}
+              ) —
+              {' '}
               <em>
-                {typeEmojis[hero.type]} {hero.type}
-              </em>{' '}
-              — исчезнет через {hero.daysRemaining} дн.
+                {typeEmojis[hero.type]}
+                {' '}
+                {hero.type}
+              </em>
+              {' '}
+              — исчезнет через
+              {' '}
+              {hero.daysRemaining}
+              {' '}
+              дн.
             </div>
             <div className="stats">
-              💪 {hero.strength} | 🎯 {hero.agility} | 🧠 {hero.intelligence}
+              💪
+              {' '}
+              {hero.strength}
+              {' '}
+              | 🎯
+              {' '}
+              {hero.agility}
+              {' '}
+              | 🧠
+              {' '}
+              {hero.intelligence}
             </div>
             <p className={styles.minStake}>
-              Минимальная ставка: <strong>{hero.minStake} золота</strong>
+              Минимальная ставка:
+              {' '}
+              <strong>
+                {hero.minStake}
+                {' '}
+                золота
+              </strong>
             </p>
             <p className={styles[getDescriptionClass(hero.type)]}>
               {hero.description}
             </p>
-            <div className={styles.recruitCost}>💰 {hero.recruitCost}</div>
+            <div className={styles.recruitCost}>
+              💰
+              {hero.recruitCost}
+            </div>
             <button
               onClick={() => canAfford && guildStore.hireCandidate(hero.id)}
               className={`${styles.hire} ${canAfford ? '' : styles.hireDisabled}`}

@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
+
 import { TimeStore } from '../TimeStore/TimeStore';
 
 @singleton()
@@ -13,7 +14,7 @@ export class DifficultyStore {
       () => this.timeStore.currentDay,
       () => {
         this.onNextDay();
-      }
+      },
     );
   }
 

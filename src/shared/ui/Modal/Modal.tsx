@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+
 import styles from './Modal.module.css';
 
 interface ModalProps {
@@ -19,8 +20,8 @@ export const Modal: React.FC<ModalProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
+        modalRef.current
+        && !modalRef.current.contains(event.target as Node)
       ) {
         onClose();
       }

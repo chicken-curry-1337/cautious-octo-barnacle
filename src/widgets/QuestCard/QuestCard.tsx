@@ -1,10 +1,13 @@
-import { observer } from 'mobx-react-lite';
 import React, { useEffect, useMemo, useState } from 'react';
+
+import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
+
 import { HeroesStore } from '../../entities/Heroes/Heroes.store';
 import { QuestStore } from '../../entities/Quest/Quest.store';
 import type { Hero } from '../../shared/types/hero';
 import { QuestStatus, type Quest } from '../../shared/types/quest';
+
 import styles from './QuestCard.module.css';
 
 interface QuestCardProps {
@@ -25,23 +28,23 @@ const QuestCard: React.FC<QuestCardProps> = observer(
     const [selectedHeroesIds, setSelectedHeroesIds] = useState<string[]>([]);
 
     const toggleHero = (id: string) => {
-      setSelectedHeroesIds((prev) =>
-        prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]
+      setSelectedHeroesIds(prev =>
+        prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id],
       );
     };
 
     const assignedHeroes = quest.assignedHeroIds
-      .map((id) => heroes.find((h) => h.id === id))
+      .map(id => heroes.find(h => h.id === id))
       .filter(Boolean) as Hero[];
 
     const totalStrength = assignedHeroes.reduce(
       (sum, h) => sum + h.strength,
-      0
+      0,
     );
     const totalAgility = assignedHeroes.reduce((sum, h) => sum + h.agility, 0);
     const totalIntelligence = assignedHeroes.reduce(
       (sum, h) => sum + h.intelligence,
-      0
+      0,
     );
 
     const daysLeft = quest.deadlineDay - currentDay;
@@ -51,16 +54,17 @@ const QuestCard: React.FC<QuestCardProps> = observer(
       if (quest.status === QuestStatus.InProgress) return 'В процессе';
       if (quest.status === QuestStatus.FailedDeadline) return 'Просрочено';
       if (quest.status === QuestStatus.CompletedFail) return 'Неуспешно';
+
       return 'Выполнено';
     }, [quest.status]);
 
     const availableForQuestHeroes = availableHeroes.filter(
-      (h) => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null
+      h => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null,
     );
 
     const successChance = useMemo(
       () => questStore.getNewQuestSuccessChance(quest.id, selectedHeroesIds),
-      [questStore, quest.id, selectedHeroesIds]
+      [questStore, quest.id, selectedHeroesIds],
     );
 
     useEffect(() => {
@@ -71,14 +75,15 @@ const QuestCard: React.FC<QuestCardProps> = observer(
     const getProgressColor = (percent: number) => {
       if (percent < 40) return '#e53935'; // красный
       if (percent < 70) return '#fbc02d'; // жёлтый
+
       return '#43a047'; // зелёный
     };
 
     const availableHeroesCommission = useMemo(() => {
-      if (quest.status === QuestStatus.NotStarted)
-        return availableForQuestHeroes
-          .filter((h) => selectedHeroesIds.includes(h.id))
-          .reduce((sum, h) => sum + (h.minStake ?? 0), 0);
+      if (quest.status === QuestStatus.NotStarted) return availableForQuestHeroes
+        .filter(h => selectedHeroesIds.includes(h.id))
+        .reduce((sum, h) => sum + (h.minStake ?? 0), 0);
+
       return assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0);
     }, [
       assignedHeroes,
@@ -92,7 +97,9 @@ const QuestCard: React.FC<QuestCardProps> = observer(
     return (
       <li className={styles.card}>
         <h3>
-          {quest.title}. Дата создания: {quest.date}
+          {quest.title}
+          . Дата создания:
+          {quest.date}
         </h3>
         <p>
           {quest.status === QuestStatus.NotStarted && quest.description}
@@ -100,37 +107,55 @@ const QuestCard: React.FC<QuestCardProps> = observer(
           {quest.status === QuestStatus.CompletedFail && quest.failResult}
           {quest.status === QuestStatus.FailedDeadline && quest.deadlineResult}
         </p>
-        {(quest.status === QuestStatus.NotStarted ||
-          quest.status === QuestStatus.InProgress) && (
+        {(quest.status === QuestStatus.NotStarted
+          || quest.status === QuestStatus.InProgress) && (
           <p>
-            Дедлайн:{' '}
+            Дедлайн:
+            {' '}
             {daysLeft >= 0
               ? `через ${daysLeft} дн.`
               : `просрочено на ${-daysLeft} дн.`}
           </p>
         )}
         <p>
-          Статус: <strong>{status}</strong>
+          Статус:
+          {' '}
+          <strong>{status}</strong>
         </p>
 
         <p>
-          Награда:{' '}
-          <span className={styles.reward}>💰 {quest.reward} золота</span>
+          Награда:
+          {' '}
+          <span className={styles.reward}>
+            💰
+            {quest.reward}
+            {' '}
+            золота
+          </span>
         </p>
 
         <p>
-          Комиссия героев: <span>{availableHeroesCommission} золота</span>
+          Комиссия героев:
+          {' '}
+          <span>
+            {availableHeroesCommission}
+            {' '}
+            золота
+          </span>
         </p>
 
         <p>
-          Итоговая выгода гильдии:{' '}
+          Итоговая выгода гильдии:
+          {' '}
           <span
             style={{
               color: guildProfit >= 0 ? '#43a047' : '#e53935',
               fontWeight: '600',
             }}
           >
-            {guildProfit} золота
+            {guildProfit}
+            {' '}
+            золота
           </span>
         </p>
 
@@ -147,34 +172,68 @@ const QuestCard: React.FC<QuestCardProps> = observer(
                 title={`${successChance}%`}
               />
             </div>
-            <span>{successChance}%</span>
+            <span>
+              {successChance}
+              %
+            </span>
           </div>
         )}
 
         <div>
           <strong>Назначенные герои:</strong>
-          {assignedHeroes.length === 0 ? (
-            <span> — нет</span>
-          ) : (
-            <ul className={styles.assignedHeroesList}>
-              {assignedHeroes.map((hero) => (
-                <li key={hero.id}>
-                  {hero.name} ({hero.type}) — 💪 {hero.strength} | 🎯{' '}
-                  {hero.agility} | 🧠 {hero.intelligence}
-                </li>
-              ))}
-            </ul>
-          )}
+          {assignedHeroes.length === 0
+            ? (
+                <span> — нет</span>
+              )
+            : (
+                <ul className={styles.assignedHeroesList}>
+                  {assignedHeroes.map(hero => (
+                    <li key={hero.id}>
+                      {hero.name}
+                      {' '}
+                      (
+                      {hero.type}
+                      ) — 💪
+                      {hero.strength}
+                      {' '}
+                      | 🎯
+                      {' '}
+                      {hero.agility}
+                      {' '}
+                      | 🧠
+                      {hero.intelligence}
+                    </li>
+                  ))}
+                </ul>
+              )}
         </div>
 
         <div>
-          <strong>Требования по статам:</strong> 💪 {quest.requiredStrength} |
-          🎯 {quest.requiredAgility} | 🧠 {quest.requiredIntelligence}
+          <strong>Требования по статам:</strong>
+          {' '}
+          💪
+          {quest.requiredStrength}
+          {' '}
+          |
+          🎯
+          {quest.requiredAgility}
+          {' '}
+          | 🧠
+          {quest.requiredIntelligence}
         </div>
 
         <div>
-          <strong>Суммарные статы героев:</strong> 💪 {totalStrength} | 🎯{' '}
-          {totalAgility} | 🧠 {totalIntelligence}
+          <strong>Суммарные статы героев:</strong>
+          {' '}
+          💪
+          {totalStrength}
+          {' '}
+          | 🎯
+          {' '}
+          {totalAgility}
+          {' '}
+          | 🧠
+          {totalIntelligence}
         </div>
 
         {quest.resourcePenalty && (
@@ -182,17 +241,25 @@ const QuestCard: React.FC<QuestCardProps> = observer(
             <strong>🔻 Возможные потери при провале:</strong>
             <ul>
               {(quest.resourcePenalty.goldLoss ?? 0) > 0 && (
-                <li>💰 Потеря золота: {quest.resourcePenalty.goldLoss ?? 0}</li>
+                <li>
+                  💰 Потеря золота:
+                  {quest.resourcePenalty.goldLoss ?? 0}
+                </li>
               )}
               {(quest.resourcePenalty.injuryChance ?? 0) > 0 && (
                 <li>
-                  🤕 Шанс ранения героя: {quest.resourcePenalty.injuryChance}%
+                  🤕 Шанс ранения героя:
+                  {' '}
+                  {quest.resourcePenalty.injuryChance}
+                  %
                 </li>
               )}
               {(quest.resourcePenalty.itemLossChance ?? 0) > 0 && (
                 <li>
-                  🎒 Шанс потери предметов:{' '}
-                  {quest.resourcePenalty.itemLossChance}%
+                  🎒 Шанс потери предметов:
+                  {' '}
+                  {quest.resourcePenalty.itemLossChance}
+                  %
                 </li>
               )}
             </ul>
@@ -202,30 +269,50 @@ const QuestCard: React.FC<QuestCardProps> = observer(
         {quest.status === QuestStatus.NotStarted && (
           <div className={styles.heroSelector}>
             <strong>Доступные герои для назначения:</strong>
-            {availableForQuestHeroes.length === 0 ? (
-              <p>Нет доступных героев</p>
-            ) : (
-              <ul className={styles.heroList}>
-                {availableForQuestHeroes.map((hero) => (
-                  <li key={hero.id}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={selectedHeroesIds.includes(hero.id)}
-                        onChange={() => toggleHero(hero.id)}
-                      />
-                      {hero.name} ({hero.type} {hero.level} lvl) — 💪{' '}
-                      {hero.strength} | 🎯 {hero.agility} | 🧠{' '}
-                      {hero.intelligence}
-                      <span className={styles.minStake}>
-                        {' '}
-                        — мин. ставка: {hero.minStake} золота
-                      </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {availableForQuestHeroes.length === 0
+              ? (
+                  <p>Нет доступных героев</p>
+                )
+              : (
+                  <ul className={styles.heroList}>
+                    {availableForQuestHeroes.map(hero => (
+                      <li key={hero.id}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={selectedHeroesIds.includes(hero.id)}
+                            onChange={() => toggleHero(hero.id)}
+                          />
+                          {hero.name}
+                          {' '}
+                          (
+                          {hero.type}
+                          {' '}
+                          {hero.level}
+                          {' '}
+                          lvl) — 💪
+                          {' '}
+                          {hero.strength}
+                          {' '}
+                          | 🎯
+                          {hero.agility}
+                          {' '}
+                          | 🧠
+                          {' '}
+                          {hero.intelligence}
+                          <span className={styles.minStake}>
+                            {' '}
+                            — мин. ставка:
+                            {' '}
+                            {hero.minStake}
+                            {' '}
+                            золота
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
           </div>
         )}
 
@@ -243,7 +330,7 @@ const QuestCard: React.FC<QuestCardProps> = observer(
         )}
       </li>
     );
-  }
+  },
 );
 
 export default QuestCard;

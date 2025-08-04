@@ -1,6 +1,8 @@
-import { observer } from 'mobx-react-lite';
 import { useMemo } from 'react';
+
+import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
+
 import { QuestStore } from '../../../../entities/Quest/Quest.store';
 import type { Quest } from '../../../../shared/types/quest';
 import type { Tab } from '../../../../shared/ui/Tabs/Tabs';
@@ -19,15 +21,16 @@ const QuestTabs = observer(() => {
       quests: questStore.completedQuests,
     },
   ];
+
   return (
     <Tabs
-      tabs={tabs.map((tab) => ({
+      tabs={tabs.map(tab => ({
         ...tab,
         label: `${tab.label} (${tab.quests.length})`,
       }))}
     >
-      {tabs.map((tab) => (
-        <QuestList title={tab.label} quests={tab.quests} />
+      {tabs.map(tab => (
+        <QuestList title={tab.label} quests={tab.quests} key={tab.id} />
       ))}
     </Tabs>
   );
