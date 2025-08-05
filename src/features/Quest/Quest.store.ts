@@ -1,15 +1,15 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import { QuestStatus, type Quest } from '../../shared/types/quest';
-import { DifficultyStore } from '../Difficulty/Difficulty.store';
-import { GuildFinanceStore } from '../Finance/Finance.store';
+import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
+import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
+import { TimeStore } from '../../entities/TimeStore/TimeStore';
+import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { HeroesStore } from '../Heroes/Heroes.store';
-import { TimeStore } from '../TimeStore/TimeStore';
 
 @singleton()
 export class QuestStore {
-  quests: Quest[] = [];
+  quests: IQuest[] = [];
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -20,12 +20,20 @@ export class QuestStore {
     makeAutoObservable(this);
 
     reaction(
-      () => this.timeStore.currentDay,
+      () => this.timeStore.absoluteDay,
       () => {
         this.onNextDay();
       },
     );
   }
+
+  randomBetween = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  takeQuestIntoWork = (quest: IQuest) => {
+    this.quests.push(quest);
+  };
 
   createQuest = (
     title: string,
@@ -36,24 +44,27 @@ export class QuestStore {
     reward?: number,
   ) => {
     const questReward = reward ?? this.randomInRange(50, 150);
-    const deadlineDay = this.timeStore.currentDay + this.randomInRange(3, 5);
+    const deadlineAccept = this.timeStore.absoluteDay + this.randomInRange(3, 5); // срок на принятие
+    const executionTime = this.randomInRange(2, 4); // дни на выполнение после старта
 
-    // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
     const requiredStrength = this.randomInRange(5, 15);
     const requiredAgility = this.randomInRange(5, 15);
     const requiredIntelligence = this.randomInRange(5, 15);
-    const newQuest: Quest = {
+
+    const newQuest: IQuest = {
       id: crypto.randomUUID(),
       title,
       description,
-      date: this.timeStore.currentDay,
+      dateCreated: this.timeStore.absoluteDay,
       reward: questReward,
       assignedHeroIds: [],
       completed: false,
       requiredStrength,
       requiredAgility,
       requiredIntelligence,
-      deadlineDay,
+      deadlineAccept,
+      executionTime,
+      executionDeadline: null,
       failResult,
       deadlineResult,
       successResult,
@@ -62,40 +73,25 @@ export class QuestStore {
     this.quests.push(newQuest);
   };
 
-  randomBetween = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  takeQuestIntoWork = (quest: Quest) => {
-    this.quests.push(quest);
-  };
-
   onNextDay = () => {
-    // Проверяем задания с дедлайном — выполнить или удалить
     this.quests = this.quests.filter((quest) => {
-      if (quest.status === QuestStatus.CompletedSuccess) return true; // Уже выполнено — оставляем
+      // Проверка на истечение времени принятия
+      if (quest.status === QuestStatus.NotStarted && this.timeStore.absoluteDay > quest.deadlineAccept) {
+        quest.status = QuestStatus.FailedDeadline;
 
-      if (this.timeStore.currentDay >= quest.deadlineDay) {
-        // Дедлайн прошёл — проверяем героев
-        const assignedHeroes = this.heroesStore.heroes.filter(h =>
-          quest.assignedHeroIds.includes(h.id),
-        );
+        return false;
+      }
 
-        if (assignedHeroes.length === 0) {
-          quest.status = QuestStatus.FailedDeadline;
-
-          // Задание провалено из-за отсутствия героев — удаляем задание
-          if (this.timeStore.currentDay > quest.deadlineDay + 2) {
-            return false;
-          }
-
-          return true;
-        }
-
+      // Для выполненных заданий Проверка на истечение времени выполнения
+      if (quest.status === QuestStatus.InProgress && quest.executionDeadline && this.timeStore.absoluteDay >= quest.executionDeadline) {
         // Проверяем требования
         const chance = this.getNewQuestSuccessChance(quest.id);
         const roll = Math.random() * 100;
         const success = roll <= chance;
+
+        const assignedHeroes = this.heroesStore.heroes.filter(h =>
+          quest.assignedHeroIds.includes(h.id),
+        );
 
         if (success) {
           quest.status = QuestStatus.CompletedSuccess;
@@ -105,7 +101,6 @@ export class QuestStore {
           );
           console.log(`hero comission: ${heroComission}`);
           this.financeStore.addGold(quest.reward - heroComission);
-          assignedHeroes.forEach(h => this.heroesStore.increaseHeroLevel(h));
           console.log(`hero comission: ${heroComission}`);
         } else if (!success) {
           quest.status = QuestStatus.CompletedFail;
@@ -120,16 +115,20 @@ export class QuestStore {
 
               if (roll < quest.resourcePenalty!.injuryChance!) {
                 hero.injured = true; // можно ввести такую механику
-                hero.inhuredTimeout = 5;
+                hero.injuredTimeout = 5;
               }
             });
           }
         }
 
+        assignedHeroes.forEach(h => h.increaseLevel());
+        assignedHeroes.forEach(h => h.assignedQuestId = null);
+
         return true;
       }
 
-      return true; // Если дедлайн ещё не наступил — задание остаётся
+      // дедлайн еще не наступил - оставляем
+      return true;
     });
 
     this.quests = this.quests.filter(
@@ -147,6 +146,38 @@ export class QuestStore {
       for (let i = 0; i < newQuestsCount; i++) {
         const quest = this.generateRandomQuest();
         this.quests.push(quest);
+      }
+    }
+  };
+
+  completeQuest = (questId: string) => {
+    const quest = this.quests.find(q => q.id === questId);
+
+    if (quest && !quest.completed) {
+      quest.status = QuestStatus.CompletedSuccess;
+
+      const assignedHeroes = this.heroesStore.heroes.filter(h =>
+        quest.assignedHeroIds.includes(h.id),
+      );
+      const totalMinStake = assignedHeroes.reduce(
+        (sum, hero) => sum + hero.minStake,
+        0,
+      );
+      const reward = quest.reward;
+
+      if (reward >= totalMinStake) {
+        const guildProfit = reward - totalMinStake;
+        this.financeStore.addGold(guildProfit);
+      } else {
+        const shortage = totalMinStake - reward;
+
+        if (this.financeStore.canAffordGold(shortage)) {
+          this.financeStore.spendGold(shortage);
+        } else {
+          const affordableShortage = Math.min(shortage, this.financeStore.gold);
+          this.financeStore.spendGold(affordableShortage);
+          console.warn('Гильдия не может полностью покрыть ставки героев!');
+        }
       }
     }
   };
@@ -230,17 +261,30 @@ export class QuestStore {
 
   startQuest = (questId: string, heroIds: string[]) => {
     const quest = this.quests.find(q => q.id === questId);
-
     if (!quest) throw new Error('Quest not found');
 
-    this.assignHeroesToQuest(heroIds, questId);
+    heroIds.forEach((heroId) => {
+      const hero = this.heroesStore.heroes.find(h => h.id === heroId);
+      if (!hero) return;
+      hero.assignedQuestId = questId;
+
+      if (!quest.assignedHeroIds.includes(heroId)) {
+        quest.assignedHeroIds.push(heroId);
+      }
+    });
+
+    quest.status = QuestStatus.InProgress;
+    quest.executionDeadline = quest.executionTime;
   };
 
-  randomInRange = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  randomInRange = (min: number, max: number): number => {
+    const low = Math.ceil(min);
+    const high = Math.floor(max);
+
+    return Math.floor(Math.random() * (high - low + 1)) + low;
   };
 
-  generateRandomQuest = (): Quest => {
+  generateRandomQuest = (): IQuest => {
     const titles = [
       'Спасти деревню',
       'Найти древний артефакт',
@@ -283,7 +327,10 @@ export class QuestStore {
 
     const idx = Math.floor(Math.random() * titles.length);
     const reward = this.randomInRange(50, 150);
-    const deadlineDay = this.timeStore.currentDay + this.randomInRange(3, 5);
+    const deadlineAccept = this.timeStore.absoluteDay + this.randomInRange(3, 5);
+    const rand = this.randomInRange(3, 5);
+    console.log(rand);
+    const executionTime = this.timeStore.absoluteDay + rand;
 
     // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
     const multiplier = 1 + this.difficultyStore.difficultyLevel * 0.2;
@@ -316,7 +363,7 @@ export class QuestStore {
 
     return {
       id: crypto.randomUUID(),
-      date: this.timeStore.currentDay,
+      dateCreated: this.timeStore.absoluteDay,
       title: titles[idx],
       description: descriptions[idx],
       successResult: successResults[idx],
@@ -325,7 +372,9 @@ export class QuestStore {
       reward,
       assignedHeroIds: [],
       completed: false,
-      deadlineDay,
+      deadlineAccept,
+      executionTime,
+      executionDeadline: null,
       requiredStrength,
       requiredAgility,
       requiredIntelligence,
@@ -350,7 +399,7 @@ export class QuestStore {
         return 1; // b раньше a
       }
 
-      return a.deadlineDay - b.deadlineDay; // сортируем по дедлайну
+      return a.deadlineAccept - b.deadlineAccept; // сортируем по дедлайну
     });
   }
 
@@ -370,8 +419,8 @@ export class QuestStore {
     );
   }
 
-  sortQuestsByDate = (quests: Quest[]) => {
-    return quests.slice().sort((a, b) => (a.date > b.date ? -1 : 1));
+  sortQuestsByDate = (quests: IQuest[]) => {
+    return quests.slice().sort((a, b) => (a.dateCreated > b.dateCreated ? -1 : 1));
   };
 
   get newQuests() {

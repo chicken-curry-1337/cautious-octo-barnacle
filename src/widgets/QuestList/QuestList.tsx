@@ -3,19 +3,19 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { GuildStore } from '../../entities/Guild/Guild.store';
-import { QuestStore } from '../../entities/Quest/Quest.store';
-import type { Quest } from '../../shared/types/quest';
+import { QuestStore } from '../../features/Quest/Quest.store';
+import type { IQuest } from '../../shared/types/quest';
+import { GuildStore } from '../Guild/store/Guild.store';
 import QuestCard from '../QuestCard/QuestCard';
 
 import styles from './QuestList.module.css';
 
 export const QuestList = observer(
-  ({ title, quests }: { title: string; quests: Quest[] }) => {
+  ({ title, quests }: { title: string; quests: IQuest[] }) => {
     const guildStore = useMemo(() => container.resolve(GuildStore), []);
     const questStore = useMemo(() => container.resolve(QuestStore), []);
     const {
-      timeStore: { currentDay },
+      timeStore: { dayOfMonth },
     } = guildStore;
 
     const handleAssign = (questId: string, heroIds: string[]) => {
@@ -35,7 +35,7 @@ export const QuestList = observer(
                   <QuestCard
                     key={quest.id}
                     quest={quest}
-                    currentDay={currentDay}
+                    currentDay={dayOfMonth}
                     onAssign={handleAssign}
                   />
                 ))}

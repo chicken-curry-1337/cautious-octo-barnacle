@@ -3,22 +3,21 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { HeroesStore } from '../../entities/Heroes/Heroes.store';
-import { QuestStore } from '../../entities/Quest/Quest.store';
-import type { Hero } from '../../shared/types/hero';
-import { QuestStatus, type Quest } from '../../shared/types/quest';
+import { HeroesStore } from '../../features/Heroes/Heroes.store';
+import { QuestStore } from '../../features/Quest/Quest.store';
+import type { ICharacter } from '../../shared/types/hero';
+import { QuestStatus, type IQuest } from '../../shared/types/quest';
 
 import styles from './QuestCard.module.css';
 
 interface QuestCardProps {
-  quest: Quest;
+  quest: IQuest;
   currentDay: number;
   onAssign: (questId: string, heroIds: string[]) => void;
 }
 
 const QuestCard: React.FC<QuestCardProps> = observer(
   ({ quest, currentDay, onAssign }) => {
-    // Получаем стор ОДИН раз — useMemo не нужен
     const questStore = container.resolve(QuestStore);
     const heroesStore = container.resolve(HeroesStore);
 
@@ -35,7 +34,7 @@ const QuestCard: React.FC<QuestCardProps> = observer(
 
     const assignedHeroes = quest.assignedHeroIds
       .map(id => heroes.find(h => h.id === id))
-      .filter(Boolean) as Hero[];
+      .filter(Boolean) as ICharacter[];
 
     const totalStrength = assignedHeroes.reduce(
       (sum, h) => sum + h.strength,
@@ -47,7 +46,7 @@ const QuestCard: React.FC<QuestCardProps> = observer(
       0,
     );
 
-    const daysLeft = quest.deadlineDay - currentDay;
+    const deadlineDaysLeft = quest.deadlineAccept - currentDay;
 
     const status = useMemo(() => {
       if (quest.status === QuestStatus.NotStarted) return 'Ожидает';
@@ -66,10 +65,6 @@ const QuestCard: React.FC<QuestCardProps> = observer(
       () => questStore.getNewQuestSuccessChance(quest.id, selectedHeroesIds),
       [questStore, quest.id, selectedHeroesIds],
     );
-
-    useEffect(() => {
-      console.log(successChance);
-    }, [successChance]);
 
     // Функция для цвета прогресса по шансу успеха
     const getProgressColor = (percent: number) => {
@@ -94,12 +89,16 @@ const QuestCard: React.FC<QuestCardProps> = observer(
 
     const guildProfit = quest.reward - availableHeroesCommission;
 
+    useEffect(() => {
+      console.log(quest.executionDeadline, questStore.timeStore.absoluteDay, quest.executionDeadline ? quest.executionDeadline - questStore.timeStore.absoluteDay : null);
+    }, [quest.executionDeadline, questStore.timeStore.absoluteDay]);
+
     return (
       <li className={styles.card}>
         <h3>
           {quest.title}
           . Дата создания:
-          {quest.date}
+          {quest.dateCreated}
         </h3>
         <p>
           {quest.status === QuestStatus.NotStarted && quest.description}
@@ -107,14 +106,22 @@ const QuestCard: React.FC<QuestCardProps> = observer(
           {quest.status === QuestStatus.CompletedFail && quest.failResult}
           {quest.status === QuestStatus.FailedDeadline && quest.deadlineResult}
         </p>
-        {(quest.status === QuestStatus.NotStarted
-          || quest.status === QuestStatus.InProgress) && (
+        {(quest.status === QuestStatus.NotStarted) && (
           <p>
             Дедлайн:
             {' '}
-            {daysLeft >= 0
-              ? `через ${daysLeft} дн.`
-              : `просрочено на ${-daysLeft} дн.`}
+            {deadlineDaysLeft > 0
+              ? `через ${deadlineDaysLeft} дн.`
+              : 'Последняя возможность взять задание!'}
+          </p>
+        )}
+        {(quest.status === QuestStatus.InProgress && quest.executionDeadline !== null) && (
+          <p>
+            Будет выполнено через:
+            {' '}
+            {quest.executionDeadline - questStore.timeStore.absoluteDay >= 0
+              ? `через ${quest.executionDeadline - questStore.timeStore.absoluteDay} дн.`
+              : `Выполнено`}
           </p>
         )}
         <p>

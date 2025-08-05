@@ -1,6 +1,9 @@
 import { makeAutoObservable } from 'mobx';
 import { singleton } from 'tsyringe';
 
+// import introDialogue from '../../assets/dialogues/introDialogue';
+// import questDialogue from '../../assets/dialogues/questDialogue';
+
 export interface Character {
   id: string;
   name: string;
@@ -31,6 +34,21 @@ export class DialogueStore {
 
   constructor() {
     makeAutoObservable(this);
+
+    // todo: для запуска диалогов добавляем reaction на нужный диалог, дату, тег, состояние итп. пример:
+
+    // reaction(
+    //   () => this.currentDay,
+    //   (day) => {
+    //     if (day === 3) {
+    //       this.dialogueStore.startDialogue(introDialogue);
+    //     }
+
+    //     if (day === 5) {
+    //       this.dialogueStore.startDialogue(questDialogue);
+    //     }
+    //   },
+    // );
   }
 
   startDialogue = (dialogueData: DialogueData, startId = 'start') => {

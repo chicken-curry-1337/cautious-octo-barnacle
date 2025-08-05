@@ -1,5 +1,7 @@
-import { makeAutoObservable } from 'mobx';
-import { singleton } from 'tsyringe';
+import { makeAutoObservable, reaction } from 'mobx';
+import { inject, singleton } from 'tsyringe';
+
+import { TimeStore } from '../TimeStore/TimeStore';
 
 @singleton()
 export class GuildFinanceStore {
@@ -10,8 +12,12 @@ export class GuildFinanceStore {
     herbs: 150,
   };
 
-  constructor() {
+  constructor(@inject(TimeStore) public timeStore: TimeStore) {
     makeAutoObservable(this);
+
+    reaction(() => this.timeStore.monthIndex, (month) => {
+      // console.log(month);
+    });
   }
 
   addGold(amount: number) {

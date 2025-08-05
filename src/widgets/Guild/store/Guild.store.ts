@@ -1,50 +1,26 @@
 import { makeAutoObservable } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import type { Hero, HeroType } from '../../shared/types/hero';
-import { QuestStatus } from '../../shared/types/quest';
-import { GuildFinanceStore } from '../Finance/Finance.store';
-import { HeroesStore } from '../Heroes/Heroes.store';
-import { QuestStore } from '../Quest/Quest.store';
-import { RecruitStore } from '../Recruit/Recruit.store';
-import { TimeStore } from '../TimeStore/TimeStore';
+import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
+import { HeroStore } from '../../../entities/Hero/Hero.store';
+import { TimeStore } from '../../../entities/TimeStore/TimeStore';
+import { HeroesStore } from '../../../features/Heroes/Heroes.store';
+import { QuestStore } from '../../../features/Quest/Quest.store';
+import { RecruitsStore } from '../../../features/Recruits/Recruits.store';
+import type { HeroType } from '../../../shared/types/hero';
+import { QuestStatus } from '../../../shared/types/quest';
 
 @singleton()
 export class GuildStore {
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
     @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
-    @inject(RecruitStore) public recruitStore: RecruitStore,
+    @inject(RecruitsStore) public recruitsStore: RecruitsStore,
     @inject(HeroesStore) public heroesStore: HeroesStore,
     @inject(QuestStore) public questStore: QuestStore,
   ) {
     makeAutoObservable(this);
   }
-
-  increaseHeroLevel = (hero: Hero) => {
-    hero.assignedQuestId = null;
-    hero.level += 1;
-
-    switch (hero.type) {
-      case 'warrior':
-        hero.strength += 3;
-        hero.agility += 1;
-        hero.intelligence += 1;
-        break;
-      case 'mage':
-        hero.strength += 1;
-        hero.agility += 1;
-        hero.intelligence += 3;
-        break;
-      case 'rogue':
-        hero.strength += 1;
-        hero.agility += 3;
-        hero.intelligence += 1;
-        break;
-    }
-
-    hero.minStake = this.calculateMinStake(hero.level, hero.type);
-  };
 
   completeQuest = (questId: string) => {
     const quest = this.questStore.quests.find(q => q.id === questId);
@@ -76,10 +52,7 @@ export class GuildStore {
         }
       }
 
-      for (const hero of assignedHeroes) {
-        this.increaseHeroLevel(hero);
-        hero.assignedQuestId = null;
-      }
+      assignedHeroes.forEach(h => h.increaseLevel());
     }
   };
 
@@ -88,12 +61,7 @@ export class GuildStore {
   };
 
   hireCandidate = (id: string) => {
-    const candidateIndex = this.recruitStore.recruits.findIndex(
-      c => c.id === id,
-    );
-    if (candidateIndex === -1) return;
-
-    const candidate = this.recruitStore.recruits[candidateIndex];
+    const candidate = this.recruitsStore.recruitMap[id];
 
     // Проверяем, хватает ли золота
     if (!this.financeStore.canAffordGold(candidate.recruitCost)) {
@@ -105,10 +73,11 @@ export class GuildStore {
     // Снимаем золото
     this.financeStore.spendGold(candidate.recruitCost);
 
-    this.heroesStore.heroes.push({
+    this.heroesStore.heroesMap[candidate.id] = new HeroStore({
       ...candidate,
     });
-    this.recruitStore.recruits.splice(candidateIndex, 1);
+
+    delete this.recruitsStore.recruitMap[id];
   };
 
   calculateMinStake = (level: number, type: HeroType): number => {

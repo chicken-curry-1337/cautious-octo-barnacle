@@ -1,0 +1,36 @@
+.container {
+    position: fixed;
+    z-index: 100;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 20px;
+    background: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.date {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.dayText {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.button {
+    background-color: #4f46e5;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: #4338ca;
+}

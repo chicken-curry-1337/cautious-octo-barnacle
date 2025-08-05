@@ -3,8 +3,8 @@ import React, { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { HeroesStore } from '../../entities/Heroes/Heroes.store';
-import { QuestStore } from '../../entities/Quest/Quest.store';
+import { HeroesStore } from '../../features/Heroes/Heroes.store';
+import { QuestStore } from '../../features/Quest/Quest.store';
 import type { HeroType } from '../../shared/types/hero';
 
 import styles from './HeroList.module.css';
@@ -71,7 +71,7 @@ const HeroList: React.FC = observer(() => {
                         onClick={() => heroesStore.fireHero(hero.id)}
                         className={styles.fireButton}
                       >
-                        hire hero
+                        Уволить героя
                       </button>
                     )}
                   </div>
@@ -82,7 +82,7 @@ const HeroList: React.FC = observer(() => {
                       <br />
                       Восстановится через
                       {' '}
-                      {hero.inhuredTimeout}
+                      {hero.injuredTimeout}
                       {' '}
                       дн.
                     </div>

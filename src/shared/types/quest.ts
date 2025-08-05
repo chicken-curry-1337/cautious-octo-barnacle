@@ -7,22 +7,28 @@ export enum QuestStatus {
   Cancelled = 'Cancelled', // если понадобится
 }
 
-export interface Quest {
+export interface IQuest {
   id: string;
-  date: number; // день создания квеста
   title: string;
   description: string;
-  successResult: string;
-  failResult: string;
-  deadlineResult: string;
   reward: number;
+  dateCreated: number; // день появления
   assignedHeroIds: string[];
   completed: boolean;
-  failed?: boolean;
-  deadlineDay: number; // День, до которого нужно выполнить
   requiredStrength: number;
   requiredAgility: number;
   requiredIntelligence: number;
+
+  // Дедлайн на принятие квеста
+  deadlineAccept: number;
+
+  // Время на выполнение после старта
+  executionTime: number; // например, 2 дня
+  executionDeadline: number | null; // рассчитывается при старте
+
+  failResult: string;
+  deadlineResult: string;
+  successResult: string;
   status: QuestStatus;
   resourcePenalty?: {
     goldLoss?: number;

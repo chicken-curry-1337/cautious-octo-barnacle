@@ -4,9 +4,9 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
-import { GuildStore } from '../../entities/Guild/Guild.store';
-import { RecruitStore } from '../../entities/Recruit/Recruit.store';
+import { RecruitsStore } from '../../features/Recruits/Recruits.store';
 import type { HeroType } from '../../shared/types/hero';
+import { GuildStore } from '../Guild/store/Guild.store';
 
 import styles from './CandidateList.module.css';
 
@@ -17,7 +17,7 @@ const typeEmojis: Record<string, string> = {
 };
 
 const CandidateList = observer(() => {
-  const recruitStore = useMemo(() => container.resolve(RecruitStore), []);
+  const recruitStore = useMemo(() => container.resolve(RecruitsStore), []);
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
   const financeStore = useMemo(() => container.resolve(GuildFinanceStore), []);
 

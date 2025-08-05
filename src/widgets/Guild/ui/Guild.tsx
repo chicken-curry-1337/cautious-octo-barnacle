@@ -3,8 +3,7 @@ import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { QuestStore } from '../../entities/Quest/Quest.store';
-import { TimeStore } from '../../entities/TimeStore/TimeStore';
+import { QuestStore } from '../../../features/Quest/Quest.store';
 
 import styles from './Guild.module.css';
 
@@ -13,18 +12,9 @@ export const Guild = observer(() => {
   const [description, setDescription] = useState('');
   const [reward, setReward] = useState(0);
   const questStore = useMemo(() => container.resolve(QuestStore), []);
-  const timeStore = useMemo(() => container.resolve(TimeStore), []);
 
   return (
     <div className={styles.container}>
-      <div className={styles.dayText}>
-        День:
-        {timeStore.currentDay}
-      </div>
-      <button onClick={() => timeStore.nextDay()} className={styles.button}>
-        Следующий день
-      </button>
-
       <h2 className={styles.title}>Создать задание</h2>
       <input
         type="text"

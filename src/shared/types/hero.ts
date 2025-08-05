@@ -1,11 +1,10 @@
 // Типы героя
 export type HeroType = 'warrior' | 'mage' | 'rogue';
 
-export interface Hero {
+export interface ICharacter {
   id: string;
   name: string;
   level: number;
-  assignedQuestId: string | null;
 
   strength: number;
   agility: number;
@@ -14,10 +13,14 @@ export interface Hero {
   description: string;
   minStake: number;
   injured: boolean; // Герой может быть травмирован
-  inhuredTimeout?: number; // Время, в течение которого герой не может участвовать в квестах из-за травмы
+  injuredTimeout?: number; // Время, в течение которого герой не может участвовать в квестах из-за травмы
   recruitCost: number;
 }
 
-export interface RecruitCandidate extends Hero {
+export interface IHero extends ICharacter {
+  assignedQuestId?: string | null;
+}
+
+export interface IRecruitCandidate extends ICharacter {
   daysRemaining: number;
 }
