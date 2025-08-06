@@ -5,7 +5,7 @@ import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
 import { HeroStore } from '../../../entities/Hero/Hero.store';
 import { TimeStore } from '../../../entities/TimeStore/TimeStore';
 import { HeroesStore } from '../../../features/Heroes/Heroes.store';
-import { QuestStore } from '../../../features/Quest/Quest.store';
+import { QuestsStore } from '../../../features/Quest/Quests.store';
 import { RecruitsStore } from '../../../features/Recruits/Recruits.store';
 import type { HeroType } from '../../../shared/types/hero';
 import { QuestStatus } from '../../../shared/types/quest';
@@ -17,7 +17,7 @@ export class GuildStore {
     @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
     @inject(RecruitsStore) public recruitsStore: RecruitsStore,
     @inject(HeroesStore) public heroesStore: HeroesStore,
-    @inject(QuestStore) public questStore: QuestStore,
+    @inject(QuestsStore) public questStore: QuestsStore,
   ) {
     makeAutoObservable(this);
   }
@@ -54,10 +54,6 @@ export class GuildStore {
 
       assignedHeroes.forEach(h => h.increaseLevel());
     }
-  };
-
-  randomBetween = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
   };
 
   hireCandidate = (id: string) => {

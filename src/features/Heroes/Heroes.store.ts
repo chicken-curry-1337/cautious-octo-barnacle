@@ -5,6 +5,7 @@ import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import type { HeroType } from '../../shared/types/hero';
+import { randomInRange } from '../../shared/utils/randomInRange';
 import { RecruitsStore } from '../Recruits/Recruits.store';
 
 @singleton()
@@ -102,31 +103,23 @@ export class HeroesStore {
     switch (type) {
       case 'warrior':
         return {
-          strength: this.randomInRange(7, 10),
-          agility: this.randomInRange(3, 7),
-          intelligence: this.randomInRange(1, 4),
+          strength: randomInRange(7, 10),
+          agility: randomInRange(3, 7),
+          intelligence: randomInRange(1, 4),
         };
       case 'mage':
         return {
-          strength: this.randomInRange(1, 4),
-          agility: this.randomInRange(3, 6),
-          intelligence: this.randomInRange(7, 10),
+          strength: randomInRange(1, 4),
+          agility: randomInRange(3, 6),
+          intelligence: randomInRange(7, 10),
         };
       case 'rogue':
         return {
-          strength: this.randomInRange(3, 6),
-          agility: this.randomInRange(7, 10),
-          intelligence: this.randomInRange(3, 6),
+          strength: randomInRange(3, 6),
+          agility: randomInRange(7, 10),
+          intelligence: randomInRange(3, 6),
         };
     }
-  };
-
-  randomBetween = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  randomInRange = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
   };
 
   calculateMinStake = (level: number, type: HeroType): number => {

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { QuestStore } from '../../../features/Quest/Quest.store';
+import { QuestsStore } from '../../../features/Quest/Quests.store';
 
 import styles from './Guild.module.css';
 
@@ -11,7 +11,7 @@ export const Guild = observer(() => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [reward, setReward] = useState(0);
-  const questStore = useMemo(() => container.resolve(QuestStore), []);
+  const questStore = useMemo(() => container.resolve(QuestsStore), []);
 
   return (
     <div className={styles.container}>

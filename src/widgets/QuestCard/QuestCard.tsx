@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
-import { QuestStore } from '../../features/Quest/Quest.store';
+import { QuestsStore } from '../../features/Quest/Quests.store';
 import type { ICharacter } from '../../shared/types/hero';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 
@@ -18,7 +18,7 @@ interface QuestCardProps {
 
 const QuestCard: React.FC<QuestCardProps> = observer(
   ({ quest, currentDay, onAssign }) => {
-    const questStore = container.resolve(QuestStore);
+    const questStore = container.resolve(QuestsStore);
     const heroesStore = container.resolve(HeroesStore);
 
     // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
@@ -88,10 +88,6 @@ const QuestCard: React.FC<QuestCardProps> = observer(
     ]);
 
     const guildProfit = quest.reward - availableHeroesCommission;
-
-    useEffect(() => {
-      console.log(quest.executionDeadline, questStore.timeStore.absoluteDay, quest.executionDeadline ? quest.executionDeadline - questStore.timeStore.absoluteDay : null);
-    }, [quest.executionDeadline, questStore.timeStore.absoluteDay]);
 
     return (
       <li className={styles.card}>

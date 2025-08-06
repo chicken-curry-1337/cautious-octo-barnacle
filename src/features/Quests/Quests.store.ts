@@ -5,11 +5,14 @@ import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
+import { randomInRange } from '../../shared/utils/randomInRange';
 import { HeroesStore } from '../Heroes/Heroes.store';
+import { questChainsConfig } from '../QuestChains/QuestChains.store';
 
 @singleton()
-export class QuestStore {
+export class QuestsStore {
   quests: IQuest[] = [];
+  questChainsProgress: Record<string, number> = { slime: 0 };
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -27,10 +30,6 @@ export class QuestStore {
     );
   }
 
-  randomBetween = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
   takeQuestIntoWork = (quest: IQuest) => {
     this.quests.push(quest);
   };
@@ -43,13 +42,13 @@ export class QuestStore {
     failResult: string,
     reward?: number,
   ) => {
-    const questReward = reward ?? this.randomInRange(50, 150);
-    const deadlineAccept = this.timeStore.absoluteDay + this.randomInRange(3, 5); // срок на принятие
-    const executionTime = this.randomInRange(2, 4); // дни на выполнение после старта
+    const questReward = reward ?? randomInRange(50, 150);
+    const deadlineAccept = this.timeStore.absoluteDay + randomInRange(3, 5); // срок на принятие
+    const executionTime = randomInRange(2, 4); // дни на выполнение после старта
 
-    const requiredStrength = this.randomInRange(5, 15);
-    const requiredAgility = this.randomInRange(5, 15);
-    const requiredIntelligence = this.randomInRange(5, 15);
+    const requiredStrength = randomInRange(5, 15);
+    const requiredAgility = randomInRange(5, 15);
+    const requiredIntelligence = randomInRange(5, 15);
 
     const newQuest: IQuest = {
       id: crypto.randomUUID(),
@@ -277,13 +276,6 @@ export class QuestStore {
     quest.executionDeadline = quest.executionTime;
   };
 
-  randomInRange = (min: number, max: number): number => {
-    const low = Math.ceil(min);
-    const high = Math.floor(max);
-
-    return Math.floor(Math.random() * (high - low + 1)) + low;
-  };
-
   generateRandomQuest = (): IQuest => {
     const titles = [
       'Спасти деревню',
@@ -326,20 +318,51 @@ export class QuestStore {
     ];
 
     const idx = Math.floor(Math.random() * titles.length);
-    const reward = this.randomInRange(50, 150);
-    const deadlineAccept = this.timeStore.absoluteDay + this.randomInRange(3, 5);
-    const rand = this.randomInRange(3, 5);
-    console.log(rand);
-    const executionTime = this.timeStore.absoluteDay + rand;
+    const reward = randomInRange(50, 150);
+    const deadlineAccept = this.timeStore.absoluteDay + randomInRange(3, 5);
+    const executionTime = this.timeStore.absoluteDay + randomInRange(3, 5);
 
     // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
     const multiplier = 1 + this.difficultyStore.difficultyLevel * 0.2;
 
-    const requiredStrength = Math.floor(this.randomInRange(5, 15) * multiplier);
-    const requiredAgility = Math.floor(this.randomInRange(5, 15) * multiplier);
+    const requiredStrength = Math.floor(randomInRange(5, 15) * multiplier);
+    const requiredAgility = Math.floor(randomInRange(5, 15) * multiplier);
     const requiredIntelligence = Math.floor(
-      this.randomInRange(5, 15) * multiplier,
+      randomInRange(5, 15) * multiplier,
     );
+
+    // todo: сюжетные цепочки надо создавать сразу. И показывать каждый новый квест только в том случае, если предыдущий выполнен
+    for (const chainId in questChainsConfig) {
+      const stageIndex = this.questChainsProgress[chainId] ?? 0;
+
+      if (stageIndex < questChainsConfig[chainId].length) {
+        console.log(2);
+        const stage = questChainsConfig[chainId][stageIndex];
+        this.questChainsProgress[chainId] = stageIndex + 1;
+
+        return {
+          id: crypto.randomUUID(),
+          dateCreated: this.timeStore.absoluteDay,
+          title: stage.title,
+          description: stage.description,
+          successResult: stage.successResult,
+          failResult: stage.failResult,
+          deadlineResult: stage.deadlineResult,
+          reward: randomInRange(stage.rewardMin, stage.rewardMax),
+          assignedHeroIds: [],
+          completed: false,
+          deadlineAccept,
+          requiredStrength: randomInRange(...stage.reqStats.str),
+          requiredAgility: randomInRange(...stage.reqStats.agi),
+          requiredIntelligence: randomInRange(...stage.reqStats.int),
+          status: QuestStatus.NotStarted,
+          executionTime: 10,
+          executionDeadline: null,
+        };
+      } else {
+        console.log(3);
+      }
+    }
 
     // 🎲 Генерация штрафов
     const shouldHavePenalty = Math.random() < 0.7; // 70% шанс на штраф
@@ -349,10 +372,10 @@ export class QuestStore {
     if (shouldHavePenalty) {
       const baseMultiplier = 1 + this.difficultyStore.difficultyLevel * 0.3;
 
-      const goldLoss = this.randomInRange(10, 50) * baseMultiplier;
-      const injuryChance = this.randomInRange(10, 50) * baseMultiplier;
+      const goldLoss = randomInRange(10, 50) * baseMultiplier;
+      const injuryChance = randomInRange(10, 50) * baseMultiplier;
       const itemLossChance
-        = Math.random() < 0.3 ? this.randomInRange(10, 30) : 0;
+        = Math.random() < 0.3 ? randomInRange(10, 30) : 0;
 
       resourcePenalty = {
         goldLoss: Math.round(goldLoss),

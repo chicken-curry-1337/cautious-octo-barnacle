@@ -15,8 +15,8 @@ export class GuildFinanceStore {
   constructor(@inject(TimeStore) public timeStore: TimeStore) {
     makeAutoObservable(this);
 
-    reaction(() => this.timeStore.monthIndex, (month) => {
-      // console.log(month);
+    reaction(() => this.timeStore.monthName, (month) => {
+      console.log(month);
     });
   }
 

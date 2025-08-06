@@ -4,14 +4,14 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
-import { QuestStore } from '../../features/Quest/Quest.store';
+import { QuestsStore } from '../../features/Quest/Quests.store';
 import type { HeroType } from '../../shared/types/hero';
 
 import styles from './HeroList.module.css';
 
 const HeroList: React.FC = observer(() => {
   const heroesStore = useMemo(() => container.resolve(HeroesStore), []);
-  const questStore = useMemo(() => container.resolve(QuestStore), []);
+  const questStore = useMemo(() => container.resolve(QuestsStore), []);
 
   const getQuestTitle = (questId: string | null) => {
     if (!questId) return '—';

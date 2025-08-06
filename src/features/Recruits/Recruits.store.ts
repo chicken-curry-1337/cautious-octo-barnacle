@@ -4,6 +4,7 @@ import { inject, singleton } from 'tsyringe';
 import { RecruitStore } from '../../entities/Recruit/Recruit.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import type { ICharacter, HeroType } from '../../shared/types/hero';
+import { randomInRange } from '../../shared/utils/randomInRange';
 
 @singleton()
 export class RecruitsStore {
@@ -122,27 +123,23 @@ export class RecruitsStore {
     switch (type) {
       case 'warrior':
         return {
-          strength: this.randomInRange(7, 10),
-          agility: this.randomInRange(3, 7),
-          intelligence: this.randomInRange(1, 4),
+          strength: randomInRange(7, 10),
+          agility: randomInRange(3, 7),
+          intelligence: randomInRange(1, 4),
         };
       case 'mage':
         return {
-          strength: this.randomInRange(1, 4),
-          agility: this.randomInRange(3, 6),
-          intelligence: this.randomInRange(7, 10),
+          strength: randomInRange(1, 4),
+          agility: randomInRange(3, 6),
+          intelligence: randomInRange(7, 10),
         };
       case 'rogue':
         return {
-          strength: this.randomInRange(3, 6),
-          agility: this.randomInRange(7, 10),
-          intelligence: this.randomInRange(3, 6),
+          strength: randomInRange(3, 6),
+          agility: randomInRange(7, 10),
+          intelligence: randomInRange(3, 6),
         };
     }
-  };
-
-  randomInRange = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
   };
 
   calculateRecruitCost = (

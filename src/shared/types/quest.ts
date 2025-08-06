@@ -30,9 +30,12 @@ export interface IQuest {
   deadlineResult: string;
   successResult: string;
   status: QuestStatus;
+  timeoutResult: string;
   resourcePenalty?: {
     goldLoss?: number;
     injuryChance?: number;
     itemLossChance?: number;
   };
 }
+
+export type QuestNarrative = Pick<IQuest, 'title' | 'description' | 'failResult' | 'successResult' | 'timeoutResult'>;
