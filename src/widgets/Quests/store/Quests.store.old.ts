@@ -1,15 +1,14 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
-import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
-import { TimeStore } from '../../entities/TimeStore/TimeStore';
-import { HeroesStore } from '../../features/Heroes/Heroes.store';
-import { QuestStatus, type IQuest } from '../../shared/types/quest';
-import { randomInRange } from '../../shared/utils/randomInRange';
+import { DifficultyStore } from '../../../entities/Difficulty/Difficulty.store';
+import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
+import { TimeStore } from '../../../entities/TimeStore/TimeStore';
+import { HeroesStore } from '../../../features/Heroes/Heroes.store';
+import { QuestStatus, type IQuest } from '../../../shared/types/quest';
+import { randomInRange } from '../../../shared/utils/randomInRange';
 // import { questChainsConfig } from '../QuestChains/QuestChains.store';
 
-// todo: refactor accord to FSD
 @singleton()
 export class QuestsStore {
   quests: IQuest[] = [];
@@ -262,7 +261,6 @@ export class QuestsStore {
   };
 
   startQuest = (questId: string, heroIds: string[]) => {
-    console.log(questId, heroIds, this.quests.map(q => q.id));
     const quest = this.quests.find(q => q.id === questId);
     if (!quest) throw new Error('Quest not found');
 
@@ -456,9 +454,5 @@ export class QuestsStore {
     return this.sortQuestsByDate(
       this.quests.filter(q => q.status === QuestStatus.NotStarted),
     );
-  }
-
-  getQuestById(questId: string) {
-    return this.quests.find(q => q.id === questId) ?? null;
   }
 }

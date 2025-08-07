@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
-import { QuestsStore } from '../../features/Quest/Quests.store';
+import { QuestsStore } from '../../features/Quests/Quests.store';
 import type { HeroType } from '../../shared/types/hero';
 
 import styles from './HeroList.module.css';

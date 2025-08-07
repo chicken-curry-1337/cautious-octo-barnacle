@@ -1,10 +1,10 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import { RecruitStore } from '../../entities/Recruit/Recruit.store';
-import { TimeStore } from '../../entities/TimeStore/TimeStore';
-import type { ICharacter, HeroType } from '../../shared/types/hero';
-import { randomInRange } from '../../shared/utils/randomInRange';
+import { RecruitStore } from '../../../entities/Recruit/Recruit.store';
+import { TimeStore } from '../../../entities/TimeStore/TimeStore';
+import type { HeroType, ICharacter } from '../../../shared/types/hero';
+import { randomInRange } from '../../../shared/utils/randomInRange';
 
 @singleton()
 export class RecruitsStore {

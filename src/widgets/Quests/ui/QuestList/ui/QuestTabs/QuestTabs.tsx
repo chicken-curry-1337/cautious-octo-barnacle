@@ -3,10 +3,10 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { QuestsStore } from '../../../../features/Quest/Quests.store';
-import type { IQuest } from '../../../../shared/types/quest';
-import type { Tab } from '../../../../shared/ui/Tabs/Tabs';
-import Tabs from '../../../../shared/ui/Tabs/Tabs';
+import { QuestsStore } from '../../../../../../features/Quests/Quests.store';
+import type { IQuest } from '../../../../../../shared/types/quest';
+import type { Tab } from '../../../../../../shared/ui/Tabs/Tabs';
+import Tabs from '../../../../../../shared/ui/Tabs/Tabs';
 import { QuestList } from '../../QuestList';
 
 const QuestTabs = observer(() => {

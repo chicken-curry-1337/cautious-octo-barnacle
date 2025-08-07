@@ -6,7 +6,7 @@ import { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import type { HeroType } from '../../shared/types/hero';
 import { randomInRange } from '../../shared/utils/randomInRange';
-import { RecruitsStore } from '../Recruits/Recruits.store';
+import { RecruitsStore } from '../Recruits/store/Recruits.store';
 
 @singleton()
 export class HeroesStore {

@@ -1,0 +1,159 @@
+/* QuestCard.module.css */
+
+.wrapper {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 480px;
+  border-radius: 8px;
+  background-color: #fafafa;
+  box-shadow: 0 2px 20px 6px rgba(0, 0, 0, 0.5);
+  /* border: 1px solid #ccc; */
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+  justify-content: center;
+  transition: border-radius 0.3s;
+
+  &_show-button {
+    border-radius: 8px 8px 0 0;
+  }
+}
+
+.background {
+  position: fixed;
+  z-index: 49;
+  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+}
+
+.container {
+  width: 640px;
+  max-height: 100%;
+  padding: 10px 20px 10px 10px;
+  z-index: 1;
+  background-color: #fafafa;
+  padding: 16px;
+  border-radius: 8px 0 0 8px;
+}
+
+.heroes {
+  position: absolute;
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+p {
+  margin: 6px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.heroSelection {
+  margin-top: 12px;
+}
+
+.heroList {
+  list-style: none;
+  padding-left: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.heroItem {
+  padding: 6px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: #333;
+}
+
+.successChance {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.progressBar {
+  position: relative;
+  flex-grow: 1;
+  height: 14px;
+  background: #ddd;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50 0%, #81c784 100%);
+  transition: width 0.3s ease;
+}
+
+.reward {
+  font-weight: 600;
+  color: #b8860b;
+  /* тёмный золотой оттенок */
+  user-select: none;
+  margin-left: 0.25rem;
+}
+
+.minStake {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  color: #444;
+  user-select: none;
+}
+
+.hero-selector {
+  height: 100%;
+  width: 360px;
+  padding: 16px;
+  border-left: 1px solid #eee;
+  gap: 10px;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  background-color: #fafafa;
+  border-radius: 0 8px 8px 0;
+}
+
+.hero-selector-scroller {
+  flex: 0 1 100%;
+  overflow-y: scroll;
+  gap: 20px;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.assign-btn {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: auto;
+  border-radius: 0 0 8px 8px;
+  padding: 15px 20px;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+  z-index: -1;
+  font-size: 20px;
+  line-height: 20px;
+
+  &_active {
+    transform: translateY(0);
+  }
+}

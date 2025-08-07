@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { QuestsStore } from '../../../features/Quest/Quests.store';
+import { QuestsStore } from '../../../features/Quests/Quests.store';
 
 import styles from './Guild.module.css';
 
@@ -38,7 +38,7 @@ export const Guild = observer(() => {
       />
       <button
         onClick={() => {
-          questStore.createQuest(title, description, '', '', '', reward);
+          questStore.createQuest(title, description, '', '', '', '', reward);
           setTitle('');
           setDescription('');
           setReward(0);

@@ -1,0 +1,13 @@
+.top-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 20px;
+    background: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    height: 75px;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}

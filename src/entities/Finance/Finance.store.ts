@@ -5,7 +5,7 @@ import { TimeStore } from '../TimeStore/TimeStore';
 
 @singleton()
 export class GuildFinanceStore {
-  gold: number = 100; // начальный запас золота
+  gold: number = 1000; // начальный запас золота
   resources: Record<string, number> = {
     wood: 500,
     iron: 300,

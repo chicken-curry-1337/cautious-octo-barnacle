@@ -5,8 +5,8 @@ import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
 import { HeroStore } from '../../../entities/Hero/Hero.store';
 import { TimeStore } from '../../../entities/TimeStore/TimeStore';
 import { HeroesStore } from '../../../features/Heroes/Heroes.store';
-import { QuestsStore } from '../../../features/Quest/Quests.store';
-import { RecruitsStore } from '../../../features/Recruits/Recruits.store';
+import { QuestsStore } from '../../../features/Quests/Quests.store';
+import { RecruitsStore } from '../../../features/Recruits/store/Recruits.store';
 import type { HeroType } from '../../../shared/types/hero';
 import { QuestStatus } from '../../../shared/types/quest';
 
