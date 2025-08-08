@@ -1,7 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { inject, singleton } from 'tsyringe';
-
-import { DialogueStore } from '../Dialogue/Dialogue.store';
+import { singleton } from 'tsyringe';
 
 @singleton()
 export class TimeStore {
@@ -23,7 +21,7 @@ export class TimeStore {
     'Декабрь',
   ];
 
-  constructor(@inject(DialogueStore) public dialogueStore: DialogueStore) {
+  constructor() {
     makeAutoObservable(this);
   }
 

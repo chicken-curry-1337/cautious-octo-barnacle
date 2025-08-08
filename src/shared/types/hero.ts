@@ -1,7 +1,7 @@
 // Типы героя
 export type HeroType = 'warrior' | 'mage' | 'rogue';
 
-export interface ICharacter {
+export interface IChar {
   id: string;
   name: string;
   level: number;
@@ -17,10 +17,10 @@ export interface ICharacter {
   recruitCost: number;
 }
 
-export interface IHero extends ICharacter {
+export interface IHero extends IChar {
   assignedQuestId?: string | null;
 }
 
-export interface IRecruitCandidate extends ICharacter {
+export interface IRecruitCandidate extends IChar {
   daysRemaining: number;
 }

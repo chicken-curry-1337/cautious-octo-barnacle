@@ -9,43 +9,61 @@
   bottom: 0;
 }
 
-.wrapper {
-  max-width: 800px;
-  margin: auto;
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  right: 20px;
-}
-
 .characters {
   display: flex;
   justify-content: center;
-  gap: 1.5rem; /* space-x-6 */
-  margin-bottom: 1.5rem; /* mb-6 */
+  gap: 1.5rem;
+  /* space-x-6 */
+  margin-bottom: 1.5rem;
+  /* mb-6 */
 }
 
 .characterImg {
-  width: 6rem; /* w-24 */
-  height: 6rem; /* h-24 */
-  border-radius: 9999px; /* rounded-full */
-  object-fit: cover;
+  width: 240px;
+  /* w-24 */
+  height: 400px;
+  /* h-24 */
+  /* rounded-full */
+  object-fit: contain;
   transition: opacity 0.3s ease;
   cursor: default;
-  opacity: 0.4;
+  filter: brightness(0.5);
+  transition: filter 0.3s, position 0.3s;
 }
 
 .characterImgActive {
-  opacity: 1;
+  filter: brightness(1);
 }
 
 .text {
-  font-size: 1.25rem; /* text-xl */
-  margin-bottom: 1rem; /* mb-4 */
+  margin: auto;
+  background-color: #fff;
+  border-radius: 10px 10px 0 0;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 10px;
+  height: 200px;
+
+  &__wrapper {
+    width: 100%;
+    max-width: 1024px;
+    margin: 0 auto;
+  }
+
+  &__name {
+    font-weight: bold;
+  }
+
+  &__content {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
 }
 
 .options {
@@ -55,33 +73,41 @@
   transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* space-y-2 */
+  gap: 0.5rem;
+  /* space-y-2 */
   min-width: 400px;
 }
 
 .button {
   width: 100%;
   text-align: left;
-  padding: 0.5rem 1rem; /* px-4 py-2 */
-  background-color: #bfdbfe; /* blue-100 */
-  border-radius: 0.75rem; /* rounded-xl */
+  padding: 0.5rem 1rem;
+  /* px-4 py-2 */
+  background-color: #bfdbfe;
+  /* blue-100 */
+  border-radius: 0.75rem;
+  /* rounded-xl */
   transition: background-color 0.3s ease;
   cursor: pointer;
 }
 
 .button:hover {
-  background-color: #93c5fd; /* blue-200 */
+  background-color: #93c5fd;
+  /* blue-200 */
 }
 
 .restartButton {
-  margin-top: 1rem; /* mt-4 */
+  margin-top: 1rem;
+  /* mt-4 */
   padding: 0.5rem 1rem;
-  background-color: #bbf7d0; /* green-100 */
+  background-color: #bbf7d0;
+  /* green-100 */
   border-radius: 0.75rem;
   transition: background-color 0.3s ease;
   cursor: pointer;
 }
 
 .restartButton:hover {
-  background-color: #86efac; /* green-200 */
+  background-color: #86efac;
+  /* green-200 */
 }

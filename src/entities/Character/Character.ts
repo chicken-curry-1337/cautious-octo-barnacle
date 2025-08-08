@@ -1,7 +1,7 @@
-import type { ICharacter, HeroType } from '../../shared/types/hero';
+import type { IChar, HeroType } from '../../shared/types/hero';
 import { randomInRange } from '../../shared/utils/randomInRange';
 
-export class Character implements ICharacter {
+export class Character implements IChar {
   id: string;
   name: string;
   level: number;
@@ -30,7 +30,7 @@ export class Character implements ICharacter {
     injured,
     injuredTimeout,
     recruitCost = 0,
-  }: ICharacter) {
+  }: IChar) {
     this.id = id;
     this.name = name;
     this.level = level;

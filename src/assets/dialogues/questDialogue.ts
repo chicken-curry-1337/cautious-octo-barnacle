@@ -17,12 +17,14 @@ export default {
   nodes: [
     {
       id: 'start',
+      visibleCharacterIds: ['bob'],
       activeCharacterIds: ['bob'],
       text: 'У меня для тебя есть задание!',
       options: [{ text: 'Далее', nextId: 'accept' }],
     },
     {
       id: 'accept',
+      visibleCharacterIds: ['alice', 'bob'],
       activeCharacterIds: ['alice', 'bob'],
       text: 'Ты готов отправиться в путь?',
       options: [
@@ -32,6 +34,7 @@ export default {
     },
     {
       id: 'end',
+      visibleCharacterIds: ['carol', 'alice', 'bob'],
       activeCharacterIds: ['carol'],
       text: 'Отлично! Тогда в путь!',
       options: [],

@@ -10,17 +10,11 @@ import styles from './DialogueWidget.module.css';
 export const DialogueWidget = observer(() => {
   const dialogueStore = useMemo(() => container.resolve(DialogueStore), []);
   const currentNode = dialogueStore.currentNode;
-  const characters = dialogueStore.characters;
+  const characters = dialogueStore.visibleCharacters;
+  const activeCharacters = dialogueStore.activeCharacters;
 
   const handleDialogueClick = () => {
-    if (!currentNode) return;
-
-    if (currentNode.options.length === 1) {
-      dialogueStore.setCurrentId(currentNode.options[0].nextId);
-    } else if (currentNode.options.length === 0) {
-      // Диалог закончился — закрываем
-      dialogueStore.clearDialogue();
-    }
+    if (currentNode?.options.length === 0 || currentNode?.isLast) dialogueStore.nextNode();
   };
 
   if (!currentNode || !characters) return null;
@@ -48,26 +42,33 @@ export const DialogueWidget = observer(() => {
         })}
       </div>
 
-      <div className={styles.wrapper}>
+      <div className={styles.text}>
         <div
-          className={styles.text}
+          className={styles.textWrapper}
           style={{
             cursor: currentNode.options.length <= 1 ? 'pointer' : 'default',
           }}
-          title={
-            currentNode.options.length === 1
-              ? 'Клик для продолжения'
-              : currentNode.options.length === 0
-                ? 'Клик для закрытия диалога'
-                : undefined
-          }
         >
-          {currentNode.text}
+          <div className={styles.textName}>
+            {activeCharacters.map((char, index) => {
+              return (
+                <span key={char.id}>
+                  {index > 0 ? ', ' : ''}
+                  <span
+                    key={char.id}
+                  >
+                    {char.name}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+          <div className={styles.textContent}>{currentNode.text}</div>
         </div>
       </div>
 
       <div className={styles.options}>
-        {currentNode.options.length > 1
+        {currentNode.options.length > 0
           && currentNode.options.map((option, index) => (
             <button
               key={index}

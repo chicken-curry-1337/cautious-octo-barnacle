@@ -7,7 +7,7 @@ import { container } from 'tsyringe';
 import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
 import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
 import { QuestsStore } from '../../../../features/Quests/Quests.store';
-import type { ICharacter } from '../../../../shared/types/hero';
+import type { IChar } from '../../../../shared/types/hero';
 import { QuestStatus, type IQuest } from '../../../../shared/types/quest';
 
 import styles from './QuestDetailedCard.module.css';
@@ -37,7 +37,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
 
     const assignedHeroes = quest.assignedHeroIds
       .map(id => heroes.find(h => h.id === id))
-      .filter(Boolean) as ICharacter[];
+      .filter(Boolean) as IChar[];
 
     const totalStrength = assignedHeroes.reduce(
       (sum, h) => sum + h.strength,

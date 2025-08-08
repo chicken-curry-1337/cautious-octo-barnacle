@@ -3,7 +3,7 @@ import { inject, singleton } from 'tsyringe';
 
 import { RecruitStore } from '../../../entities/Recruit/Recruit.store';
 import { TimeStore } from '../../../entities/TimeStore/TimeStore';
-import type { HeroType, ICharacter } from '../../../shared/types/hero';
+import type { HeroType, IChar } from '../../../shared/types/hero';
 import { randomInRange } from '../../../shared/utils/randomInRange';
 
 @singleton()
@@ -143,7 +143,7 @@ export class RecruitsStore {
   };
 
   calculateRecruitCost = (
-    hero: Pick<ICharacter, 'strength' | 'agility' | 'intelligence'>,
+    hero: Pick<IChar, 'strength' | 'agility' | 'intelligence'>,
   ): number => {
     const baseCost = 10;
 

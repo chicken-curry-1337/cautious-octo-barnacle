@@ -7,14 +7,16 @@ export type TUpgrade = {
   dependents: string[]; // <-- список апгрейдов, которые зависят от этого
 };
 
+export const UPGRADE_1_ID = '1';
+
 export const GUILD_UPGRADES: TUpgrade[] = [
   {
-    id: '1',
+    id: UPGRADE_1_ID,
     name: 'Доска объявлений',
     icon: '#',
     requires: [],
     dependents: ['1'],
-    done: true,
+    done: false,
   },
   {
     id: '2',
@@ -22,6 +24,6 @@ export const GUILD_UPGRADES: TUpgrade[] = [
     icon: '#',
     requires: ['1'],
     dependents: [],
-    done: true,
+    done: false,
   },
 ];

@@ -1,0 +1,138 @@
+import type { DialogueData } from '../../../entities/Dialogue/Dialogue.store';
+import { LILITH_ID, lilithCharacter } from '../../characters/lilith';
+import { PLAYER_ID, playerCharacter } from '../../characters/player';
+
+export const guildFirststeps: DialogueData = {
+  characters: [
+    playerCharacter,
+    lilithCharacter,
+  ],
+  nodes: [
+    {
+      id: 'start',
+      visibleCharacterIds: [PLAYER_ID],
+      activeCharacterIds: [],
+      text: '[В помещении гильдии. Фин сидит за столом, устало перебирая бумаги.]',
+      options: [],
+    },
+    {
+      id: '1',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [],
+      text: '[Входит Лилит, аккуратно ставит перед ним чашку кофе.]',
+      options: [],
+    },
+    {
+      id: '2',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(спокойно, с лёгкой иронией): Кофе готов, молодой господин. Полагаю, оно поможет не потерять голову среди всех этих планов.',
+      options: [],
+    },
+    {
+      id: '3',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(берёт чашку, чуть улыбается): Спасибо. Чувствую, этот запах бодрит больше, чем весь этот бардак вокруг.',
+      options: [],
+    },
+    {
+      id: '4',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(садится на стол, деловито): Бардак — временное явление. Главное, что помещение уже не выглядит совсем заброшенным.',
+      options: [],
+    },
+    {
+      id: '5',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(задумчиво): Деньги на материалы быстро ушли, и остаток не велик. Думаю, пора сосредоточиться на деле — показать городу, что гильдия снова в строю.',
+      options: [],
+    },
+    {
+      id: '6',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(серьёзно, но мягко): Согласна. Первый шаг — создать доску объявлений. Пусть жители приносят туда задания. Это простой и понятный сигнал активности.',
+      options: [],
+    },
+    {
+      id: '7',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(кивает, делая пометки): Хорошо. А как нам рассказать о ней всем?',
+      options: [],
+    },
+    {
+      id: '8',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(с лёгкой улыбкой): Торговцы и ремесленники — наши лучшие союзники в этом. Их слова разнесут слух быстрее, чем любая бумажка.',
+      options: [],
+    },
+    {
+      id: '9',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(смеётся тихо): Значит, придётся им кое-что предложить взамен.',
+      options: [],
+    },
+    {
+      id: '10',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(смотрит на него с лёгкой насмешкой): Правильно. Немного дипломатии и немного выгодных связей — вот что нам понадобится.',
+      options: [],
+    },
+    {
+      id: '11',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(откидывается на спинку стула): Значит, в работу — доска объявлений, встречи с местными и немного листовок для тех, кто любит бумагу.',
+      options: [],
+    },
+    {
+      id: '12',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(кивает) Листовки с ноткой юмора не помешают. И обязательно указать контактные данные гильдии.',
+      options: [],
+    },
+    {
+      id: '13',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(улыбаясь) «Гильдия снова в деле — ищем героев и заказы!» Как думаешь?',
+      options: [],
+    },
+    {
+      id: '14',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(сдержанно улыбается): Очень даже неплохо. Главное, чтобы слова не расходились с делом.',
+      options: [],
+    },
+    {
+      id: '15',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(серьёзно) Тогда работать будем по полной.',
+      options: [],
+    },
+    {
+      id: '16',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [LILITH_ID],
+      text: '(поднимает чашку): За успешное возрождение.',
+      options: [],
+    },
+    {
+      id: '17',
+      visibleCharacterIds: [PLAYER_ID, LILITH_ID],
+      activeCharacterIds: [PLAYER_ID],
+      text: '(чокается): За гильдию.',
+      options: [],
+    },
+  ],
+};
