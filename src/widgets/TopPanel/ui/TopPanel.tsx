@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { GameStateStore } from '../../../entities/GameState/GameStateStore';
+
 import GuildFinanceDisplay from './GuildFinanceDisplay/GuildFinanceDisplay';
 import styles from './TopPanel.module.css';
 
@@ -11,10 +12,17 @@ type TopPanelProps = {
   onToggleUpgrades?: () => void;
   showUpgrades?: boolean;
   onToggleInventory?: () => void;
+  onToggleFactions?: () => void;
   showInventory?: boolean;
 };
 
-export const TopPanel = observer(({ onToggleUpgrades, showUpgrades = false, onToggleInventory, showInventory = false }: TopPanelProps) => {
+export const TopPanel = observer(({
+  onToggleUpgrades,
+  showUpgrades = false,
+  onToggleInventory,
+  showInventory = false,
+  onToggleFactions,
+}: TopPanelProps) => {
   const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
 
   return (
@@ -35,6 +43,15 @@ export const TopPanel = observer(({ onToggleUpgrades, showUpgrades = false, onTo
           onClick={onToggleUpgrades}
         >
           {showUpgrades ? 'Скрыть апгрейды' : 'Апгрейды'}
+        </button>
+      )}
+      {onToggleFactions && (
+        <button
+          type="button"
+          className={styles.upgradesButton}
+          onClick={onToggleFactions}
+        >
+          {showUpgrades ? 'Скрыть фракции' : 'Фракции'}
         </button>
       )}
       <GuildFinanceDisplay showDetails={false} />

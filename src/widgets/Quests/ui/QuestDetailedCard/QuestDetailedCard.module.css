@@ -317,3 +317,37 @@ p {
 .synergyNotePenalty {
   color: #b91c1c;
 }
+
+.factionSection {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  font-size: 0.9rem;
+  color: #78350f;
+}
+
+.factionDescription {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.factionReputation {
+  margin: 6px 0;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.factionHeat {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #7c2d12;
+}
+
+.lockedReason {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #b91c1c;
+}

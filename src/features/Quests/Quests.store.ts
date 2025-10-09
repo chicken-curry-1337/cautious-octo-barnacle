@@ -3,17 +3,17 @@ import { inject, singleton } from 'tsyringe';
 
 import { modifiers as questModifiers } from '../../assets/modifiers/modifiers';
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
-import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
 import { evaluatePartySynergy } from '../../assets/traits/traitSynergies';
+import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
 import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
+import type { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
-import type { HeroStore } from '../../entities/Hero/Hero.store';
 // import { questChainsConfig } from '../QuestChains/QuestChains.store';
 
 // todo: refactor accord to FSD
@@ -126,6 +126,7 @@ export class QuestsStore {
     }
 
     const traitSets = heroes.map(hero => hero.traits ?? []);
+
     return evaluatePartySynergy(traitSets);
   };
 
@@ -135,6 +136,7 @@ export class QuestsStore {
     }
 
     const heroes = this.heroesStore.heroes.filter(hero => heroIds.includes(hero.id));
+
     return this.computePartySynergy(heroes);
   };
 
@@ -487,7 +489,7 @@ export class QuestsStore {
   private getRandomResourceRewards = (): Record<string, number> => {
     if (GUILD_RESOURCES.length === 0) return {};
 
-    const maxRewards = Math.min(2, GUILD_RESOURCES.length);
+    const maxRewards = Math.min(4, GUILD_RESOURCES.length);
     const count = randomInRange(0, maxRewards);
     if (count === 0) return {};
 

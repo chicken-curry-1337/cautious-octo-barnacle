@@ -36,6 +36,10 @@ export interface IQuest {
   modifiers?: string[];
   isStory?: boolean;
   isIllegal?: boolean;
+  factionId?: string;
+  reputationRequirement?: number;
+  successHeatDelta?: number;
+  failureHeatDelta?: number;
   resourcePenalty?: {
     goldLoss?: number;
     injuryChance?: number;

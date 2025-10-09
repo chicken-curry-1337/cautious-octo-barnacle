@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
+import type { FactionId } from '../../assets/factions/factions';
 import type { GuildStatus } from '../../assets/statuses/guildStatuses';
 import { GUILD_BUFFS, GUILD_DEBUFFS } from '../../assets/statuses/guildStatuses';
 import { GuildFinanceStore } from '../Finance/Finance.store';
@@ -110,5 +111,9 @@ export class GameStateStore {
     const multiplier = this.upgradeStore.getNumericEffectProduct('heat_decay_mult');
     const decay = Math.max(1, Math.round(baseDecay * multiplier));
     this.heat = Math.max(0, this.heat - decay);
+  };
+
+  getFactionReputation = (factionId: FactionId) => {
+    return this.reputation[factionId];
   };
 }

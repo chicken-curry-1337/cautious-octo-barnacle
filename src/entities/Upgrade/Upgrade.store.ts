@@ -61,8 +61,10 @@ export class UpgradeStore {
 
     if (upgrade && !upgrade.done && this.canPurchase(upgradeId)) {
       if (!this.financeStore.spendGold(upgrade.cost)) return false;
+
       if (upgrade.resourceCost) {
         const spent = this.financeStore.spendResources(upgrade.resourceCost);
+
         if (!spent) {
           // если не удалось списать ресурсы — возвращаем золото
           this.financeStore.addGold(upgrade.cost);
@@ -105,10 +107,11 @@ export class UpgradeStore {
   };
 
   getNumericEffectMax = (key: string): number => {
-    let max = 0;
+    let max = 10;
 
     this.completedUpgrades.forEach((upgrade) => {
       const value = upgrade.effects[key];
+
       if (typeof value === 'number') {
         max = Math.max(max, value);
       }
@@ -123,6 +126,7 @@ export class UpgradeStore {
 
     this.completedUpgrades.forEach((upgrade) => {
       const value = upgrade.effects[key];
+
       if (typeof value === 'number') {
         product *= value;
         applied = true;

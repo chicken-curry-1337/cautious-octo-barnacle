@@ -162,6 +162,7 @@ export const evaluatePartySynergy = (traitSets: string[][]): PartySynergyResult 
       const ok = rule.requiredTraits.every(traitId => (traitCounts.get(traitId) ?? 0) > 0);
       if (!ok) return false;
     }
+
     if (rule.requiredTags) {
       const ok = rule.requiredTags.every(tag => (tagCounts.get(tag) ?? 0) >= (rule.minCount ?? 1));
       if (!ok) return false;
