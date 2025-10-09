@@ -18,7 +18,7 @@ export const traits: Trait[] = [
     description: 'Любит золото больше, чем славу — просит повышенные выплаты и старается урвать бонус.',
     effects: { salary_mult: 1.15, bonus_cut_mult: 1.1 },
     rarity: 'common',
-    synergyTags: ['mercantile', 'selfish'],
+    synergyTags: ['mercantile', 'selfish', 'economy'],
     incompatibleWith: ['altruist'],
   },
   {
@@ -36,7 +36,7 @@ export const traits: Trait[] = [
     description: 'Проводит в тренировочном зале больше времени, чем дома — быстрее восстанавливается после заданий.',
     effects: { fatigue_gain_mult: 1.25, cooldown_mult: 0.85 },
     rarity: 'common',
-    synergyTags: ['discipline'],
+    synergyTags: ['discipline', 'grinder'],
   },
   {
     id: 'takes_blame',
@@ -44,7 +44,7 @@ export const traits: Trait[] = [
     description: 'Не сдаёт команду — прикрывает ошибки, но порой скрывает важные детали.',
     effects: { fail_rep_loss_mult: 0.8, shadow_gain_mult: 1.1 },
     rarity: 'common',
-    synergyTags: ['loyal', 'support'],
+    synergyTags: ['loyal', 'support', 'shield'],
   },
   {
     id: 'lucky',
@@ -52,7 +52,7 @@ export const traits: Trait[] = [
     description: 'Всегда оказывается в нужном месте — повышает общий шанс успеха.',
     effects: { success_chance_bonus: 0.05 },
     rarity: 'rare',
-    synergyTags: ['fortune'],
+    synergyTags: ['fortune', 'wildcard'],
   },
   {
     id: 'glass_cannon',
@@ -60,7 +60,7 @@ export const traits: Trait[] = [
     description: 'Бьёт сильно, но не любит держать удар — яркий стиль с риском получить травму.',
     effects: { strength_mult: 1.1, injury_chance_mult: 1.2 },
     rarity: 'common',
-    synergyTags: ['burst'],
+    synergyTags: ['burst', 'vanguard'],
   },
   {
     id: 'veteran',
@@ -68,7 +68,7 @@ export const traits: Trait[] = [
     description: 'Много видел, знает, чему учить — требует немного больше, зато быстрее растёт.',
     effects: { xp_gain_mult: 1.15, salary_mult: 1.05 },
     rarity: 'rare',
-    synergyTags: ['mentor', 'discipline'],
+    synergyTags: ['mentor', 'discipline', 'veteran'],
   },
   {
     id: 'strategist',
@@ -84,7 +84,7 @@ export const traits: Trait[] = [
     description: 'Всегда готов рвануть вперёд — приносит больше наград, но поднимает риск.',
     effects: { risk_delta: 1, reward_mult: 1.05 },
     rarity: 'common',
-    synergyTags: ['risk'],
+    synergyTags: ['risk', 'vanguard'],
     incompatibleWith: ['cautious_planner'],
   },
   {
@@ -93,7 +93,7 @@ export const traits: Trait[] = [
     description: 'Предпочитает продуманную подготовку и снижает риск ошибки.',
     effects: { risk_delta: -1 },
     rarity: 'rare',
-    synergyTags: ['planner', 'discipline'],
+    synergyTags: ['planner', 'discipline', 'defense'],
     incompatibleWith: ['reckless'],
   },
   {
@@ -102,7 +102,7 @@ export const traits: Trait[] = [
     description: 'Легко заводит связи — помогает в переговорах и выторгует лучшую цену.',
     effects: { diplomacy_bonus: 1, recruit_cost_discount_mult: 0.9 },
     rarity: 'common',
-    synergyTags: ['diplomat', 'morale'],
+    synergyTags: ['diplomat', 'morale', 'economy'],
   },
   {
     id: 'night_owl',
@@ -118,7 +118,7 @@ export const traits: Trait[] = [
     description: 'Знает, как перевязать рану на бегу — снижает риск травм и ускоряет восстановление.',
     effects: { injury_recovery_bonus: 1, injury_chance_mult: 0.9 },
     rarity: 'rare',
-    synergyTags: ['healer', 'support'],
+    synergyTags: ['healer', 'support', 'defense'],
   },
   {
     id: 'empath',
@@ -132,21 +132,21 @@ export const traits: Trait[] = [
     name: 'Теневой посредник',
     description: 'Умеет добывать информацию и снижать риск провала операций в тени.',
     rarity: 'unique',
-    synergyTags: ['shadow', 'intel'],
+    synergyTags: ['shadow', 'intel', 'night'],
   },
   {
     id: 'inspiring_leader',
     name: 'Вдохновляющий лидер',
     description: 'Ведёт отряд, поднимая боевой дух и организуя слаженную работу.',
     rarity: 'unique',
-    synergyTags: ['leader', 'morale'],
+    synergyTags: ['leader', 'morale', 'support'],
   },
   {
     id: 'arcane_savant',
     name: 'Арканный одарённый',
     description: 'Пропитывает миссии магической подготовкой и повышает точность планирования.',
     rarity: 'unique',
-    synergyTags: ['tactician', 'magical'],
+    synergyTags: ['tactician', 'magical', 'arcane'],
   },
 ];
 

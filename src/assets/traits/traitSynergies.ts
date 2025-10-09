@@ -54,6 +54,44 @@ export const TRAIT_SYNERGIES: TraitSynergyRule[] = [
     requiredTraits: ['reckless', 'lucky'],
     successBonus: 4,
   },
+  {
+    id: 'night_strike',
+    name: 'Ночной рейд',
+    description: 'Отряд в тени действует слаженно и с меньшим риском.',
+    requiredTags: ['shadow', 'night', 'burst'],
+    successBonus: 7,
+    injuryMultiplier: 0.9,
+  },
+  {
+    id: 'economic_council',
+    name: 'Совет присяжных купцов',
+    description: 'Обаяние и деловая хватка увеличивают выгоду контрактов.',
+    requiredTags: ['economy', 'diplomat'],
+    successBonus: 3,
+  },
+  {
+    id: 'vanguard_wall',
+    name: 'Живая стена',
+    description: 'Ветераны и медики работают в связке, снижая риск потерь.',
+    requiredTags: ['vanguard', 'defense', 'healer'],
+    injuryMultiplier: 0.82,
+    successBonus: 4,
+  },
+  {
+    id: 'arcane_gambit',
+    name: 'Арканный гамбит',
+    description: 'Магическая подготовка и тактика повышают шансы сложных операций.',
+    requiredTraits: ['arcane_savant'],
+    requiredTags: ['tactician'],
+    successBonus: 6,
+  },
+  {
+    id: 'discipline_chain',
+    name: 'Цепь дисциплины',
+    description: 'Наставники и трудяги выжимают максимум из тренировок и планирования.',
+    requiredTags: ['discipline', 'grinder'],
+    successBonus: 5,
+  },
 ];
 
 export const TRAIT_CONFLICTS: TraitSynergyRule[] = [
@@ -79,6 +117,21 @@ export const TRAIT_CONFLICTS: TraitSynergyRule[] = [
     requiredTags: ['leader'],
     minCount: 2,
     successBonus: -4,
+  },
+  {
+    id: 'shadow_vs_leader',
+    name: 'Тени и прожекторы',
+    description: 'Теневая работа конфликтует с открытым руководством.',
+    requiredTags: ['shadow', 'leader'],
+    successBonus: -4,
+  },
+  {
+    id: 'wildcard_vs_planner',
+    name: 'Хаос против порядка',
+    description: 'Импровизация мешает строгому плану операции.',
+    requiredTags: ['wildcard', 'planner'],
+    successBonus: -5,
+    injuryMultiplier: 1.1,
   },
 ];
 
