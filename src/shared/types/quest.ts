@@ -31,6 +31,11 @@ export interface IQuest {
   successResult: string;
   status: QuestStatus;
   timeoutResult: string;
+  resourceRewards?: Record<string, number>;
+  requiredResources?: Record<string, number>;
+  modifiers?: string[];
+  isStory?: boolean;
+  isIllegal?: boolean;
   resourcePenalty?: {
     goldLoss?: number;
     injuryChance?: number;

@@ -1,9 +1,9 @@
-import { makeAutoObservable, reaction } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import { callBoardIntro } from '../../assets/dialogues/guild/callBoard';
-import { guildFirststeps } from '../../assets/dialogues/guild/guildFirstSteps';
-import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
+// import { callBoardIntro } from '../../assets/dialogues/guild/callBoard';
+// import { guildFirststeps } from '../../assets/dialogues/guild/guildFirstSteps';
+// import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
 import { TimeStore } from '../TimeStore/TimeStore';
 import { UpgradeStore } from '../Upgrade/Upgrade.store';
 

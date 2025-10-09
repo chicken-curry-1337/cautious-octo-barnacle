@@ -26,6 +26,7 @@ export class RecruitStore extends Character {
       injured: observable,
       injuredTimeout: observable,
       recruitCost: observable,
+      traits: observable,
       daysRemaining: observable,
     });
   }

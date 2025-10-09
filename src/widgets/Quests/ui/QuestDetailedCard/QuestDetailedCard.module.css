@@ -157,3 +157,121 @@ p {
     transform: translateY(0);
   }
 }
+
+.modifiersSection {
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+.modifierTags {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modifierTagWrapper {
+  position: relative;
+}
+
+.modifierTag {
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.modifierTag:hover {
+  background: #e6e6e6;
+}
+
+.modifierTagActive {
+  background: #3f51b5;
+  color: #fff;
+  border-color: #3f51b5;
+}
+
+.modifierDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  max-width: 260px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  color: #333;
+  line-height: 1.35;
+  z-index: 5;
+}
+
+.resourceRewards {
+  margin: 10px 0;
+  font-size: 0.95rem;
+}
+
+.resourceRequirements {
+  margin: 10px 0;
+  font-size: 0.95rem;
+}
+
+.resourceRewardList {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.resourceRewardItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #f3f9ff;
+  border-radius: 10px;
+  border: 1px solid #cfe0ff;
+  font-size: 0.85rem;
+  color: #1d3557;
+}
+
+.resourceRewardIcon {
+  font-size: 1rem;
+}
+
+.resourceRewardName {
+  font-weight: 600;
+}
+
+.resourceRewardAmount {
+  font-weight: 700;
+  color: #1565c0;
+}
+
+.hiddenInfo {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.partyLimit {
+  margin: 6px 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.hero-selector-scroller input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.limitWarning {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #b91c1c;
+}

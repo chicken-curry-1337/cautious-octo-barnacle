@@ -26,6 +26,7 @@ export class HeroStore extends Character implements IHero {
       injured: observable,
       injuredTimeout: observable,
       recruitCost: observable,
+      traits: observable,
       assignedQuestId: observable,
     });
   }

@@ -16,6 +16,7 @@ export class Character implements IChar {
   injured: boolean; // Герой может быть травмирован
   injuredTimeout?: number; // Время, в течение которого герой не может участвовать в квестах из-за травмы
   recruitCost: number;
+  traits: string[];
 
   constructor({
     id = crypto.randomUUID(),
@@ -30,6 +31,7 @@ export class Character implements IChar {
     injured,
     injuredTimeout,
     recruitCost = 0,
+    traits = [],
   }: IChar) {
     this.id = id;
     this.name = name;
@@ -43,6 +45,7 @@ export class Character implements IChar {
     this.injured = injured;
     this.injuredTimeout = injuredTimeout;
     this.recruitCost = recruitCost;
+    this.traits = traits;
   }
 
   generateStatsByType = (type: 'warrior' | 'mage' | 'rogue') => {

@@ -15,6 +15,7 @@ export interface IChar {
   injured: boolean; // Герой может быть травмирован
   injuredTimeout?: number; // Время, в течение которого герой не может участвовать в квестах из-за травмы
   recruitCost: number;
+  traits: string[];
 }
 
 export interface IHero extends IChar {

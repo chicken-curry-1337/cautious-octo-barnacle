@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
@@ -7,6 +7,7 @@ import { GuildFinanceStore } from '../../../../entities/Finance/Finance.store';
 import type { HeroType } from '../../../../shared/types/hero';
 import { GuildStore } from '../../../../widgets/Guild/store/Guild.store';
 import { RecruitsStore } from '../../store/Recruits.store';
+import { traits as traitDefinitions } from '../../../../assets/traits/traits';
 
 import styles from './RecruitList.module.css';
 
@@ -20,6 +21,14 @@ export const RecruitList = observer(() => {
   const recruitStore = useMemo(() => container.resolve(RecruitsStore), []);
   const guildStore = useMemo(() => container.resolve(GuildStore), []);
   const financeStore = useMemo(() => container.resolve(GuildFinanceStore), []);
+  const traitMap = useMemo(() => {
+    return traitDefinitions.reduce<Record<string, (typeof traitDefinitions)[number]>>((acc, trait) => {
+      acc[trait.id] = trait;
+
+      return acc;
+    }, {});
+  }, []);
+  const [openedTrait, setOpenedTrait] = useState<{ heroId: string; traitId: string } | null>(null);
 
   function getDescriptionClass(type: HeroType) {
     switch (type) {
@@ -88,6 +97,44 @@ export const RecruitList = observer(() => {
             <p className={styles[getDescriptionClass(hero.type)]}>
               {hero.description}
             </p>
+            {(hero.traits?.length ?? 0) > 0 && (
+              <div className={styles.traitsSection}>
+                <strong>Черты:</strong>
+                <div className={styles.traitTags}>
+                  {hero.traits
+                    .map(traitId => traitMap[traitId])
+                    .filter(Boolean)
+                    .map(trait => (
+                      <div key={`${hero.id}-${trait.id}`} className={styles.traitTagWrapper}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenedTrait(prev =>
+                              prev && prev.heroId === hero.id && prev.traitId === trait.id
+                                ? null
+                                : { heroId: hero.id, traitId: trait.id },
+                            );
+                          }}
+                          className={`${styles.traitTag} ${
+                            openedTrait && openedTrait.heroId === hero.id && openedTrait.traitId === trait.id
+                              ? styles.traitTagActive
+                              : ''
+                          }`}
+                        >
+                          {trait.name}
+                        </button>
+                        {openedTrait
+                          && openedTrait.heroId === hero.id
+                          && openedTrait.traitId === trait.id && (
+                            <div className={styles.traitDropdown}>
+                              {trait.description}
+                            </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
             <div className={styles.recruitCost}>
               💰
               {hero.recruitCost}

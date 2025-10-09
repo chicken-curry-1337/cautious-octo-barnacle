@@ -14,7 +14,8 @@ import styles from './QuestList.module.css';
 export const QuestList = observer(
   ({ title, quests }: { title: string; quests: IQuest[] }) => {
     const guildStore = useMemo(() => container.resolve(GuildStore), []);
-    const { startQuest } = useMemo(() => container.resolve(QuestsStore), []);
+    const questStore = useMemo(() => container.resolve(QuestsStore), []);
+    const { startQuest } = questStore;
     const [selectedQuestId, setSelectedQuestId] = useState<null | string>(null);
     const {
       timeStore: { absoluteDay },
@@ -43,7 +44,25 @@ export const QuestList = observer(
     return (
       <>
         <div className={styles.container}>
-          <h2 className={styles.title}>{title}</h2>
+          <div className={styles.header}>
+            <h2 className={styles.title}>{title}</h2>
+            {title.startsWith('В работе') && (
+              <div className={styles.limitInfo}>
+                Заданий в работе:
+                {' '}
+                <strong>
+                  {questStore.currentActiveMissions}
+                  {' '}
+                  /
+                  {' '}
+                  {questStore.activeMissionsLimit}
+                </strong>
+              </div>
+            )}
+          </div>
+          {!questStore.boardUnlocked && title.startsWith('Новые') && (
+            <p className={styles.boardLocked}>Постройте доску объявлений, чтобы получать контракты.</p>
+          )}
           {quests.length === 0
             ? (
                 <p className={styles.empty}>Нет заданий</p>

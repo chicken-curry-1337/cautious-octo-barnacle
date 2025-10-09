@@ -4,9 +4,11 @@ import { inject, singleton } from 'tsyringe';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
+import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import type { HeroType } from '../../shared/types/hero';
 import { randomInRange } from '../../shared/utils/randomInRange';
 import { RecruitsStore } from '../Recruits/store/Recruits.store';
+import { traits as traitPool } from '../../assets/traits/traits';
 
 @singleton()
 export class HeroesStore {
@@ -16,6 +18,7 @@ export class HeroesStore {
     @inject(TimeStore) public timeStore: TimeStore,
     @inject(RecruitsStore) public recruitStore: RecruitsStore,
     @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
+    @inject(UpgradeStore) public upgradeStore: UpgradeStore,
   ) {
     makeAutoObservable(this);
 
@@ -33,10 +36,10 @@ export class HeroesStore {
 
   onNextDay = () => {
     this.heroes.forEach((hero) => {
-      if (hero.injured && hero.injuredTimeout) {
-        hero.injuredTimeout -= 1;
+      if (hero.injured && typeof hero.injuredTimeout === 'number') {
         hero.setInjuredTimeout({
-          injuredTimeout: hero.injuredTimeout - 1,
+          injuredTimeout: hero.injuredTimeout
+            - (1 + this.upgradeStore.getNumericEffectSum('fatigue_recovery_per_day')),
         });
       }
     });
@@ -45,21 +48,22 @@ export class HeroesStore {
   createHero = (name: string, type: HeroType, description: string) => {
     const id = crypto.randomUUID();
     const stats = this.generateStatsByType(type);
-    const level = 1;
-    const minStake = this.calculateMinStake(level, type);
+    const startLevel = Math.max(1, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1);
+    const minStake = this.calculateMinStake(startLevel, type);
 
     if (!this.heroesMap[id]) {
       this.heroesMap[id] = new HeroStore({
         id,
         name,
         type,
-        level,
+        level: startLevel,
         description,
         assignedQuestId: null,
         ...stats,
         minStake,
         injured: false,
         recruitCost: 0,
+        traits: this.getRandomTraits(),
       });
     }
   };
@@ -82,6 +86,8 @@ export class HeroesStore {
     // создаем героя
     this.heroesMap[candidate.id] = (new HeroStore({
       ...candidate,
+      level: Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1),
+      minStake: this.calculateMinStake(Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1), candidate.type),
     }));
 
     // удаляем кандидата
@@ -100,23 +106,24 @@ export class HeroesStore {
   };
 
   generateStatsByType = (type: 'warrior' | 'mage' | 'rogue') => {
+    const gearBonus = Math.round(this.upgradeStore.getNumericEffectSum('gear_tier_bonus'));
     switch (type) {
       case 'warrior':
         return {
-          strength: randomInRange(7, 10),
-          agility: randomInRange(3, 7),
+          strength: randomInRange(7, 10) + gearBonus,
+          agility: randomInRange(3, 7) + Math.floor(gearBonus / 2),
           intelligence: randomInRange(1, 4),
         };
       case 'mage':
         return {
           strength: randomInRange(1, 4),
-          agility: randomInRange(3, 6),
-          intelligence: randomInRange(7, 10),
+          agility: randomInRange(3, 6) + Math.floor(gearBonus / 2),
+          intelligence: randomInRange(7, 10) + gearBonus,
         };
       case 'rogue':
         return {
-          strength: randomInRange(3, 6),
-          agility: randomInRange(7, 10),
+          strength: randomInRange(3, 6) + Math.floor(gearBonus / 2),
+          agility: randomInRange(7, 10) + gearBonus,
           intelligence: randomInRange(3, 6),
         };
     }
@@ -129,8 +136,10 @@ export class HeroesStore {
       mage: 1.1,
       rogue: 1.3,
     };
+    const satisfactionBonus = this.upgradeStore.getNumericEffectSum('salary_satisfaction_bonus');
+    const satisfactionMultiplier = Math.max(0.5, 1 - satisfactionBonus * 0.05);
 
-    return Math.floor(base * level * (typeMultiplier[type] || 1));
+    return Math.floor(base * level * (typeMultiplier[type] || 1) * satisfactionMultiplier);
   };
 
   get availableHeroes() {
@@ -138,4 +147,24 @@ export class HeroesStore {
       hero => hero.assignedQuestId === null && !hero.injured,
     );
   }
+
+  private getRandomTraits = (): string[] => {
+    if (traitPool.length === 0) return [];
+
+    const maxTraits = Math.min(2, traitPool.length);
+    const count = randomInRange(0, maxTraits);
+    if (count === 0) return [];
+
+    const pool = [...traitPool];
+    const selected: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const index = Math.floor(Math.random() * pool.length);
+      const [trait] = pool.splice(index, 1);
+      if (!trait) continue;
+      selected.push(trait.id);
+    }
+
+    return selected;
+  };
 }

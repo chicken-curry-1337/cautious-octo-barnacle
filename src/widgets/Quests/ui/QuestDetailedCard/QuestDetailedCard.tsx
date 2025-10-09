@@ -7,8 +7,12 @@ import { container } from 'tsyringe';
 import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
 import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
 import { QuestsStore } from '../../../../features/Quests/Quests.store';
+import { UpgradeStore } from '../../../../entities/Upgrade/Upgrade.store';
 import type { IChar } from '../../../../shared/types/hero';
 import { QuestStatus, type IQuest } from '../../../../shared/types/quest';
+import { modifiers as questModifiers } from '../../../../assets/modifiers/modifiers';
+import { GUILD_RESOURCES } from '../../../../assets/resources/resources';
+import type { GuildResource } from '../../../../assets/resources/resources';
 
 import styles from './QuestDetailedCard.module.css';
 
@@ -23,16 +27,33 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
     const questStore = container.resolve(QuestsStore);
     const heroesStore = container.resolve(HeroesStore);
     const { absoluteDay } = container.resolve(TimeStore);
+    const upgradeStore = container.resolve(UpgradeStore);
 
     // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
     const { heroes, availableHeroes } = heroesStore;
 
     const [selectedHeroesIds, setSelectedHeroesIds] = useState<string[]>([]);
+    const [openedModifierId, setOpenedModifierId] = useState<string | null>(null);
+    const resourceMap = useMemo(() => {
+      return GUILD_RESOURCES.reduce<Record<string, GuildResource>>((acc, resource) => {
+        acc[resource.id] = resource;
+
+        return acc;
+      }, {});
+    }, []);
+
+    const maxPartySize = questStore.maxPartySize;
 
     const toggleHero = (id: string) => {
-      setSelectedHeroesIds(prev =>
-        prev.includes(id) ? prev.filter(h => h !== id) : [...prev, id],
-      );
+      setSelectedHeroesIds(prev => {
+        if (prev.includes(id)) {
+          return prev.filter(h => h !== id);
+        }
+        if (prev.length >= maxPartySize) {
+          return prev;
+        }
+        return [...prev, id];
+      });
     };
 
     const assignedHeroes = quest.assignedHeroIds
@@ -90,7 +111,63 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
       selectedHeroesIds,
     ]);
 
-    const guildProfit = quest.reward - availableHeroesCommission;
+    const rewardMultiplier = quest.isIllegal
+      ? upgradeStore.getNumericEffectProduct('illegal_reward_mult')
+      : upgradeStore.getNumericEffectProduct('legal_reward_mult');
+    const expectedReward = Math.round(quest.reward * (rewardMultiplier || 1));
+    const guildProfit = expectedReward - availableHeroesCommission;
+
+    const modifiers = useMemo(() => {
+      if (!quest.modifiers || quest.modifiers.length === 0) return [];
+
+      return quest.modifiers
+        .map(modifierId => questModifiers.find(modifier => modifier.id === modifierId))
+        .filter((modifier): modifier is (typeof questModifiers)[number] => Boolean(modifier));
+    }, [quest.modifiers]);
+
+    const resourceRewards = useMemo(() => {
+      if (!quest.resourceRewards) return [];
+
+      return Object.entries(quest.resourceRewards)
+        .map(([resourceId, amount]) => {
+          const resource = resourceMap[resourceId];
+          if (!resource || amount <= 0) return null;
+
+          return { ...resource, amount };
+        })
+        .filter((resource): resource is GuildResource & { amount: number } => Boolean(resource));
+    }, [quest.resourceRewards, resourceMap]);
+
+    const requiredResources = useMemo(() => {
+      if (!quest.requiredResources) return [];
+
+      return Object.entries(quest.requiredResources)
+        .map(([resourceId, amount]) => {
+          const resource = resourceMap[resourceId];
+          if (!resource || amount <= 0) return null;
+
+          return { ...resource, amount };
+        })
+        .filter((resource): resource is GuildResource & { amount: number } => Boolean(resource));
+    }, [quest.requiredResources, resourceMap]);
+
+    const toggleModifier = (id: string) => {
+      setOpenedModifierId(prev => (prev === id ? null : id));
+    };
+
+    const canRevealAll = upgradeStore.getBooleanEffect('reveal_hidden');
+    const revealLimit = upgradeStore.getNumericEffectMax('reveal_hidden_count');
+    const visibleResourceRewards = canRevealAll
+      ? resourceRewards
+      : resourceRewards.slice(0, revealLimit);
+    const hiddenRewardsCount = resourceRewards.length - visibleResourceRewards.length;
+
+    const visibleRequiredResources = canRevealAll
+      ? requiredResources
+      : requiredResources.slice(0, revealLimit);
+    const hiddenRequirementsCount = requiredResources.length - visibleRequiredResources.length;
+
+    const selectionLimitReached = selectedHeroesIds.length >= maxPartySize;
 
     return (
       <>
@@ -149,6 +226,24 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
               </p>
 
               <p>
+                Ожидаемая награда с учётом инфраструктуры:
+                {' '}
+                <strong>
+                  {expectedReward}
+                  {' '}
+                  золота
+                </strong>
+              </p>
+
+              <p>
+                Тип контракта:
+                {' '}
+                <strong>
+                  {quest.isIllegal ? 'Нелегальный' : 'Официальный'}
+                </strong>
+              </p>
+
+              <p>
                 Комиссия героев:
                 {' '}
                 <span>
@@ -157,6 +252,50 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                   золота
                 </span>
               </p>
+
+              {visibleRequiredResources.length > 0 && (
+                <div className={styles.resourceRequirements}>
+                  <strong>Требуются ресурсы для старта:</strong>
+                  <div className={styles.resourceRewardList}>
+                    {visibleRequiredResources.map(resource => (
+                      <div key={`req-${resource.id}`} className={styles.resourceRewardItem} title={resource.description}>
+                        <span className={styles.resourceRewardIcon}>{resource.icon}</span>
+                        <span className={styles.resourceRewardName}>{resource.name}</span>
+                        <span className={styles.resourceRewardAmount}>-{resource.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {hiddenRequirementsCount > 0 && (
+                    <p className={styles.hiddenInfo}>Неизвестно ещё ресурсов:
+                      {' '}
+                      {hiddenRequirementsCount}
+                      . Постройте разведцентр, чтобы раскрыть больше данных.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {visibleResourceRewards.length > 0 && (
+                <div className={styles.resourceRewards}>
+                  <strong>Другие трофеи:</strong>
+                  <div className={styles.resourceRewardList}>
+                    {visibleResourceRewards.map(reward => (
+                      <div key={reward.id} className={styles.resourceRewardItem} title={reward.description}>
+                        <span className={styles.resourceRewardIcon}>{reward.icon}</span>
+                        <span className={styles.resourceRewardName}>{reward.name}</span>
+                        <span className={styles.resourceRewardAmount}>+{reward.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {hiddenRewardsCount > 0 && (
+                    <p className={styles.hiddenInfo}>Есть ещё неизвестные награды:
+                      {' '}
+                      {hiddenRewardsCount}
+                      . Улучшите разведку, чтобы увидеть полный список.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <p>
                 Итоговая выгода гильдии:
@@ -250,6 +389,32 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                 {totalIntelligence}
               </div>
 
+              {modifiers.length > 0 && (
+                <div className={styles.modifiersSection}>
+                  <strong>Модификаторы:</strong>
+                  <div className={styles.modifierTags}>
+                    {modifiers.map(modifier => (
+                      <div key={modifier.id} className={styles.modifierTagWrapper}>
+                        <button
+                          type="button"
+                          onClick={() => toggleModifier(modifier.id)}
+                          className={clsx(styles.modifierTag, {
+                            [styles.modifierTagActive]: openedModifierId === modifier.id,
+                          })}
+                        >
+                          {modifier.name}
+                        </button>
+                        {openedModifierId === modifier.id && (
+                          <div className={styles.modifierDropdown}>
+                            {modifier.description}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {quest.resourcePenalty && (
                 <div className={styles.penalties}>
                   <strong>🔻 Возможные потери при провале:</strong>
@@ -282,25 +447,27 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
             </div>
           </div>
           {quest.status === QuestStatus.NotStarted && (
-            <div className={clsx(styles.heroSelector)}>
-              <strong>Доступные герои для назначения:</strong>
-              <div className={styles.heroSelectorScroller}>
-                {availableForQuestHeroes.length === 0
-                  ? (
-                      <p>Нет доступных героев</p>
-                    )
-                  : availableForQuestHeroes.map(hero => (
-                      <div key={hero.id}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={selectedHeroesIds.includes(hero.id)}
-                            onChange={() => toggleHero(hero.id)}
-                          />
-                          {hero.name}
-                          {' '}
-                          (
-                          {hero.type}
+              <div className={clsx(styles.heroSelector)}>
+                <strong>Доступные герои для назначения:</strong>
+                <div className={styles.partyLimit}>Максимальный размер отряда: {maxPartySize}</div>
+                <div className={styles.heroSelectorScroller}>
+                  {availableForQuestHeroes.length === 0
+                    ? (
+                        <p>Нет доступных героев</p>
+                      )
+                    : availableForQuestHeroes.map(hero => (
+                        <div key={hero.id}>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={selectedHeroesIds.includes(hero.id)}
+                              onChange={() => toggleHero(hero.id)}
+                              disabled={!selectedHeroesIds.includes(hero.id) && selectionLimitReached}
+                            />
+                            {hero.name}
+                            {' '}
+                            (
+                            {hero.type}
                           {' '}
                           {hero.level}
                           {' '}
@@ -326,6 +493,9 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                       </div>
                     ))}
 
+                  {selectionLimitReached && (
+                    <p className={styles.limitWarning}>Максимальный состав достигнут.</p>
+                  )}
               </div>
             </div>
           )}
@@ -335,7 +505,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
               className={clsx(styles.assignBtn, {
                 [styles.assignBtnActive]: selectedHeroesIds.length !== 0,
               })}
-              disabled={availableForQuestHeroes.length === 0}
+              disabled={availableForQuestHeroes.length === 0 || selectedHeroesIds.length === 0}
               onClick={() => {
                 console.log('click');
                 onAssign(quest.id, selectedHeroesIds);

@@ -10,10 +10,35 @@
   border-radius: 8px;
 }
 
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .title {
   font-size: 28px;
   margin-bottom: 20px;
   color: #444;
+  text-align: center;
+  flex: 1;
+}
+
+.limitInfo {
+  font-size: 0.95rem;
+  color: #374151;
+  background: #e0f2f1;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 600;
+}
+
+.boardLocked {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #b91c1c;
   text-align: center;
 }
 

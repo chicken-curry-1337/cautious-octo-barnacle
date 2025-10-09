@@ -1,26 +1,17 @@
-import { makeAutoObservable, reaction } from 'mobx';
-import { inject, singleton } from 'tsyringe';
+import { makeAutoObservable } from 'mobx';
+import { singleton } from 'tsyringe';
 
-import { TimeStore } from '../TimeStore/TimeStore';
+const STORY_DIFFICULTY_STEP = 0.1;
 
 @singleton()
 export class DifficultyStore {
-  difficultyLevel = 1; // Начальный уровень сложности
+  difficultyLevel = 1; // Базовый уровень сложности
 
-  constructor(@inject(TimeStore) public timeStore: TimeStore) {
+  constructor() {
     makeAutoObservable(this);
-
-    reaction(
-      () => this.timeStore.currentDay,
-      () => {
-        this.onNextDay();
-      },
-    );
   }
 
-  onNextDay = () => {
-    // todo: можно увеличивать сложность по дням, например, каждые 5 дней.
-    // todo: Также можно увеличивать сложность при выполнении сюжетных квестов
-    this.difficultyLevel += 0.001;
+  onStoryQuestCompleted = () => {
+    this.difficultyLevel += STORY_DIFFICULTY_STEP;
   };
 }

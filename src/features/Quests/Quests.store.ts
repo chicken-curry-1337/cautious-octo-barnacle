@@ -1,9 +1,14 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
+import { modifiers as questModifiers } from '../../assets/modifiers/modifiers';
+import { GUILD_RESOURCES } from '../../assets/resources/resources';
+import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
 import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
+import { GameStateStore } from '../../entities/GameState/GameStateStore';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
+import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
@@ -20,6 +25,8 @@ export class QuestsStore {
     @inject(GuildFinanceStore) public financeStore: GuildFinanceStore,
     @inject(HeroesStore) public heroesStore: HeroesStore,
     @inject(DifficultyStore) public difficultyStore: DifficultyStore,
+    @inject(GameStateStore) public gameStateStore: GameStateStore,
+    @inject(UpgradeStore) public upgradeStore: UpgradeStore,
   ) {
     makeAutoObservable(this);
 
@@ -35,6 +42,82 @@ export class QuestsStore {
     this.quests.push(quest);
   };
 
+  get boardUnlocked() {
+    return this.upgradeStore.upgradeMap[UPGRADE_1_ID]?.done ?? false;
+  }
+
+  private get maxContractBoardSlots() {
+    if (!this.boardUnlocked) return 0;
+    const baseSlots = 5;
+    const additional = this.upgradeStore.getNumericEffectMax('contract_board_slots');
+
+    return baseSlots + additional;
+  }
+
+  private get failRefundMultiplier() {
+    return this.upgradeStore.getNumericEffectMax('fail_refund_mult');
+  }
+
+  private get maxParallelMissions() {
+    const base = 1;
+    const direct = this.upgradeStore.getNumericEffectMax('parallel_missions');
+    const bonus = this.upgradeStore.getNumericEffectSum('parallel_missions_bonus');
+    const queue = this.upgradeStore.getNumericEffectSum('queue_missions');
+
+    return Math.max(base, direct, base + bonus, base + queue, direct + queue);
+  }
+
+  get activeMissionsLimit() {
+    return this.maxParallelMissions;
+  }
+
+  get currentActiveMissions() {
+    return this.quests.filter(q => q.status === QuestStatus.InProgress).length;
+  }
+
+  private get travelTimeMultiplier() {
+    return this.upgradeStore.getNumericEffectProduct('travel_time_mult');
+  }
+
+  private get legalRewardMultiplier() {
+    return this.upgradeStore.getNumericEffectProduct('legal_reward_mult');
+  }
+
+  private get illegalRewardMultiplier() {
+    return this.upgradeStore.getNumericEffectProduct('illegal_reward_mult');
+  }
+
+  private get injuryChanceMultiplierFromUpgrades() {
+    return this.upgradeStore.getNumericEffectProduct('injury_chance_mult');
+  }
+
+  private get injuryDurationMultiplier() {
+    return this.upgradeStore.getNumericEffectProduct('injury_days_mult');
+  }
+
+  private get injuryProtectChance() {
+    return this.upgradeStore.getNumericEffectMax('injury_fail_protect_chance');
+  }
+
+  private get heatOnFailMultiplier() {
+    return this.upgradeStore.getNumericEffectProduct('heat_on_fail_mult');
+  }
+
+  private get evidenceCleanupChance() {
+    return this.upgradeStore.getNumericEffectMax('fail_evidence_cleanup_chance');
+  }
+
+  get maxPartySize() {
+    const base = 3;
+    const bonus = this.upgradeStore.getNumericEffectSum('party_size_max_bonus');
+
+    return base + bonus;
+  }
+
+  private get xpGainMultiplier() {
+    return Math.max(1, this.upgradeStore.getNumericEffectProduct('xp_gain_mult'));
+  }
+
   createQuest = (
     title: string,
     description: string,
@@ -43,8 +126,15 @@ export class QuestsStore {
     failResult: string,
     timeoutResult: string,
     reward?: number,
+    options?: {
+      isStory?: boolean;
+      resourceRewards?: Record<string, number>;
+      requiredResources?: Record<string, number>;
+      isIllegal?: boolean;
+    },
   ) => {
     const questReward = reward ?? randomInRange(50, 150);
+    if (!this.boardUnlocked && !options?.isStory) return;
     const deadlineAccept = this.timeStore.absoluteDay + randomInRange(3, 5); // срок на принятие
     const executionTime = randomInRange(2, 4); // дни на выполнение после старта
 
@@ -71,11 +161,22 @@ export class QuestsStore {
       deadlineResult,
       successResult,
       status: QuestStatus.NotStarted,
+      modifiers: [],
+      resourceRewards: options?.resourceRewards ?? {},
+      requiredResources: options?.requiredResources ?? {},
+      isStory: options?.isStory ?? false,
+      isIllegal: options?.isIllegal ?? false,
     };
     this.quests.push(newQuest);
   };
 
   onNextDay = () => {
+    if (!this.boardUnlocked) {
+      this.quests = this.quests.filter(q => q.status !== QuestStatus.NotStarted || q.isStory);
+
+      return;
+    }
+
     this.quests = this.quests.filter((quest) => {
       // Проверка на истечение времени принятия
       if (quest.status === QuestStatus.NotStarted && this.timeStore.absoluteDay > quest.deadlineAccept) {
@@ -97,15 +198,25 @@ export class QuestsStore {
 
         if (success) {
           quest.status = QuestStatus.CompletedSuccess;
+          quest.completed = true;
           const heroComission = assignedHeroes.reduce(
             (sum, h) => sum + (h.minStake ?? 0),
             0,
           );
           console.log(`hero comission: ${heroComission}`);
-          this.financeStore.addGold(quest.reward - heroComission);
+          const rewardWithBonus = Math.round(quest.reward * this.gameStateStore.questRewardMultiplier);
+          const rewardMultiplier = quest.isIllegal ? this.illegalRewardMultiplier : this.legalRewardMultiplier;
+          const rewardWithUpgrades = Math.round(rewardWithBonus * rewardMultiplier);
+          this.financeStore.addGold(rewardWithUpgrades - heroComission);
           console.log(`hero comission: ${heroComission}`);
+          this.grantQuestResources(quest);
+
+          if (quest.isStory) {
+            this.difficultyStore.onStoryQuestCompleted();
+          }
         } else if (!success) {
           quest.status = QuestStatus.CompletedFail;
+          quest.completed = true;
 
           if (quest.resourcePenalty?.goldLoss) {
             this.financeStore.spendGold(quest.resourcePenalty.goldLoss);
@@ -114,16 +225,52 @@ export class QuestsStore {
           if (quest.resourcePenalty?.injuryChance) {
             assignedHeroes.forEach((hero) => {
               const roll = Math.random() * 100;
+              const injuryChanceMultiplier = this.gameStateStore.injuryChanceMultiplier
+                * this.injuryChanceMultiplierFromUpgrades;
+              const injuryChance = Math.min(
+                100,
+                quest.resourcePenalty!.injuryChance! * injuryChanceMultiplier,
+              );
 
-              if (roll < quest.resourcePenalty!.injuryChance!) {
+              if (roll < injuryChance) {
+                const protectChance = this.injuryProtectChance;
+
+                if (protectChance > 0 && Math.random() < protectChance) {
+                  return;
+                }
+
                 hero.injured = true; // можно ввести такую механику
-                hero.injuredTimeout = 5;
+                hero.injuredTimeout = Math.max(
+                  1,
+                  Math.ceil(5 * this.injuryDurationMultiplier),
+                );
               }
             });
           }
+
+          const refund = this.failRefundMultiplier > 0
+            ? Math.round(quest.reward * this.failRefundMultiplier)
+            : 0;
+
+          if (refund > 0) {
+            this.financeStore.addGold(refund);
+          }
+
+          const cleanupChance = this.evidenceCleanupChance;
+
+          if (Math.random() > cleanupChance) {
+            const baseHeat = quest.isIllegal ? 10 : 4;
+            const heatGain = Math.round(baseHeat * this.heatOnFailMultiplier);
+
+            if (heatGain > 0) {
+              this.gameStateStore.addHeat(heatGain);
+            }
+          }
         }
 
-        assignedHeroes.forEach(h => h.increaseLevel());
+        if (success) {
+          this.grantHeroExperience(assignedHeroes);
+        }
         assignedHeroes.forEach(h => h.assignedQuestId = null);
 
         return true;
@@ -137,8 +284,8 @@ export class QuestsStore {
       q => q.status !== QuestStatus.FailedDeadline,
     );
 
-    const QUEST_LENGTH_MAX = 5;
-    const QUEST_GENERATE_COUNT = 5;
+    const QUEST_LENGTH_MAX = this.maxContractBoardSlots;
+    const QUEST_GENERATE_COUNT = this.maxContractBoardSlots;
 
     if (this.newQuests.length < QUEST_LENGTH_MAX) {
       const newQuestsCount = Math.floor(
@@ -157,6 +304,7 @@ export class QuestsStore {
 
     if (quest && !quest.completed) {
       quest.status = QuestStatus.CompletedSuccess;
+      quest.completed = true;
 
       const assignedHeroes = this.heroesStore.heroes.filter(h =>
         quest.assignedHeroIds.includes(h.id),
@@ -165,13 +313,15 @@ export class QuestsStore {
         (sum, hero) => sum + hero.minStake,
         0,
       );
-      const reward = quest.reward;
+      const rewardWithBonus = Math.round(quest.reward * this.gameStateStore.questRewardMultiplier);
+      const rewardMultiplier = quest.isIllegal ? this.illegalRewardMultiplier : this.legalRewardMultiplier;
+      const rewardWithUpgrades = Math.round(rewardWithBonus * rewardMultiplier);
 
-      if (reward >= totalMinStake) {
-        const guildProfit = reward - totalMinStake;
+      if (rewardWithUpgrades >= totalMinStake) {
+        const guildProfit = rewardWithUpgrades - totalMinStake;
         this.financeStore.addGold(guildProfit);
       } else {
-        const shortage = totalMinStake - reward;
+        const shortage = totalMinStake - rewardWithUpgrades;
 
         if (this.financeStore.canAffordGold(shortage)) {
           this.financeStore.spendGold(shortage);
@@ -180,6 +330,13 @@ export class QuestsStore {
           this.financeStore.spendGold(affordableShortage);
           console.warn('Гильдия не может полностью покрыть ставки героев!');
         }
+      }
+
+      this.grantQuestResources(quest);
+      this.grantHeroExperience(assignedHeroes);
+
+      if (quest.isStory) {
+        this.difficultyStore.onStoryQuestCompleted();
       }
     }
   };
@@ -223,8 +380,13 @@ export class QuestsStore {
       1,
     );
 
-    // Возвращаем процент (0–100)
-    return Math.round(averageRatio * 100);
+    const baseChance = Math.round(averageRatio * 100);
+    const bonus = this.gameStateStore.questSuccessChanceBonus
+      + this.upgradeStore.getNumericEffectSum('scout_bonus') * 5
+      + this.upgradeStore.getNumericEffectSum('formation_bonus') * 3;
+    const modified = Math.max(0, Math.min(100, baseChance + bonus));
+
+    return modified;
   };
 
   assignHeroToQuest = (heroId: string, questId: string) => {
@@ -244,6 +406,10 @@ export class QuestsStore {
         return true;
       }
 
+      if (quest.assignedHeroIds.length >= this.maxPartySize) {
+        return false;
+      }
+
       hero.assignedQuestId = questId;
       quest.assignedHeroIds.push(heroId);
       quest.status = QuestStatus.InProgress;
@@ -261,10 +427,149 @@ export class QuestsStore {
     heroes.forEach(hero => this.assignHeroToQuest(hero, questId));
   };
 
+  private getRandomModifiers = (): string[] => {
+    if (questModifiers.length === 0) return [];
+
+    const maxCount = Math.min(3, questModifiers.length);
+    const count = randomInRange(1, maxCount);
+    const pool = [...questModifiers];
+    const selected: string[] = [];
+
+    for (let i = 0; i < count && pool.length > 0; i++) {
+      const totalWeight = pool.reduce(
+        (sum, modifier) => sum + (modifier.weight ?? 1),
+        0,
+      );
+      if (totalWeight <= 0) break;
+
+      let roll = Math.random() * totalWeight;
+      let index = 0;
+
+      for (; index < pool.length; index++) {
+        roll -= pool[index].weight ?? 1;
+        if (roll <= 0) break;
+      }
+
+      const clampedIndex = Math.min(index, pool.length - 1);
+      const [modifier] = pool.splice(clampedIndex, 1);
+
+      if (modifier) selected.push(modifier.id);
+    }
+
+    return selected;
+  };
+
+  private getRandomResourceRewards = (): Record<string, number> => {
+    if (GUILD_RESOURCES.length === 0) return {};
+
+    const maxRewards = Math.min(2, GUILD_RESOURCES.length);
+    const count = randomInRange(0, maxRewards);
+    if (count === 0) return {};
+
+    const pool = [...GUILD_RESOURCES];
+    const rewards: Record<string, number> = {};
+
+    const amountRanges: Record<string, [number, number]> = {
+      common: [15, 40],
+      uncommon: [8, 20],
+      rare: [4, 12],
+      exotic: [1, 5],
+    };
+
+    for (let i = 0; i < count && pool.length > 0; i++) {
+      const index = Math.floor(Math.random() * pool.length);
+      const [resource] = pool.splice(index, 1);
+      if (!resource) continue;
+
+      const [min, max]
+        = amountRanges[resource.rarity] ?? amountRanges.common;
+      const amount = randomInRange(min, max);
+
+      if (amount > 0) {
+        rewards[resource.id] = amount;
+      }
+    }
+
+    return rewards;
+  };
+
+  private grantHeroExperience = (heroes: typeof this.heroesStore.heroes) => {
+    const xpMultiplier = this.xpGainMultiplier;
+    const baseLevels = Math.floor(xpMultiplier);
+    const fractional = xpMultiplier - baseLevels;
+
+    heroes.forEach((hero) => {
+      for (let i = 0; i < Math.max(1, baseLevels); i++) {
+        hero.increaseLevel();
+      }
+
+      if (fractional > 0 && Math.random() < fractional) {
+        hero.increaseLevel();
+      }
+    });
+  };
+
+  private grantQuestResources = (quest: IQuest) => {
+    if (!quest.resourceRewards) return;
+
+    const entries = Object.entries(quest.resourceRewards).filter(([, amount]) => amount > 0);
+    if (entries.length === 0) return;
+
+    entries.forEach(([resourceId, amount]) => {
+      const modifiedAmount = Math.round(amount * this.gameStateStore.resourceGainMultiplier);
+
+      if (modifiedAmount > 0) {
+        this.financeStore.addResource(resourceId, modifiedAmount);
+      }
+    });
+  };
+
+  rerollNewQuests = (count = 1) => {
+    if (!this.boardUnlocked) return false;
+    const availableNewQuests = this.newQuests;
+    if (availableNewQuests.length === 0) return false;
+
+    const rerollCount = Math.min(count, availableNewQuests.length);
+    const baseCost = 25 * rerollCount;
+    const discount = this.upgradeStore.getNumericEffectMax('reroll_discount');
+    const finalCost = Math.max(0, Math.round(baseCost * (1 - discount)));
+
+    if (!this.financeStore.canAffordGold(finalCost)) return false;
+    this.financeStore.spendGold(finalCost);
+
+    for (let i = 0; i < rerollCount; i++) {
+      const questToReplace = availableNewQuests[i];
+      this.quests = this.quests.filter(q => q.id !== questToReplace.id);
+      this.quests.push(this.generateRandomQuest());
+    }
+
+    return true;
+  };
+
   startQuest = (questId: string, heroIds: string[]) => {
     console.log(questId, heroIds, this.quests.map(q => q.id));
     const quest = this.quests.find(q => q.id === questId);
     if (!quest) throw new Error('Quest not found');
+
+    if (quest.requiredResources && Object.keys(quest.requiredResources).length > 0) {
+      const canAfford = this.financeStore.canAffordResources(quest.requiredResources);
+
+      if (!canAfford) {
+        throw new Error('Недостаточно ресурсов для начала задания');
+      }
+
+      this.financeStore.spendResources(quest.requiredResources);
+    }
+
+    if (!this.boardUnlocked) {
+      throw new Error('Доска объявлений не построена. Постройте её, чтобы брать задания.');
+    }
+
+    const currentInProgress = this.quests.filter(q => q.status === QuestStatus.InProgress).length;
+
+    if (quest.status === QuestStatus.NotStarted && currentInProgress >= this.maxParallelMissions) {
+      throw new Error('Все отряды заняты. Расширьте инфраструктуру гильдии.');
+    }
 
     heroIds.forEach((heroId) => {
       const hero = this.heroesStore.heroes.find(h => h.id === heroId);
@@ -277,7 +582,8 @@ export class QuestsStore {
     });
 
     quest.status = QuestStatus.InProgress;
-    quest.executionDeadline = quest.executionTime;
+    const effectiveDuration = Math.max(1, Math.ceil(quest.executionTime * this.travelTimeMultiplier));
+    quest.executionDeadline = this.timeStore.absoluteDay + effectiveDuration;
   };
 
   generateRandomQuest = (): IQuest => {
@@ -324,7 +630,7 @@ export class QuestsStore {
     const idx = Math.floor(Math.random() * titles.length);
     const reward = randomInRange(50, 150);
     const deadlineAccept = this.timeStore.absoluteDay + randomInRange(3, 5);
-    const executionTime = this.timeStore.absoluteDay + randomInRange(3, 5);
+    const executionTime = randomInRange(3, 5);
 
     // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
     const multiplier = 1 + this.difficultyStore.difficultyLevel * 0.2;
@@ -370,7 +676,11 @@ export class QuestsStore {
     // }
 
     // 🎲 Генерация штрафов
-    const shouldHavePenalty = Math.random() < 0.7; // 70% шанс на штраф
+    const penaltyBaseChance = 0.7;
+    const penaltyChanceModifier = this.upgradeStore.getNumericEffectProduct('rare_contract_chance_mult');
+    const shouldHavePenalty = Math.random() < penaltyBaseChance / Math.max(1, penaltyChanceModifier);
+
+    const isIllegal = Math.random() < 0.35;
 
     let resourcePenalty;
 
@@ -407,7 +717,12 @@ export class QuestsStore {
       requiredStrength,
       requiredAgility,
       requiredIntelligence,
+      modifiers: this.getRandomModifiers(),
+      resourceRewards: this.getRandomResourceRewards(),
+      requiredResources: {},
       status: QuestStatus.NotStarted,
+      isStory: false,
+      isIllegal,
       resourcePenalty,
     };
   };

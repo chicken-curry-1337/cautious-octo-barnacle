@@ -94,3 +94,56 @@
   color: #444;
   user-select: none;
 }
+
+.traitsSection {
+  margin-top: 6px;
+  flex-basis: 100%;
+}
+
+.traitTags {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.traitTagWrapper {
+  position: relative;
+}
+
+.traitTag {
+  border: 1px solid #f8d5a7;
+  background: #ffe8c2;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: #8d5015;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.traitTag:hover {
+  background: #ffd9a1;
+}
+
+.traitTagActive {
+  background: #ff9800;
+  color: #fff;
+  border-color: #ff9800;
+}
+
+.traitDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 200px;
+  max-width: 260px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  font-size: 0.8rem;
+  color: #4a3a28;
+  line-height: 1.4;
+  z-index: 5;
+}

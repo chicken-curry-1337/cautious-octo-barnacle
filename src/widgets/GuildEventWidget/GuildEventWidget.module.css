@@ -1,0 +1,109 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.card {
+  width: 520px;
+  max-width: 90vw;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1b1b2f;
+}
+
+.header p {
+  margin: 8px 0 0;
+  color: #42445a;
+  line-height: 1.4;
+}
+
+.error {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #ffe0e0;
+  color: #b71c1c;
+  font-weight: 600;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-button {
+  border: none;
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  background: linear-gradient(135deg, #eef2ff, #e3f2fd);
+  color: #1a237e;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-button:hover:not(.option-button-disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(26, 35, 126, 0.2);
+}
+
+.option-button-disabled {
+  background: #f4f4f4;
+  color: #8c8c8c;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.option-label {
+  font-weight: 700;
+}
+
+.option-description {
+  margin: 0;
+  color: #4a4a6a;
+  font-size: 0.9rem;
+}
+
+.cost-section,
+.reward-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #2f2f44;
+}
+
+.resource-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.resource-tag {
+  background: rgba(63, 81, 181, 0.1);
+  border-radius: 999px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
