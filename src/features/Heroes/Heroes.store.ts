@@ -8,7 +8,7 @@ import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import type { HeroType } from '../../shared/types/hero';
 import { randomInRange } from '../../shared/utils/randomInRange';
 import { RecruitsStore } from '../Recruits/store/Recruits.store';
-import { traits as traitPool } from '../../assets/traits/traits';
+import { pickRandomTraitsForHero } from '../../assets/traits/traits';
 
 @singleton()
 export class HeroesStore {
@@ -149,22 +149,10 @@ export class HeroesStore {
   }
 
   private getRandomTraits = (): string[] => {
-    if (traitPool.length === 0) return [];
+    const maxTraits = 2;
+    const desired = randomInRange(0, maxTraits);
+    if (desired === 0) return [];
 
-    const maxTraits = Math.min(2, traitPool.length);
-    const count = randomInRange(0, maxTraits);
-    if (count === 0) return [];
-
-    const pool = [...traitPool];
-    const selected: string[] = [];
-
-    for (let i = 0; i < count; i++) {
-      const index = Math.floor(Math.random() * pool.length);
-      const [trait] = pool.splice(index, 1);
-      if (!trait) continue;
-      selected.push(trait.id);
-    }
-
-    return selected;
+    return pickRandomTraitsForHero(desired);
   };
 }

@@ -147,3 +147,28 @@
   line-height: 1.4;
   z-index: 5;
 }
+
+.traitTagRare {
+  border-color: #7c3aed;
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.traitTagUnique {
+  border-color: #dc2626;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.traitBadge {
+  margin-left: 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.traitMeta {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #4b5563;
+}

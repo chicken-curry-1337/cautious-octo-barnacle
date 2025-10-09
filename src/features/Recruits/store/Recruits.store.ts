@@ -1,7 +1,7 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import { traits as traitPool } from '../../../assets/traits/traits';
+import { pickRandomTraitsForHero } from '../../../assets/traits/traits';
 import { RecruitStore } from '../../../entities/Recruit/Recruit.store';
 import { TimeStore } from '../../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../../entities/Upgrade/Upgrade.store';
@@ -183,22 +183,9 @@ export class RecruitsStore {
   };
 
   private getRandomTraits = (): string[] => {
-    if (traitPool.length === 0) return [];
+    const desired = randomInRange(0, 2);
+    if (desired === 0) return [];
 
-    const maxTraits = Math.min(2, traitPool.length);
-    const count = randomInRange(0, maxTraits);
-    if (count === 0) return [];
-
-    const pool = [...traitPool];
-    const selected: string[] = [];
-
-    for (let i = 0; i < count; i++) {
-      const index = Math.floor(Math.random() * pool.length);
-      const [trait] = pool.splice(index, 1);
-      if (!trait) continue;
-      selected.push(trait.id);
-    }
-
-    return selected;
+    return pickRandomTraitsForHero(desired);
   };
 }

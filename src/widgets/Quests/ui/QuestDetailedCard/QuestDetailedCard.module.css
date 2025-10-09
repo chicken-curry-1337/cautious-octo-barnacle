@@ -275,3 +275,45 @@ p {
   font-size: 0.85rem;
   color: #b91c1c;
 }
+
+.synergySection {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  font-size: 0.9rem;
+  color: #1e3a8a;
+}
+
+.synergySummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.synergyNoNotes {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.synergyNotes {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #1e293b;
+  font-size: 0.85rem;
+}
+
+.synergyNotes li {
+  margin-bottom: 4px;
+}
+
+.synergyNoteBonus {
+  color: #166534;
+}
+
+.synergyNotePenalty {
+  color: #b91c1c;
+}

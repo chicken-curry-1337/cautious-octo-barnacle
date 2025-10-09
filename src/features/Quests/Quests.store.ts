@@ -4,6 +4,7 @@ import { inject, singleton } from 'tsyringe';
 import { modifiers as questModifiers } from '../../assets/modifiers/modifiers';
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
 import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
+import { evaluatePartySynergy } from '../../assets/traits/traitSynergies';
 import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
@@ -12,6 +13,7 @@ import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
+import type { HeroStore } from '../../entities/Hero/Hero.store';
 // import { questChainsConfig } from '../QuestChains/QuestChains.store';
 
 // todo: refactor accord to FSD
@@ -118,6 +120,24 @@ export class QuestsStore {
     return Math.max(1, this.upgradeStore.getNumericEffectProduct('xp_gain_mult'));
   }
 
+  private computePartySynergy = (heroes: HeroStore[]): ReturnType<typeof evaluatePartySynergy> => {
+    if (!heroes.length) {
+      return { successBonus: 0, injuryMultiplier: 1, notes: [] };
+    }
+
+    const traitSets = heroes.map(hero => hero.traits ?? []);
+    return evaluatePartySynergy(traitSets);
+  };
+
+  getPartySynergySummary = (heroIds: string[]) => {
+    if (!heroIds.length) {
+      return { successBonus: 0, injuryMultiplier: 1, notes: [] };
+    }
+
+    const heroes = this.heroesStore.heroes.filter(hero => heroIds.includes(hero.id));
+    return this.computePartySynergy(heroes);
+  };
+
   createQuest = (
     title: string,
     description: string,
@@ -195,6 +215,7 @@ export class QuestsStore {
         const assignedHeroes = this.heroesStore.heroes.filter(h =>
           quest.assignedHeroIds.includes(h.id),
         );
+        const synergy = this.computePartySynergy(assignedHeroes);
 
         if (success) {
           quest.status = QuestStatus.CompletedSuccess;
@@ -226,7 +247,8 @@ export class QuestsStore {
             assignedHeroes.forEach((hero) => {
               const roll = Math.random() * 100;
               const injuryChanceMultiplier = this.gameStateStore.injuryChanceMultiplier
-                * this.injuryChanceMultiplierFromUpgrades;
+                * this.injuryChanceMultiplierFromUpgrades
+                * synergy.injuryMultiplier;
               const injuryChance = Math.min(
                 100,
                 quest.resourcePenalty!.injuryChance! * injuryChanceMultiplier,
@@ -355,6 +377,8 @@ export class QuestsStore {
     );
     if (assignedHeroes.length === 0) return 0;
 
+    const synergy = this.computePartySynergy(assignedHeroes);
+
     const totalStrength = assignedHeroes.reduce(
       (sum, h) => sum + h.strength,
       0,
@@ -383,7 +407,8 @@ export class QuestsStore {
     const baseChance = Math.round(averageRatio * 100);
     const bonus = this.gameStateStore.questSuccessChanceBonus
       + this.upgradeStore.getNumericEffectSum('scout_bonus') * 5
-      + this.upgradeStore.getNumericEffectSum('formation_bonus') * 3;
+      + this.upgradeStore.getNumericEffectSum('formation_bonus') * 3
+      + synergy.successBonus;
     const modified = Math.max(0, Math.min(100, baseChance + bonus));
 
     return modified;
@@ -493,7 +518,7 @@ export class QuestsStore {
     return rewards;
   };
 
-  private grantHeroExperience = (heroes: typeof this.heroesStore.heroes) => {
+  private grantHeroExperience = (heroes: HeroStore[]) => {
     const xpMultiplier = this.xpGainMultiplier;
     const baseLevels = Math.floor(xpMultiplier);
     const fractional = xpMultiplier - baseLevels;

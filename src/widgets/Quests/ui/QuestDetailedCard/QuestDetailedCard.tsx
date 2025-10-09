@@ -151,6 +151,10 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
         .filter((resource): resource is GuildResource & { amount: number } => Boolean(resource));
     }, [quest.requiredResources, resourceMap]);
 
+    const heroIdsForSynergy = quest.status === QuestStatus.NotStarted ? selectedHeroesIds : quest.assignedHeroIds;
+    const synergyKey = [...heroIdsForSynergy].sort().join('|');
+    const partySynergy = useMemo(() => questStore.getPartySynergySummary(heroIdsForSynergy), [questStore, synergyKey]);
+
     const toggleModifier = (id: string) => {
       setOpenedModifierId(prev => (prev === id ? null : id));
     };
@@ -329,6 +333,29 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                     {successChance}
                     %
                   </span>
+                </div>
+              )}
+
+              {heroIdsForSynergy.length > 0 && (
+                <div className={styles.synergySection}>
+                  <strong>Химия отряда:</strong>
+                  <div className={styles.synergySummary}>
+                    <span>Бонус к успеху: {partySynergy.successBonus >= 0 ? '+' : ''}{partySynergy.successBonus}%</span>
+                    {partySynergy.injuryMultiplier !== 1 && (
+                      <span>Модификатор травм: ×{partySynergy.injuryMultiplier.toFixed(2)}</span>
+                    )}
+                  </div>
+                  {partySynergy.notes.length === 0 ? (
+                    <p className={styles.synergyNoNotes}>Особых взаимодействий не обнаружено.</p>
+                  ) : (
+                    <ul className={styles.synergyNotes}>
+                      {partySynergy.notes.map(note => (
+                        <li key={note.id} className={note.type === 'bonus' ? styles.synergyNoteBonus : styles.synergyNotePenalty}>
+                          {note.text}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
 

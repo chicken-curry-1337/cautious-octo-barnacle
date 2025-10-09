@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
+import clsx from 'clsx';
 
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { traits as traitDefinitions } from '../../assets/traits/traits';
+import { traitMap } from '../../assets/traits/traits';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestsStore } from '../../features/Quests/Quests.store';
 import type { HeroType } from '../../shared/types/hero';
@@ -13,13 +14,6 @@ import styles from './HeroList.module.css';
 const HeroList: React.FC = observer(() => {
   const heroesStore = useMemo(() => container.resolve(HeroesStore), []);
   const questStore = useMemo(() => container.resolve(QuestsStore), []);
-  const traitMap = useMemo(() => {
-    return traitDefinitions.reduce<Record<string, (typeof traitDefinitions)[number]>>((acc, trait) => {
-      acc[trait.id] = trait;
-
-      return acc;
-    }, {});
-  }, []);
   const [openedTrait, setOpenedTrait] = useState<{ heroId: string; traitId: string } | null>(null);
 
   const getQuestTitle = (questId: string | null) => {
@@ -148,19 +142,36 @@ const HeroList: React.FC = observer(() => {
                                       : { heroId: hero.id, traitId: trait.id },
                                   );
                                 }}
-                                className={`${styles.traitTag} ${
-                                  openedTrait && openedTrait.heroId === hero.id && openedTrait.traitId === trait.id
-                                    ? styles.traitTagActive
-                                    : ''
-                                }`}
+                                className={clsx(styles.traitTag, {
+                                  [styles.traitTagActive]: openedTrait && openedTrait.heroId === hero.id && openedTrait.traitId === trait.id,
+                                  [styles.traitTagRare]: trait.rarity === 'rare',
+                                  [styles.traitTagUnique]: trait.rarity === 'unique',
+                                })}
                               >
-                                {trait.name}
+                                <span>{trait.name}</span>
+                                {trait.rarity !== 'common' && (
+                                  <span className={styles.traitBadge}>
+                                    {trait.rarity === 'unique' ? 'уникальная' : 'редкая'}
+                                  </span>
+                                )}
                               </button>
                               {openedTrait
                                 && openedTrait.heroId === hero.id
                                 && openedTrait.traitId === trait.id && (
                                 <div className={styles.traitDropdown}>
                                   {trait.description}
+                                  <div className={styles.traitMeta}>
+                                    Редкость:
+                                    {' '}
+                                    <strong>{trait.rarity === 'unique' ? 'Уникальная' : trait.rarity === 'rare' ? 'Редкая' : 'Обычная'}</strong>
+                                  </div>
+                                  {trait.synergyTags.length > 0 && (
+                                    <div className={styles.traitMeta}>
+                                      Теги:
+                                      {' '}
+                                      <strong>{trait.synergyTags.join(', ')}</strong>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
