@@ -31,6 +31,10 @@ export const UpgradePanel = observer(({ isOpen, onClose }: UpgradePanelProps) =>
   }, []);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'general' | 'guild'>('general');
+
+  const isGuildExpansion = (u: any) => Boolean((u?.effects ?? {}).guild_size_level) || (u?.tags ?? []).includes('infrastructure');
+  const upgradesToShow = upgradeStore.upgrades.filter(u => activeTab === 'guild' ? isGuildExpansion(u) : !isGuildExpansion(u));
 
   if (!isOpen) return null;
 
@@ -71,8 +75,24 @@ export const UpgradePanel = observer(({ isOpen, onClose }: UpgradePanelProps) =>
         </div>
         {error && <div className={styles.error}>{error}</div>}
         {notice && <div className={styles.notice}>{notice}</div>}
+        <div className={styles.upgradeTabs}>
+          <button
+            type="button"
+            className={clsx(styles.upgradeTab, { [styles.upgradeTabActive]: activeTab === 'general' })}
+            onClick={() => setActiveTab('general')}
+          >
+            Общее
+          </button>
+          <button
+            type="button"
+            className={clsx(styles.upgradeTab, { [styles.upgradeTabActive]: activeTab === 'guild' })}
+            onClick={() => setActiveTab('guild')}
+          >
+            Расширение гильдии
+          </button>
+        </div>
         <div className={styles.upgradePanelContent}>
-          {upgradeStore.upgrades.map((upgrade) => {
+          {upgradesToShow.map((upgrade) => {
             const isUnlocked = upgradeStore.isAvailable(upgrade.id);
             const canAfford = upgradeStore.canPurchase(upgrade.id);
             const resourceCostEntries = upgrade.resourceCost ? Object.entries(upgrade.resourceCost) : [];

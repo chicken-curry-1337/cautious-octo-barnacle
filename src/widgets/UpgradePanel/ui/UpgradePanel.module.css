@@ -37,6 +37,28 @@
     }
 }
 
+.upgrade-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.upgrade-tab {
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #374151;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.upgrade-tab-active {
+    background: #e0e7ff;
+    color: #1e3a8a;
+    border-color: #a5b4fc;
+}
+
 .upgrade-item {
     opacity: 1;
     display: flex;
