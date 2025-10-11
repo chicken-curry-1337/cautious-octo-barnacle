@@ -16,6 +16,8 @@ type TopPanelProps = {
   onToggleFactions?: () => void;
   showInventory?: boolean;
   showFactions?: boolean;
+  onToggleFinance?: () => void;
+  showFinanceReport?: boolean;
 };
 
 export const TopPanel = observer(({
@@ -25,6 +27,8 @@ export const TopPanel = observer(({
   showInventory = false,
   onToggleFactions,
   showFactions = false,
+  onToggleFinance,
+  showFinanceReport = false,
 }: TopPanelProps) => {
   const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
   const saveStore = useMemo(() => container.resolve(SaveStore), []);
@@ -81,6 +85,15 @@ export const TopPanel = observer(({
           onClick={onToggleFactions}
         >
           {showFactions ? 'Скрыть фракции' : 'Фракции'}
+        </button>
+      )}
+      {onToggleFinance && (
+        <button
+          type="button"
+          className={styles.financeButton}
+          onClick={onToggleFinance}
+        >
+          {showFinanceReport ? 'Скрыть финансы' : 'Финансы'}
         </button>
       )}
       <GuildFinanceDisplay showDetails={false} />

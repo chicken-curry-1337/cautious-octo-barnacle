@@ -3,6 +3,7 @@ import { inject, singleton } from 'tsyringe';
 
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
 import { TimeStore } from '../TimeStore/TimeStore';
+import { FinanceAnalyticsStore, type FinanceCategory } from '../../features/FinanceAnalytics/FinanceAnalytics.store';
 
 @singleton()
 export class GuildFinanceStore {
@@ -13,7 +14,10 @@ export class GuildFinanceStore {
   emergencyLoanTaken: boolean = false;
   private syncing: boolean = false;
 
-  constructor(@inject(TimeStore) public timeStore: TimeStore) {
+  constructor(
+    @inject(TimeStore) public timeStore: TimeStore,
+    @inject(FinanceAnalyticsStore) private analyticsStore: FinanceAnalyticsStore,
+  ) {
     makeAutoObservable(this);
 
     this.initializeResources();
@@ -33,13 +37,21 @@ export class GuildFinanceStore {
     );
   }
 
-  addGold(amount: number) {
-    this.gold += amount;
+  addGold(amount: number, category: FinanceCategory = 'other') {
+    const value = Math.max(0, Math.round(amount));
+    if (value <= 0) return;
+
+    this.gold += value;
+    this.analyticsStore.recordIncome(category, value);
   }
 
-  spendGold(amount: number) {
-    if (this.gold >= amount) {
-      this.gold -= amount;
+  spendGold(amount: number, category: FinanceCategory = 'other') {
+    const value = Math.max(0, Math.round(amount));
+    if (value <= 0) return false;
+
+    if (this.gold >= value) {
+      this.gold -= value;
+      this.analyticsStore.recordExpense(category, value);
 
       return true;
     }
@@ -99,7 +111,7 @@ export class GuildFinanceStore {
     this.loanBalance = amount;
     this.loanInterestPerDay = interestPerDay;
     this.emergencyLoanTaken = true;
-    this.addGold(amount);
+    this.addGold(amount, 'loan_in');
 
     return true;
   }
@@ -109,7 +121,7 @@ export class GuildFinanceStore {
     const payment = Math.min(amount, this.gold, this.loanBalance);
     if (payment <= 0) return false;
 
-    this.gold -= payment;
+    if (!this.spendGold(payment, 'loan_out')) return false;
     this.loanBalance -= payment;
 
     if (this.loanBalance <= 0) {

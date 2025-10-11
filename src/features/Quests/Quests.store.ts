@@ -278,7 +278,7 @@ export class QuestsStore {
           const rewardWithBonus = Math.round(quest.reward * this.gameStateStore.questRewardMultiplier);
           const rewardMultiplier = quest.isIllegal ? this.illegalRewardMultiplier : this.legalRewardMultiplier;
           const rewardWithUpgrades = Math.round(rewardWithBonus * rewardMultiplier);
-          this.financeStore.addGold(rewardWithUpgrades);
+          this.financeStore.addGold(rewardWithUpgrades, 'quest_reward');
           this.grantQuestResources(quest);
           this.applyFactionOutcome(quest, 'success');
           this.advanceQuestChainProgress(quest);
@@ -291,7 +291,7 @@ export class QuestsStore {
           quest.completed = true;
 
           if (quest.resourcePenalty?.goldLoss) {
-            this.financeStore.spendGold(quest.resourcePenalty.goldLoss);
+            this.financeStore.spendGold(quest.resourcePenalty.goldLoss, 'quest_penalty');
           }
 
           if (quest.resourcePenalty?.injuryChance) {
@@ -326,7 +326,7 @@ export class QuestsStore {
             : 0;
 
           if (refund > 0) {
-            this.financeStore.addGold(refund);
+            this.financeStore.addGold(refund, 'quest_refund');
           }
 
           const cleanupChance = this.evidenceCleanupChance;
@@ -387,7 +387,7 @@ export class QuestsStore {
       const rewardWithBonus = Math.round(quest.reward * this.gameStateStore.questRewardMultiplier);
       const rewardMultiplier = quest.isIllegal ? this.illegalRewardMultiplier : this.legalRewardMultiplier;
       const rewardWithUpgrades = Math.round(rewardWithBonus * rewardMultiplier);
-      this.financeStore.addGold(rewardWithUpgrades);
+      this.financeStore.addGold(rewardWithUpgrades, 'quest_reward');
 
       this.grantQuestResources(quest);
       this.applyFactionOutcome(quest, 'success');

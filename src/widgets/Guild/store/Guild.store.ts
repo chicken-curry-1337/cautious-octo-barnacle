@@ -33,7 +33,7 @@ export class GuildStore {
       );
       const reward = quest.reward;
 
-      this.financeStore.addGold(reward);
+      this.financeStore.addGold(reward, 'quest_reward');
 
       assignedHeroes.forEach(h => h.increaseLevel());
     }
@@ -50,7 +50,7 @@ export class GuildStore {
     }
 
     // Снимаем золото
-    this.financeStore.spendGold(candidate.recruitCost);
+    this.financeStore.spendGold(candidate.recruitCost, 'recruitment');
 
     this.heroesStore.heroesMap[candidate.id] = new HeroStore({
       ...candidate,

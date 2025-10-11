@@ -102,7 +102,7 @@ export class HeroesStore {
     }
 
     // Снимаем золото
-    this.financeStore.spendGold(candidate.recruitCost);
+    this.financeStore.spendGold(candidate.recruitCost, 'recruitment');
 
     // создаем героя
     this.heroesMap[candidate.id] = (new HeroStore({
@@ -124,6 +124,7 @@ export class HeroesStore {
     if (hero.assignedQuestId !== null) return; // нельзя уволить героя, который в квесте
     this.financeStore.addGold(
       +Number(hero.recruitCost * hero.level * 0.5).toFixed(2),
+      'recruitment',
     );
     // Удаляем героя из списка
     delete this.heroesMap[id];
@@ -191,7 +192,7 @@ export class HeroesStore {
     const amountToPay = Math.min(totalSalary, availableGold);
 
     if (amountToPay > 0) {
-      this.financeStore.spendGold(amountToPay);
+      this.financeStore.spendGold(amountToPay, 'salary');
     }
 
     const unpaid = totalSalary - amountToPay;

@@ -67,14 +67,14 @@ export class UpgradeStore {
     const upgrade = this.upgradeMap[upgradeId];
 
     if (upgrade && !upgrade.done && this.canPurchase(upgradeId)) {
-      if (!this.financeStore.spendGold(upgrade.cost)) return false;
+      if (!this.financeStore.spendGold(upgrade.cost, 'upgrade')) return false;
 
       if (upgrade.resourceCost) {
         const spent = this.financeStore.spendResources(upgrade.resourceCost);
 
         if (!spent) {
           // если не удалось списать ресурсы — возвращаем золото
-          this.financeStore.addGold(upgrade.cost);
+          this.financeStore.addGold(upgrade.cost, 'upgrade');
 
           return false;
         }
