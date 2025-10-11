@@ -275,16 +275,10 @@ export class QuestsStore {
         if (success) {
           quest.status = QuestStatus.CompletedSuccess;
           quest.completed = true;
-          const heroComission = assignedHeroes.reduce(
-            (sum, h) => sum + (h.minStake ?? 0),
-            0,
-          );
-          console.log(`hero comission: ${heroComission}`);
           const rewardWithBonus = Math.round(quest.reward * this.gameStateStore.questRewardMultiplier);
           const rewardMultiplier = quest.isIllegal ? this.illegalRewardMultiplier : this.legalRewardMultiplier;
           const rewardWithUpgrades = Math.round(rewardWithBonus * rewardMultiplier);
-          this.financeStore.addGold(rewardWithUpgrades - heroComission);
-          console.log(`hero comission: ${heroComission}`);
+          this.financeStore.addGold(rewardWithUpgrades);
           this.grantQuestResources(quest);
           this.applyFactionOutcome(quest, 'success');
           this.advanceQuestChainProgress(quest);
@@ -390,28 +384,10 @@ export class QuestsStore {
       const assignedHeroes = this.heroesStore.heroes.filter(h =>
         quest.assignedHeroIds.includes(h.id),
       );
-      const totalMinStake = assignedHeroes.reduce(
-        (sum, hero) => sum + hero.minStake,
-        0,
-      );
       const rewardWithBonus = Math.round(quest.reward * this.gameStateStore.questRewardMultiplier);
       const rewardMultiplier = quest.isIllegal ? this.illegalRewardMultiplier : this.legalRewardMultiplier;
       const rewardWithUpgrades = Math.round(rewardWithBonus * rewardMultiplier);
-
-      if (rewardWithUpgrades >= totalMinStake) {
-        const guildProfit = rewardWithUpgrades - totalMinStake;
-        this.financeStore.addGold(guildProfit);
-      } else {
-        const shortage = totalMinStake - rewardWithUpgrades;
-
-        if (this.financeStore.canAffordGold(shortage)) {
-          this.financeStore.spendGold(shortage);
-        } else {
-          const affordableShortage = Math.min(shortage, this.financeStore.gold);
-          this.financeStore.spendGold(affordableShortage);
-          console.warn('Гильдия не может полностью покрыть ставки героев!');
-        }
-      }
+      this.financeStore.addGold(rewardWithUpgrades);
 
       this.grantQuestResources(quest);
       this.applyFactionOutcome(quest, 'success');

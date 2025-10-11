@@ -11,7 +11,7 @@ export const mainHeroData: IHero = {
   strength: 12,
   agility: 8,
   intelligence: 6,
-  minStake: 0,
+  monthlySalary: 0,
   injured: false,
   recruitCost: 0,
   traits: ['inspiring_leader'],

@@ -80,10 +80,10 @@ export const RecruitList = observer(() => {
               {hero.intelligence}
             </div>
             <p className={styles.minStake}>
-              Минимальная ставка:
+              Зарплата (в мес.):
               {' '}
               <strong>
-                {hero.minStake}
+                {hero.monthlySalary}
                 {' '}
                 золота
               </strong>

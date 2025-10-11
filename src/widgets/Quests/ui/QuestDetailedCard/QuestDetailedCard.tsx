@@ -166,24 +166,11 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
       return '#43a047'; // зелёный
     };
 
-    const availableHeroesCommission = useMemo(() => {
-      if (quest.status === QuestStatus.NotStarted) return availableForQuestHeroes
-        .filter(h => selectedHeroesIds.includes(h.id))
-        .reduce((sum, h) => sum + (h.minStake ?? 0), 0);
-
-      return assignedHeroes.reduce((sum, h) => sum + (h.minStake ?? 0), 0);
-    }, [
-      assignedHeroes,
-      availableForQuestHeroes,
-      quest.status,
-      selectedHeroesIds,
-    ]);
-
     const rewardMultiplier = quest.isIllegal
       ? upgradeStore.getNumericEffectProduct('illegal_reward_mult')
       : upgradeStore.getNumericEffectProduct('legal_reward_mult');
     const expectedReward = Math.round(quest.reward * (rewardMultiplier || 1));
-    const guildProfit = expectedReward - availableHeroesCommission;
+    const guildProfit = expectedReward;
 
     const modifiers = useMemo(() => {
       if (!quest.modifiers || quest.modifiers.length === 0) return [];
@@ -382,16 +369,6 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                 <strong>
                   {quest.isIllegal ? 'Нелегальный' : 'Официальный'}
                 </strong>
-              </p>
-
-              <p>
-                Комиссия героев:
-                {' '}
-                <span>
-                  {availableHeroesCommission}
-                  {' '}
-                  золота
-                </span>
               </p>
 
               {visibleRequiredResources.length > 0 && (
@@ -669,11 +646,11 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                           {hero.intelligence}
                           <span className={styles.minStake}>
                             {' '}
-                            — мин. ставка:
+                            — зарплата:
                             {' '}
-                            {hero.minStake}
+                            {hero.monthlySalary}
                             {' '}
-                            золота
+                            золота/мес.
                           </span>
                           {hero.id === MAIN_HERO_ID && (
                             <span className={styles.mainHeroTag}>Главный герой</span>

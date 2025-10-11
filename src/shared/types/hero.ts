@@ -12,7 +12,7 @@ export interface IChar {
   intelligence: number;
   type: HeroType;
   description: string;
-  minStake: number;
+  monthlySalary: number;
   injured: boolean; // Герой может быть травмирован
   injuredTimeout?: number; // Время, в течение которого герой не может участвовать в квестах из-за травмы
   recruitCost: number;

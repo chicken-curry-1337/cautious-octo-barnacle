@@ -12,7 +12,7 @@ export class Character implements IChar {
   intelligence: number;
   type: HeroType;
   description: string;
-  minStake: number;
+  monthlySalary: number;
   injured: boolean; // Герой может быть травмирован
   injuredTimeout?: number; // Время, в течение которого герой не может участвовать в квестах из-за травмы
   recruitCost: number;
@@ -28,7 +28,7 @@ export class Character implements IChar {
     intelligence,
     type,
     description,
-    minStake,
+    monthlySalary,
     injured,
     injuredTimeout,
     recruitCost = 0,
@@ -43,7 +43,7 @@ export class Character implements IChar {
     this.intelligence = intelligence;
     this.type = type;
     this.description = description;
-    this.minStake = minStake;
+    this.monthlySalary = monthlySalary;
     this.injured = injured;
     this.injuredTimeout = injuredTimeout;
     this.recruitCost = recruitCost;

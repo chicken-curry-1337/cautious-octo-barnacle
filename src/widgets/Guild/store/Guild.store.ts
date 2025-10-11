@@ -31,26 +31,9 @@ export class GuildStore {
       const assignedHeroes = this.heroesStore.heroes.filter(h =>
         quest.assignedHeroIds.includes(h.id),
       );
-      const totalMinStake = assignedHeroes.reduce(
-        (sum, hero) => sum + hero.minStake,
-        0,
-      );
       const reward = quest.reward;
 
-      if (reward >= totalMinStake) {
-        const guildProfit = reward - totalMinStake;
-        this.financeStore.addGold(guildProfit);
-      } else {
-        const shortage = totalMinStake - reward;
-
-        if (this.financeStore.canAffordGold(shortage)) {
-          this.financeStore.spendGold(shortage);
-        } else {
-          const affordableShortage = Math.min(shortage, this.financeStore.gold);
-          this.financeStore.spendGold(affordableShortage);
-          console.warn('Гильдия не может полностью покрыть ставки героев!');
-        }
-      }
+      this.financeStore.addGold(reward);
 
       assignedHeroes.forEach(h => h.increaseLevel());
     }
@@ -76,7 +59,7 @@ export class GuildStore {
     delete this.recruitsStore.recruitMap[id];
   };
 
-  calculateMinStake = (level: number, type: HeroType): number => {
+  calculateMonthlySalary = (level: number, type: HeroType): number => {
     const base = 10;
     const typeMultiplier = {
       warrior: 1.2,

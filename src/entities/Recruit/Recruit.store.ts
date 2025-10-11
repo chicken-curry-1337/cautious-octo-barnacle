@@ -22,7 +22,7 @@ export class RecruitStore extends Character {
       intelligence: observable,
       type: observable,
       description: observable,
-      minStake: observable,
+      monthlySalary: observable,
       injured: observable,
       injuredTimeout: observable,
       recruitCost: observable,

@@ -90,7 +90,7 @@ export class RecruitsStore {
         const type = this.generateRandomHeroType();
         const stats = this.generateStatsByType(type);
         const recruitCost = this.calculateRecruitCost(stats);
-        const minStake = this.calculateMinStake(1, type); // у новичка уровень 1
+        const monthlySalary = this.calculateMonthlySalary(1, type); // у новичка уровень 1
         const description
           = this.descriptionsByType[type][
             Math.floor(Math.random() * this.descriptionsByType[type].length)
@@ -106,7 +106,7 @@ export class RecruitsStore {
             daysRemaining: 5,
             recruitCost,
             description,
-            minStake,
+            monthlySalary,
             injured: false,
             traits: this.getRandomTraits(),
             ...stats,
@@ -171,7 +171,7 @@ export class RecruitsStore {
     return Math.round(cost * this.recruitCostMultiplier);
   };
 
-  calculateMinStake = (level: number, type: HeroType): number => {
+  calculateMonthlySalary = (level: number, type: HeroType): number => {
     const base = 10;
     const typeMultiplier = {
       warrior: 1.2,
@@ -200,8 +200,13 @@ export class RecruitsStore {
     const map: Record<string, RecruitStore> = {};
 
     candidates.forEach((candidate) => {
+      const monthlySalary = candidate.monthlySalary
+        ?? (candidate as unknown as { minStake?: number }).minStake
+        ?? this.calculateMonthlySalary(candidate.level, candidate.type);
+
       map[candidate.id] = new RecruitStore({
         ...candidate,
+        monthlySalary,
         traits: candidate.traits ?? [],
       });
     });

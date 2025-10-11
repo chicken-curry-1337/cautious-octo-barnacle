@@ -22,7 +22,7 @@ export class HeroStore extends Character implements IHero {
       intelligence: observable,
       type: observable,
       description: observable,
-      minStake: observable,
+      monthlySalary: observable,
       injured: observable,
       injuredTimeout: observable,
       recruitCost: observable,
@@ -56,11 +56,11 @@ export class HeroStore extends Character implements IHero {
     }
 
     if (!this.isMainHero) {
-      this.minStake = this.calculateMinStake(this.level, this.type);
+      this.monthlySalary = this.calculateMonthlySalary(this.level, this.type);
     }
   };
 
-  calculateMinStake = (level: number, type: HeroType): number => {
+  calculateMonthlySalary = (level: number, type: HeroType): number => {
     const base = 10;
     const typeMultiplier = {
       warrior: 1.2,

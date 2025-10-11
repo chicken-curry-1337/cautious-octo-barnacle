@@ -33,10 +33,23 @@ export class HeroesStore {
         this.onNextDay();
       },
     );
+
+    reaction(
+      () => this.timeStore.monthIndex,
+      () => {
+        if (this.timeStore.absoluteDay === 0) return;
+        this.payMonthlySalaries();
+      },
+      { fireImmediately: false },
+    );
   }
 
   get heroes() {
     return Object.values(this.heroesMap);
+  }
+
+  get totalMonthlySalary() {
+    return this.heroes.reduce((sum, hero) => sum + (hero.monthlySalary ?? 0), 0);
   }
 
   onNextDay = () => {
@@ -56,7 +69,7 @@ export class HeroesStore {
     const id = crypto.randomUUID();
     const stats = this.generateStatsByType(type);
     const startLevel = Math.max(1, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1);
-    const minStake = this.calculateMinStake(startLevel, type);
+    const monthlySalary = this.calculateMonthlySalary(startLevel, type);
 
     if (!this.heroesMap[id]) {
       this.heroesMap[id] = new HeroStore({
@@ -67,7 +80,7 @@ export class HeroesStore {
         description,
         assignedQuestId: null,
         ...stats,
-        minStake,
+        monthlySalary,
         injured: false,
         recruitCost: 0,
         traits: this.getRandomTraits(),
@@ -95,7 +108,7 @@ export class HeroesStore {
     this.heroesMap[candidate.id] = (new HeroStore({
       ...candidate,
       level: Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1),
-      minStake: this.calculateMinStake(Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1), candidate.type),
+      monthlySalary: this.calculateMonthlySalary(Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1), candidate.type),
       isMainHero: false,
     }));
 
@@ -141,7 +154,7 @@ export class HeroesStore {
     }
   };
 
-  calculateMinStake = (level: number, type: HeroType): number => {
+  calculateMonthlySalary = (level: number, type: HeroType): number => {
     const base = 10;
     const typeMultiplier = {
       warrior: 1.2,
@@ -168,13 +181,32 @@ export class HeroesStore {
     return pickRandomTraitsForHero(desired);
   };
 
+  private payMonthlySalaries = () => {
+    if (this.syncing) return;
+
+    const totalSalary = this.totalMonthlySalary;
+    if (totalSalary <= 0) return;
+
+    const availableGold = this.financeStore.gold;
+    const amountToPay = Math.min(totalSalary, availableGold);
+
+    if (amountToPay > 0) {
+      this.financeStore.spendGold(amountToPay);
+    }
+
+    const unpaid = totalSalary - amountToPay;
+    if (unpaid > 0) {
+      console.warn('Гильдия не смогла полностью выплатить зарплату. Недостаёт:', unpaid);
+    }
+  };
+
   private initializeMainHero = () => {
     if (this.heroesMap[this.mainHeroId]) return;
 
     this.heroesMap[this.mainHeroId] = new HeroStore({
       ...mainHeroData,
       traits: mainHeroData.traits ?? [],
-      minStake: 0,
+      monthlySalary: 0,
       recruitCost: 0,
       injured: false,
       assignedQuestId: null,
@@ -189,8 +221,13 @@ export class HeroesStore {
     const nextMap: Record<string, HeroStore> = {};
 
     heroes.forEach((hero) => {
+      const monthlySalary = hero.monthlySalary
+        ?? (hero as unknown as { minStake?: number }).minStake
+        ?? this.calculateMonthlySalary(hero.level, hero.type);
+
       nextMap[hero.id] = new HeroStore({
         ...hero,
+        monthlySalary,
         traits: hero.traits ?? [],
         assignedQuestId: hero.assignedQuestId ?? null,
         isMainHero: hero.isMainHero ?? false,

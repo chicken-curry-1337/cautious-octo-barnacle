@@ -95,10 +95,10 @@ const HeroList: React.FC = observer(() => {
                     {hero.level}
                   </div>
                   <p className={styles.minStake}>
-                    Минимальная ставка:
+                    Зарплата (в мес.):
                     {' '}
                     <strong>
-                      {hero.minStake}
+                      {hero.monthlySalary}
                       {' '}
                       золота
                     </strong>
