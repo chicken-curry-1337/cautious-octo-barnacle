@@ -1,3 +1,10 @@
+import type { FactionId } from '../factions/factions';
+
+export type FactionRequirement = {
+  factionId: FactionId;
+  reputation: number;
+};
+
 export type TUpgrade = {
   id: string;
   name: string;
@@ -9,6 +16,7 @@ export type TUpgrade = {
   effects: Record<string, number | boolean>;
   tags?: string[];
   resourceCost?: Record<string, number>;
+  factionRequirements?: FactionRequirement[];
 };
 
 const PERCENT_KEYS = new Set([
@@ -258,6 +266,23 @@ export const GUILD_UPGRADES: TUpgrade[] = [
     },
   },
   {
+    id: 'up_merchants_exchange',
+    name: 'Торговый двор Лиги',
+    icon: '#',
+    done: false,
+    cost: 340,
+    effects: { legal_reward_mult: 1.2, contract_board_slots: 1 },
+    requires: ['up_board_plus'],
+    dependents: [],
+    tags: ['factions', 'economy'],
+    factionRequirements: [{ factionId: 'merchants', reputation: 28 }],
+    resourceCost: {
+      timber: 150,
+      guild_renown: 20,
+      city_favor_token: 1,
+    },
+  },
+  {
     id: 'up_scouthub',
     name: 'Разведцентр',
     cost: 150,
@@ -383,6 +408,23 @@ export const GUILD_UPGRADES: TUpgrade[] = [
     tags: ['training'],
   },
   {
+    id: 'up_citizen_hall',
+    name: 'Дом общины',
+    icon: '#',
+    done: false,
+    cost: 280,
+    effects: { fatigue_recovery_per_day: 1, queue_missions: 1 },
+    requires: ['up_quarters'],
+    dependents: [],
+    tags: ['factions', 'training'],
+    factionRequirements: [{ factionId: 'citizens', reputation: 30 }],
+    resourceCost: {
+      timber: 160,
+      healing_herbs: 60,
+      guild_renown: 10,
+    },
+  },
+  {
     id: 'up_medic',
     name: 'Лазарет',
     icon: '#',
@@ -449,6 +491,22 @@ export const GUILD_UPGRADES: TUpgrade[] = [
     tags: ['factions', 'economy'],
   },
   {
+    id: 'up_guard_watchtower',
+    name: 'Сторожевая башня стражи',
+    icon: '#',
+    done: false,
+    cost: 320,
+    effects: { rep_gain_mult_guard: 1.3, fail_rep_loss_mult_guard: 0.6 },
+    requires: ['up_lobby'],
+    dependents: [],
+    tags: ['factions', 'ops'],
+    factionRequirements: [{ factionId: 'guard', reputation: 30 }],
+    resourceCost: {
+      iron_ore: 200,
+      city_favor_token: 2,
+    },
+  },
+  {
     id: 'up_fence',
     name: 'Скупщик краденого',
     icon: '#',
@@ -469,6 +527,23 @@ export const GUILD_UPGRADES: TUpgrade[] = [
     effects: { heat_decay_mult: 1.4, fail_rep_loss_mult_guard: 0.8 },
     dependents: [],
     tags: ['shadow', 'safety'],
+  },
+  {
+    id: 'up_cartel_passage',
+    name: 'Подземный ход картеля',
+    icon: '#',
+    done: false,
+    requires: ['up_fence'],
+    cost: 360,
+    effects: { illegal_reward_mult: 1.3, heat_on_fail_mult: 0.85 },
+    dependents: [],
+    tags: ['shadow', 'factions'],
+    factionRequirements: [{ factionId: 'cartel', reputation: 30 }],
+    resourceCost: {
+      monster_parts: 18,
+      arcane_dust: 45,
+      guild_charter_fragment: 1,
+    },
   },
   {
     id: 'up_whispernet',

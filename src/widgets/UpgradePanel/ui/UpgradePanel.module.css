@@ -169,6 +169,43 @@
     font-size: 0.85rem;
 }
 
+.factionRequirementList {
+    width: 100%;
+    background: #f5f3ff;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.factionRequirementTitle {
+    font-weight: 600;
+    color: #312e81;
+    font-size: 0.85rem;
+}
+
+.factionRequirement {
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.factionRequirementMet {
+    color: #047857;
+}
+
+.factionRequirementFail {
+    color: #b91c1c;
+}
+
+.factionRequirementHint {
+    font-size: 0.75rem;
+    color: #4338ca;
+}
+
 .create-button {
     margin-top: 12px;
     padding: 8px 14px;

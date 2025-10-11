@@ -1,20 +1,11 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
-import type { FactionId } from '../../assets/factions/factions';
 import type { GuildStatus } from '../../assets/statuses/guildStatuses';
 import { GUILD_BUFFS, GUILD_DEBUFFS } from '../../assets/statuses/guildStatuses';
 import { GuildFinanceStore } from '../Finance/Finance.store';
 import { TimeStore } from '../TimeStore/TimeStore';
 import { UpgradeStore } from '../Upgrade/Upgrade.store';
-
-type TReputation = {
-  guild: number;
-  guard: number;
-  cartel: number;
-  merchants: number;
-  citizens: number;
-};
 
 type ActiveGuildStatus = {
   id: string;
@@ -24,24 +15,8 @@ type ActiveGuildStatus = {
 
 @singleton()
 export class GameStateStore {
-  private static readonly MONTHLY_REPUTATION_DECAY = 1;
   gold: number = 100;
   heat: number = 0;
-  reputation: TReputation = {
-    guild: 0,
-    guard: 0,
-    cartel: 0,
-    merchants: 0,
-    citizens: 0,
-  };
-
-  factionLeadersUnlocked: Record<FactionId, boolean> = {
-    guild: false,
-    guard: false,
-    cartel: false,
-    merchants: false,
-    citizens: false,
-  };
 
   activeStatuses: ActiveGuildStatus[] = [];
   private syncing: boolean = false;
@@ -59,16 +34,6 @@ export class GameStateStore {
         if (this.syncing) return;
         this.tickStatuses();
         this.decayHeat();
-      },
-      { fireImmediately: false },
-    );
-
-    reaction(
-      () => this.timeStore.monthIndex,
-      () => {
-        if (this.syncing) return;
-        if (this.timeStore.absoluteDay === 0) return;
-        this.applyMonthlyReputationDecay();
       },
       { fireImmediately: false },
     );
@@ -142,37 +107,10 @@ export class GameStateStore {
   decayHeat = () => {
     if (this.heat <= 0) return;
     const baseDecay = 1;
-    const multiplier = this.upgradeStore.getNumericEffectProduct('heat_decay_mult');
+    const upgradeStore = this.getUpgradeStore();
+    const multiplier = upgradeStore.getNumericEffectProduct('heat_decay_mult');
     const decay = Math.max(1, Math.round(baseDecay * multiplier));
     this.heat = Math.max(0, this.heat - decay);
-  };
-
-  changeFactionReputation = (factionId: FactionId, delta: number) => {
-    const adjusted = Math.round(delta);
-    if (adjusted === 0) return;
-
-    const current = this.reputation[factionId] ?? 0;
-    this.reputation[factionId] = current + adjusted;
-  };
-
-  private applyMonthlyReputationDecay = () => {
-    (Object.keys(this.reputation) as FactionId[]).forEach((factionId) => {
-      this.changeFactionReputation(factionId, -GameStateStore.MONTHLY_REPUTATION_DECAY);
-    });
-  };
-
-  unlockFactionLeader = (factionId: FactionId) => {
-    if (this.factionLeadersUnlocked[factionId]) return;
-
-    this.factionLeadersUnlocked[factionId] = true;
-  };
-
-  isFactionLeaderUnlocked = (factionId: FactionId) => {
-    return this.factionLeadersUnlocked[factionId] ?? false;
-  };
-
-  getFactionReputation = (factionId: FactionId) => {
-    return this.reputation[factionId];
   };
 
   setSyncing = (value: boolean) => {
@@ -182,19 +120,6 @@ export class GameStateStore {
   loadSnapshot = (snapshot: GameStateSnapshot) => {
     this.gold = snapshot.gold ?? this.gold;
     this.heat = snapshot.heat ?? this.heat;
-    if (snapshot.reputation) {
-      this.reputation = {
-        ...this.reputation,
-        ...snapshot.reputation,
-      };
-    }
-
-    if (snapshot.factionLeadersUnlocked) {
-      this.factionLeadersUnlocked = {
-        ...this.factionLeadersUnlocked,
-        ...snapshot.factionLeadersUnlocked,
-      };
-    }
 
     if (snapshot.activeStatuses) {
       this.activeStatuses = snapshot.activeStatuses
@@ -222,7 +147,5 @@ export class GameStateStore {
 export type GameStateSnapshot = {
   gold: number;
   heat: number;
-  reputation: Record<FactionId, number>;
   activeStatuses: Array<{ id: string; remainingDays: number }>;
-  factionLeadersUnlocked: Record<FactionId, boolean>;
 };

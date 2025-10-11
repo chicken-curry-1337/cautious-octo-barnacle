@@ -5,7 +5,7 @@ import { container } from 'tsyringe';
 
 import { FACTIONS, type FactionId } from '../../assets/factions/factions';
 import { DialogueStore } from '../../entities/Dialogue/Dialogue.store';
-import { GameStateStore } from '../../entities/GameState/GameStateStore';
+import { FactionsStore } from '../../entities/Factions/Factions.store';
 import { questChainsConfig, type QuestChainDefinition } from '../../features/QuestChains/QuestChains.store';
 
 import styles from './FactionPanel.module.css';
@@ -16,7 +16,7 @@ type FactionPanelProps = {
 };
 
 export const FactionPanel = observer(({ isOpen, onClose }: FactionPanelProps) => {
-  const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
+  const factionsStore = useMemo(() => container.resolve(FactionsStore), []);
   const dialogueStore = useMemo(() => container.resolve(DialogueStore), []);
   const chainsByFaction = useMemo(() => {
     return Object.values(questChainsConfig).reduce<Partial<Record<FactionId, QuestChainDefinition>>>((acc, chain) => {
@@ -42,9 +42,9 @@ export const FactionPanel = observer(({ isOpen, onClose }: FactionPanelProps) =>
 
         <div className={styles.factionList}>
           {FACTIONS.map((faction) => {
-            const reputation = gameStateStore.getFactionReputation(faction.id);
+            const reputation = factionsStore.getFactionReputation(faction.id);
             const leaderChain = chainsByFaction[faction.id];
-            const leaderUnlocked = gameStateStore.isFactionLeaderUnlocked(faction.id);
+            const leaderUnlocked = factionsStore.isFactionLeaderUnlocked(faction.id);
 
             return (
               <article key={faction.id} className={styles.factionCard}>

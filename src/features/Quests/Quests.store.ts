@@ -20,6 +20,7 @@ import { GameStateStore } from '../../entities/GameState/GameStateStore';
 import type { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
+import { FactionsStore } from '../../entities/Factions/Factions.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
@@ -71,6 +72,7 @@ export class QuestsStore {
     @inject(DifficultyStore) public difficultyStore: DifficultyStore,
     @inject(GameStateStore) public gameStateStore: GameStateStore,
     @inject(UpgradeStore) public upgradeStore: UpgradeStore,
+    @inject(FactionsStore) public factionsStore: FactionsStore,
   ) {
     makeAutoObservable(this);
 
@@ -757,7 +759,7 @@ export class QuestsStore {
       const progress = this.questChainsProgress[chain.id] ?? 0;
       if (progress >= chain.stages.length) continue;
 
-      const reputation = this.gameStateStore.getFactionReputation(chain.factionId);
+      const reputation = this.factionsStore.getFactionReputation(chain.factionId);
       if (reputation < QuestsStore.CHAIN_REPUTATION_THRESHOLD) continue;
 
       if (this.hasActiveChainStage(chain.id, progress)) continue;
@@ -780,7 +782,7 @@ export class QuestsStore {
     this.questChainsProgress[quest.chainId] = Math.min(nextIndex, chain.stages.length);
 
     if (quest.unlocksLeader) {
-      this.gameStateStore.unlockFactionLeader(chain.factionId);
+      this.factionsStore.unlockFactionLeader(chain.factionId);
     }
   };
 
@@ -830,7 +832,7 @@ export class QuestsStore {
       const successRepDelta = quest.successRepDelta ?? faction.successRepDelta;
 
       if (successRepDelta) {
-        this.gameStateStore.changeFactionReputation(factionId, successRepDelta);
+        this.factionsStore.changeFactionReputation(factionId, successRepDelta);
       }
       const heatDelta = quest.successHeatDelta ?? faction.successHeatDelta ?? 0;
 
@@ -844,7 +846,7 @@ export class QuestsStore {
     const failureRepDelta = quest.failureRepDelta ?? faction.failureRepDelta;
 
     if (failureRepDelta) {
-      this.gameStateStore.changeFactionReputation(factionId, failureRepDelta);
+      this.factionsStore.changeFactionReputation(factionId, failureRepDelta);
     }
     const heatDelta = quest.failureHeatDelta ?? faction.failureHeatDelta ?? 0;
 
@@ -1036,7 +1038,7 @@ export class QuestsStore {
     const chainQuest = this.generateChainQuest();
     if (chainQuest) return chainQuest;
 
-    const faction = pickFaction(this.gameStateStore.reputation, this.gameStateStore.heat);
+    const faction = pickFaction(this.factionsStore.reputation, this.gameStateStore.heat);
     if (!faction) return null;
 
     if (faction.id === 'citizens') {

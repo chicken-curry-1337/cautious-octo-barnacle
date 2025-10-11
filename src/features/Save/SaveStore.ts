@@ -7,6 +7,8 @@ import type { FinanceSnapshot } from '../../entities/Finance/Finance.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import type { GameStateSnapshot } from '../../entities/GameState/GameStateStore';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
+import type { FactionsSnapshot } from '../../entities/Factions/Factions.store';
+import { FactionsStore } from '../../entities/Factions/Factions.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import type { IHero, IRecruitCandidate } from '../../shared/types/hero';
@@ -22,6 +24,7 @@ type GameSnapshot = {
   };
   finance: FinanceSnapshot;
   gameState: GameStateSnapshot;
+  factions?: FactionsSnapshot;
   heroes: IHero[];
   recruits: IRecruitCandidate[];
   quests: QuestsSnapshot;
@@ -41,6 +44,7 @@ export class SaveStore {
     @inject(TimeStore) private timeStore: TimeStore,
     @inject(GuildFinanceStore) private financeStore: GuildFinanceStore,
     @inject(GameStateStore) private gameStateStore: GameStateStore,
+    @inject(FactionsStore) private factionsStore: FactionsStore,
     @inject(HeroesStore) private heroesStore: HeroesStore,
     @inject(RecruitsStore) private recruitsStore: RecruitsStore,
     @inject(QuestsStore) private questsStore: QuestsStore,
@@ -126,13 +130,12 @@ export class SaveStore {
       gameState: {
         gold: this.gameStateStore.gold,
         heat: this.gameStateStore.heat,
-        reputation: { ...this.gameStateStore.reputation },
         activeStatuses: this.gameStateStore.activeStatuses.map(status => ({
           id: status.id,
           remainingDays: status.remainingDays,
         })),
-        factionLeadersUnlocked: { ...this.gameStateStore.factionLeadersUnlocked },
       },
+      factions: this.factionsStore.buildSnapshot(),
       heroes: this.heroesStore.heroes.map(hero => ({
         id: hero.id,
         name: hero.name,
@@ -194,6 +197,15 @@ export class SaveStore {
 
       this.financeStore.loadSnapshot(snapshot.finance);
       this.gameStateStore.loadSnapshot(snapshot.gameState);
+
+      const baseFactionsSnapshot = this.factionsStore.buildSnapshot();
+      const legacyReputation = (snapshot as any).gameState?.reputation ?? {};
+      const legacyLeaders = (snapshot as any).gameState?.factionLeadersUnlocked ?? {};
+      const factionsSnapshot = snapshot.factions ?? {
+        reputation: { ...baseFactionsSnapshot.reputation, ...legacyReputation },
+        factionLeadersUnlocked: { ...baseFactionsSnapshot.factionLeadersUnlocked, ...legacyLeaders },
+      };
+      this.factionsStore.loadSnapshot(factionsSnapshot);
       this.upgradeStore.loadSnapshot(snapshot.upgrades?.completed ?? []);
       this.heroesStore.loadSnapshot(snapshot.heroes ?? []);
       this.recruitsStore.loadSnapshot(snapshot.recruits ?? []);
@@ -224,6 +236,7 @@ export class SaveStore {
   private setSyncing(value: boolean) {
     this.financeStore.setSyncing(value);
     this.gameStateStore.setSyncing(value);
+    this.factionsStore.setSyncing(value);
     this.heroesStore.setSyncing(value);
     this.recruitsStore.setSyncing(value);
     this.questsStore.setSyncing(value);

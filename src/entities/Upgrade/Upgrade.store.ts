@@ -1,8 +1,10 @@
 import { makeAutoObservable } from 'mobx';
 import { inject, singleton } from 'tsyringe';
+import { container } from 'tsyringe';
 
 import { type TUpgrade, GUILD_UPGRADES } from '../../assets/upgrades/upgrades';
 import { GuildFinanceStore } from '../Finance/Finance.store';
+import { FactionsStore } from '../Factions/Factions.store';
 
 @singleton()
 export class UpgradeStore {
@@ -40,13 +42,18 @@ export class UpgradeStore {
     const upgrade = this.upgradeMap[upgradeId];
     if (!upgrade) return false;
 
-    return upgrade.requires.every(reqId => this.upgradeMap[reqId]?.done);
+    if (!upgrade.requires.every(reqId => this.upgradeMap[reqId]?.done)) {
+      return false;
+    }
+
+    return this.meetsFactionRequirements(upgrade);
   };
 
   canPurchase = (upgradeId: string): boolean => {
     const upgrade = this.upgradeMap[upgradeId];
     if (!upgrade) return false;
     if (!this.isAvailable(upgradeId)) return false;
+    if (!this.meetsFactionRequirements(upgrade)) return false;
 
     const goldOk = this.financeStore.canAffordGold(upgrade.cost);
     const resourceOk = upgrade.resourceCost
@@ -153,6 +160,16 @@ export class UpgradeStore {
 
     Object.values(this.upgradeMap).forEach((upgrade) => {
       upgrade.done = completedSet.has(upgrade.id);
+    });
+  };
+
+  meetsFactionRequirements = (upgrade: TUpgrade) => {
+    if (!upgrade.factionRequirements || upgrade.factionRequirements.length === 0) return true;
+
+    const factionsStore = container.resolve(FactionsStore);
+
+    return upgrade.factionRequirements.every(({ factionId, reputation }) => {
+      return factionsStore.getFactionReputation(factionId) >= reputation;
     });
   };
 }

@@ -5,9 +5,11 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { GUILD_RESOURCES } from '../../../assets/resources/resources';
+import { factionMap } from '../../../assets/factions/factions';
 import { describeUpgradeEffects } from '../../../assets/upgrades/upgrades';
 import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
 import { UpgradeStore } from '../../../entities/Upgrade/Upgrade.store';
+import { FactionsStore } from '../../../entities/Factions/Factions.store';
 
 import styles from './UpgradePanel.module.css';
 
@@ -19,6 +21,7 @@ type UpgradePanelProps = {
 export const UpgradePanel = observer(({ isOpen, onClose }: UpgradePanelProps) => {
   const upgradeStore = useMemo(() => container.resolve(UpgradeStore), []);
   const financeStore = useMemo(() => container.resolve(GuildFinanceStore), []);
+  const factionsStore = useMemo(() => container.resolve(FactionsStore), []);
   const resourceMap = useMemo(() => {
     return GUILD_RESOURCES.reduce<Record<string, (typeof GUILD_RESOURCES)[number]>>((acc, resource) => {
       acc[resource.id] = resource;
@@ -35,7 +38,7 @@ export const UpgradePanel = observer(({ isOpen, onClose }: UpgradePanelProps) =>
     const success = upgradeStore.completeUpgrade(id);
 
     if (!success) {
-      setError('Недостаточно золота или ресурсов.');
+      setError('Недостаточно золота, ресурсов или репутации.');
       setNotice(null);
     } else {
       setError(null);
@@ -77,6 +80,19 @@ export const UpgradePanel = observer(({ isOpen, onClose }: UpgradePanelProps) =>
             const canTakeLoan = Boolean(upgrade.effects.emergency_loan)
               && upgrade.done
               && !financeStore.emergencyLoanTaken;
+            const factionRequirements = upgrade.factionRequirements ?? [];
+            const factionRequirementStatuses = factionRequirements.map((req) => {
+              const faction = factionMap[req.factionId];
+              const current = factionsStore.getFactionReputation(req.factionId);
+
+              return {
+                ...req,
+                factionName: faction?.name ?? req.factionId,
+                current,
+                met: current >= req.reputation,
+              };
+            });
+            const meetsFactionRequirements = upgradeStore.meetsFactionRequirements(upgrade);
 
             return (
               <article
@@ -93,6 +109,34 @@ export const UpgradePanel = observer(({ isOpen, onClose }: UpgradePanelProps) =>
                       <li key={`${upgrade.id}-effect-${index}`}>{desc}</li>
                     ))}
                   </ul>
+                )}
+                {factionRequirementStatuses.length > 0 && (
+                  <div className={styles.factionRequirementList}>
+                    <div className={styles.factionRequirementTitle}>Требуется репутация:</div>
+                    {factionRequirementStatuses.map(requirement => (
+                      <div
+                        key={`${upgrade.id}-${requirement.factionId}`}
+                        className={clsx(
+                          styles.factionRequirement,
+                          requirement.met
+                            ? styles.factionRequirementMet
+                            : styles.factionRequirementFail,
+                        )}
+                      >
+                        {requirement.factionName}
+                        :
+                        {' '}
+                        {requirement.current}
+                        {' '}
+                        /
+                        {' '}
+                        {requirement.reputation}
+                      </div>
+                    ))}
+                    {!meetsFactionRequirements && !isUnlocked && (
+                      <div className={styles.factionRequirementHint}>повышайте репутацию, чтобы открыть улучшение</div>
+                    )}
+                  </div>
                 )}
                 {!upgrade.done && (
                   <>
