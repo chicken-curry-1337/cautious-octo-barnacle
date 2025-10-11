@@ -3,8 +3,10 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { FACTIONS } from '../../assets/factions/factions';
+import { FACTIONS, type FactionId } from '../../assets/factions/factions';
+import { DialogueStore } from '../../entities/Dialogue/Dialogue.store';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
+import { questChainsConfig, type QuestChainDefinition } from '../../features/QuestChains/QuestChains.store';
 
 import styles from './FactionPanel.module.css';
 
@@ -15,6 +17,14 @@ type FactionPanelProps = {
 
 export const FactionPanel = observer(({ isOpen, onClose }: FactionPanelProps) => {
   const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
+  const dialogueStore = useMemo(() => container.resolve(DialogueStore), []);
+  const chainsByFaction = useMemo(() => {
+    return Object.values(questChainsConfig).reduce<Partial<Record<FactionId, QuestChainDefinition>>>((acc, chain) => {
+      acc[chain.factionId] = chain;
+
+      return acc;
+    }, {});
+  }, []);
 
   if (!isOpen) return null;
 
@@ -33,6 +43,8 @@ export const FactionPanel = observer(({ isOpen, onClose }: FactionPanelProps) =>
         <div className={styles.factionList}>
           {FACTIONS.map((faction) => {
             const reputation = gameStateStore.getFactionReputation(faction.id);
+            const leaderChain = chainsByFaction[faction.id];
+            const leaderUnlocked = gameStateStore.isFactionLeaderUnlocked(faction.id);
 
             return (
               <article key={faction.id} className={styles.factionCard}>
@@ -77,6 +89,34 @@ export const FactionPanel = observer(({ isOpen, onClose }: FactionPanelProps) =>
                     <span className={styles.tag}>Любят рискованнные дела</span>
                   )}
                 </div>
+                {leaderChain && leaderUnlocked && (
+                  <div className={styles.leaderSection}>
+                    <div className={styles.leaderPortraitWrapper}>
+                      <img
+                        src={leaderChain.leaderPortraitUrl}
+                        alt={leaderChain.leaderName}
+                        className={styles.leaderPortrait}
+                      />
+                    </div>
+                    <div className={styles.leaderInfo}>
+                      <div className={styles.leaderName}>{leaderChain.leaderName}</div>
+                      <div className={styles.leaderTitle}>{leaderChain.leaderTitle}</div>
+                      <button
+                        type="button"
+                        className={styles.leaderButton}
+                        onClick={() => {
+                          dialogueStore.startDialogue(
+                            leaderChain.leaderDialogue,
+                            leaderChain.leaderDialogueStartId ?? 'start',
+                          );
+                          onClose?.();
+                        }}
+                      >
+                        Связаться с лидером
+                      </button>
+                    </div>
+                  </div>
+                )}
               </article>
             );
           })}

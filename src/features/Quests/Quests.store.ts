@@ -10,11 +10,6 @@ import {
   type FactionContractTemplate,
   type NonCitizenFactionId,
 } from '../../assets/quests/quests';
-import {
-  questChainsConfig,
-  type QuestChainDefinition,
-  type QuestChainStage,
-} from '../QuestChains/QuestChains.store';
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
 import { evaluatePartySynergy } from '../../assets/traits/traitSynergies';
 import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
@@ -27,6 +22,11 @@ import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
+import {
+  questChainsConfig,
+  type QuestChainDefinition,
+  type QuestChainStage,
+} from '../QuestChains/QuestChains.store';
 // import { questChainsConfig } from '../QuestChains/QuestChains.store';
 
 const DEFAULT_FACTION_REWARD_RANGE: [number, number] = [70, 150];
@@ -746,6 +746,7 @@ export class QuestsStore {
       chainLeaderName: chain.leaderName,
       chainLeaderTitle: chain.leaderTitle,
       chainTotalStages: chain.stages.length,
+      chainLeaderPortrait: chain.leaderPortraitUrl,
     };
   };
 
@@ -760,6 +761,7 @@ export class QuestsStore {
       if (this.hasActiveChainStage(chain.id, progress)) continue;
 
       const stage = chain.stages[progress];
+
       return this.createChainQuest(chain, stage, progress);
     }
 

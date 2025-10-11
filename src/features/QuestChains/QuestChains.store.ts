@@ -1,7 +1,18 @@
 import { makeAutoObservable } from 'mobx';
 import { singleton } from 'tsyringe';
 
+import { cartelLeaderDialogue } from '../../assets/dialogues/leaders/cartelLeaderDialogue';
+import { citizensLeaderDialogue } from '../../assets/dialogues/leaders/citizensLeaderDialogue';
+import { guardLeaderDialogue } from '../../assets/dialogues/leaders/guardLeaderDialogue';
+import { guildLeaderDialogue } from '../../assets/dialogues/leaders/guildLeaderDialogue';
+import { merchantsLeaderDialogue } from '../../assets/dialogues/leaders/merchantsLeaderDialogue';
 import type { FactionId } from '../../assets/factions/factions';
+import cartelLeaderPortrait from '../../assets/images/leaders/cartel-leader.svg';
+import citizensLeaderPortrait from '../../assets/images/leaders/citizens-leader.svg';
+import guardLeaderPortrait from '../../assets/images/leaders/guard-leader.svg';
+import guildLeaderPortrait from '../../assets/images/leaders/guild-leader.svg';
+import merchantsLeaderPortrait from '../../assets/images/leaders/merchants-leader.svg';
+import type { DialogueData } from '../../entities/Dialogue/Dialogue.store';
 
 export interface QuestChainStage {
   title: string;
@@ -27,6 +38,9 @@ export interface QuestChainDefinition {
   factionId: FactionId;
   leaderName: string;
   leaderTitle: string;
+  leaderPortraitUrl: string;
+  leaderDialogue: DialogueData;
+  leaderDialogueStartId?: string;
   stages: QuestChainStage[];
 }
 
@@ -36,6 +50,8 @@ export const questChainsConfig: Record<string, QuestChainDefinition> = {
     factionId: 'guild',
     leaderName: 'Лисандра Хельвик',
     leaderTitle: 'Примарх Совета гильдий',
+    leaderPortraitUrl: guildLeaderPortrait,
+    leaderDialogue: guildLeaderDialogue,
     stages: [
       {
         title: 'Архивы под замком',
@@ -78,6 +94,8 @@ export const questChainsConfig: Record<string, QuestChainDefinition> = {
     factionId: 'guard',
     leaderName: 'Капитан Арина Стеллар',
     leaderTitle: 'Командующая городской стражей',
+    leaderPortraitUrl: guardLeaderPortrait,
+    leaderDialogue: guardLeaderDialogue,
     stages: [
       {
         title: 'Западный дозор',
@@ -125,6 +143,8 @@ export const questChainsConfig: Record<string, QuestChainDefinition> = {
     factionId: 'merchants',
     leaderName: 'Комесса Верена Дааль',
     leaderTitle: 'Председатель Торговой Лиги',
+    leaderPortraitUrl: merchantsLeaderPortrait,
+    leaderDialogue: merchantsLeaderDialogue,
     stages: [
       {
         title: 'Срыв блокад',
@@ -168,6 +188,8 @@ export const questChainsConfig: Record<string, QuestChainDefinition> = {
     factionId: 'cartel',
     leaderName: 'Кассандра Ноктюрн',
     leaderTitle: 'Теневая Матриарх картеля',
+    leaderPortraitUrl: cartelLeaderPortrait,
+    leaderDialogue: cartelLeaderDialogue,
     stages: [
       {
         title: 'Теневой обмен',
@@ -219,6 +241,8 @@ export const questChainsConfig: Record<string, QuestChainDefinition> = {
     factionId: 'citizens',
     leaderName: 'Старейшина Мирелла',
     leaderTitle: 'Голос жителей Равенфорда',
+    leaderPortraitUrl: citizensLeaderPortrait,
+    leaderDialogue: citizensLeaderDialogue,
     stages: [
       {
         title: 'Праздник урожая',

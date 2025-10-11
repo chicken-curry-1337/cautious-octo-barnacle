@@ -33,6 +33,7 @@ export class GameStateStore {
     merchants: 0,
     citizens: 0,
   };
+
   factionLeadersUnlocked: Record<FactionId, boolean> = {
     guild: false,
     guard: false,

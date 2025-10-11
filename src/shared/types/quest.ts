@@ -53,6 +53,7 @@ export interface IQuest {
   chainLeaderName?: string;
   chainLeaderTitle?: string;
   chainTotalStages?: number;
+  chainLeaderPortrait?: string;
 }
 
 export type QuestNarrative = Pick<IQuest, 'title' | 'description' | 'failResult' | 'successResult' | 'timeoutResult'>;

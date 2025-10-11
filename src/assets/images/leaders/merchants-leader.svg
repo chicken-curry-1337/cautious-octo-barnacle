@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="bgMerchants" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="160" rx="16" fill="url(#bgMerchants)" />
+  <circle cx="60" cy="58" r="26" fill="#fed7aa" />
+  <path d="M26 126c8-26 26-40 34-40s26 14 34 40" fill="#14532d" opacity="0.9" />
+  <path d="M60 32c-14 0-32 12-32 32 0 24 16 34 32 34s32-10 32-34c0-20-18-32-32-32z" fill="#064e3b" opacity="0.2" />
+  <rect x="26" y="116" width="68" height="26" rx="13" fill="#083344" opacity="0.25" />
+</svg>

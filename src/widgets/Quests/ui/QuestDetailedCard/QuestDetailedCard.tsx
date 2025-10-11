@@ -70,6 +70,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
         totalStages,
         currentStage,
         unlocksLeader: quest.unlocksLeader ?? false,
+        portrait: quest.chainLeaderPortrait ?? null,
       };
     }, [
       quest.chainId,
@@ -78,6 +79,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
       quest.chainStageIndex,
       quest.chainTotalStages,
       quest.unlocksLeader,
+      quest.chainLeaderPortrait,
     ]);
 
     const formatDelta = (value: number) => {
@@ -300,6 +302,15 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
 
               {chainDetails && (
                 <div className={styles.chainSection}>
+                  {chainDetails.portrait && (
+                    <div className={styles.chainPortraitWrapper}>
+                      <img
+                        src={chainDetails.portrait}
+                        alt={chainDetails.leaderName}
+                        className={styles.chainPortrait}
+                      />
+                    </div>
+                  )}
                   <div className={styles.chainSectionRow}>
                     Цепочка фракции — этап
                     {' '}

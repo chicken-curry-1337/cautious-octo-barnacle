@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="bgCartel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#6b21a8" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="160" rx="16" fill="url(#bgCartel)" />
+  <circle cx="60" cy="58" r="26" fill="#f9a8d4" />
+  <path d="M28 128c6-30 24-42 32-42s26 12 32 42" fill="#4c1d95" opacity="0.88" />
+  <path d="M60 32c-14 0-32 12-32 34 0 22 16 32 32 32s32-10 32-32c0-22-18-34-32-34z" fill="#312e81" opacity="0.25" />
+  <rect x="28" y="118" width="64" height="28" rx="14" fill="#1f1d3a" opacity="0.25" />
+</svg>
