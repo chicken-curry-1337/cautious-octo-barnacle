@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
+import { mainHeroData, MAIN_HERO_ID } from '../../assets/heroes/mainHero';
 import { pickRandomTraitsForHero } from '../../assets/traits/traits';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { HeroStore } from '../../entities/Hero/Hero.store';
@@ -13,6 +14,7 @@ import { RecruitsStore } from '../Recruits/store/Recruits.store';
 @singleton()
 export class HeroesStore {
   heroesMap: Record<string, HeroStore> = {};
+  readonly mainHeroId = MAIN_HERO_ID;
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -21,6 +23,8 @@ export class HeroesStore {
     @inject(UpgradeStore) public upgradeStore: UpgradeStore,
   ) {
     makeAutoObservable(this);
+
+    this.initializeMainHero();
 
     reaction(
       () => this.timeStore.absoluteDay,
@@ -64,6 +68,7 @@ export class HeroesStore {
         injured: false,
         recruitCost: 0,
         traits: this.getRandomTraits(),
+        isMainHero: false,
       });
     }
   };
@@ -88,6 +93,7 @@ export class HeroesStore {
       ...candidate,
       level: Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1),
       minStake: this.calculateMinStake(Math.max(candidate.level, this.upgradeStore.getNumericEffectMax('new_hero_start_level') || 1), candidate.type),
+      isMainHero: false,
     }));
 
     // удаляем кандидата
@@ -96,6 +102,8 @@ export class HeroesStore {
 
   fireHero = (id: string) => {
     const hero = this.heroesMap[id];
+
+    if (!hero || hero.isMainHero) return;
 
     if (hero.assignedQuestId !== null) return; // нельзя уволить героя, который в квесте
     this.financeStore.addGold(
@@ -155,5 +163,18 @@ export class HeroesStore {
     if (desired === 0) return [];
 
     return pickRandomTraitsForHero(desired);
+  };
+
+  private initializeMainHero = () => {
+    if (this.heroesMap[this.mainHeroId]) return;
+
+    this.heroesMap[this.mainHeroId] = new HeroStore({
+      ...mainHeroData,
+      traits: mainHeroData.traits ?? [],
+      minStake: 0,
+      recruitCost: 0,
+      injured: false,
+      assignedQuestId: null,
+    });
   };
 }

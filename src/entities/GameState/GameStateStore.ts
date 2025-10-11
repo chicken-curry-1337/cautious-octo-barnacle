@@ -24,6 +24,7 @@ type ActiveGuildStatus = {
 
 @singleton()
 export class GameStateStore {
+  private static readonly MONTHLY_REPUTATION_DECAY = 1;
   gold: number = 100;
   heat: number = 0;
   reputation: TReputation = {
@@ -56,6 +57,15 @@ export class GameStateStore {
       () => {
         this.tickStatuses();
         this.decayHeat();
+      },
+      { fireImmediately: false },
+    );
+
+    reaction(
+      () => this.timeStore.monthIndex,
+      () => {
+        if (this.timeStore.absoluteDay === 0) return;
+        this.applyMonthlyReputationDecay();
       },
       { fireImmediately: false },
     );
@@ -140,6 +150,12 @@ export class GameStateStore {
 
     const current = this.reputation[factionId] ?? 0;
     this.reputation[factionId] = current + adjusted;
+  };
+
+  private applyMonthlyReputationDecay = () => {
+    (Object.keys(this.reputation) as FactionId[]).forEach((factionId) => {
+      this.changeFactionReputation(factionId, -GameStateStore.MONTHLY_REPUTATION_DECAY);
+    });
   };
 
   unlockFactionLeader = (factionId: FactionId) => {

@@ -5,6 +5,7 @@ export interface IChar {
   id: string;
   name: string;
   level: number;
+  isMainHero?: boolean;
 
   strength: number;
   agility: number;

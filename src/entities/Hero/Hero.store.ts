@@ -28,6 +28,7 @@ export class HeroStore extends Character implements IHero {
       recruitCost: observable,
       traits: observable,
       assignedQuestId: observable,
+      isMainHero: observable,
     });
   }
 
@@ -54,7 +55,9 @@ export class HeroStore extends Character implements IHero {
         break;
     }
 
-    this.minStake = this.calculateMinStake(this.level, this.type);
+    if (!this.isMainHero) {
+      this.minStake = this.calculateMinStake(this.level, this.type);
+    }
   };
 
   calculateMinStake = (level: number, type: HeroType): number => {

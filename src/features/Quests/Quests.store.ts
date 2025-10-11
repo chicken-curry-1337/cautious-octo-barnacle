@@ -13,6 +13,7 @@ import {
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
 import { evaluatePartySynergy } from '../../assets/traits/traitSynergies';
 import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
+import { MAIN_HERO_ID } from '../../assets/heroes/mainHero';
 import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
@@ -251,7 +252,6 @@ export class QuestsStore {
       // Проверка на истечение времени принятия
       if (quest.status === QuestStatus.NotStarted && this.timeStore.absoluteDay > quest.deadlineAccept) {
         quest.status = QuestStatus.FailedDeadline;
-        this.applyFactionOutcome(quest, 'timeout');
 
         return false;
       }
@@ -820,6 +820,10 @@ export class QuestsStore {
     const faction = factionMap[factionId];
     if (!faction) return;
 
+    if (outcome === 'timeout') {
+      return;
+    }
+
     if (outcome === 'success') {
       const successRepDelta = quest.successRepDelta ?? faction.successRepDelta;
 
@@ -874,6 +878,14 @@ export class QuestsStore {
     console.log(questId, heroIds, this.quests.map(q => q.id));
     const quest = this.quests.find(q => q.id === questId);
     if (!quest) throw new Error('Quest not found');
+
+    if (
+      quest.chainId
+      && !heroIds.includes(MAIN_HERO_ID)
+      && !quest.assignedHeroIds.includes(MAIN_HERO_ID)
+    ) {
+      throw new Error('Главный герой должен быть в составе, чтобы начать цепочку заданий.');
+    }
 
     if (quest.requiredResources && Object.keys(quest.requiredResources).length > 0) {
       const canAfford = this.financeStore.canAffordResources(quest.requiredResources);

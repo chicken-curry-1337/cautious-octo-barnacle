@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
@@ -8,6 +8,7 @@ import { factionMap, type FactionId } from '../../../../assets/factions/factions
 import { modifiers as questModifiers } from '../../../../assets/modifiers/modifiers';
 import { GUILD_RESOURCES } from '../../../../assets/resources/resources';
 import type { GuildResource } from '../../../../assets/resources/resources';
+import { MAIN_HERO_ID } from '../../../../assets/heroes/mainHero';
 import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
@@ -133,6 +134,24 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
     const availableForQuestHeroes = availableHeroes.filter(
       h => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null,
     );
+
+    useEffect(() => {
+      if (!quest.chainId) return;
+      if (quest.assignedHeroIds.includes(MAIN_HERO_ID)) return;
+
+      const mainHeroAvailable = availableForQuestHeroes.some(hero => hero.id === MAIN_HERO_ID);
+      if (!mainHeroAvailable) return;
+
+      setSelectedHeroesIds((prev) => {
+        if (prev.includes(MAIN_HERO_ID)) return prev;
+        const updated = [MAIN_HERO_ID, ...prev.filter(id => id !== MAIN_HERO_ID)];
+        if (updated.length > maxPartySize) {
+          return updated.slice(0, maxPartySize);
+        }
+
+        return updated;
+      });
+    }, [availableForQuestHeroes, maxPartySize, quest.assignedHeroIds, quest.chainId]);
 
     const successChance = useMemo(
       () => questStore.getNewQuestSuccessChance(quest.id, selectedHeroesIds),
@@ -332,6 +351,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                       Успех откроет личный канал связи с лидером.
                     </div>
                   )}
+                  <div className={styles.chainSectionRowNote}>Главный герой должен участвовать в отряде для этой цепочки.</div>
                 </div>
               )}
 
@@ -621,13 +641,14 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                       <p>Нет доступных героев</p>
                     )
                   : availableForQuestHeroes.map(hero => (
-                      <div key={hero.id}>
+                      <div key={hero.id} className={clsx({ [styles.mainHeroItem]: hero.id === MAIN_HERO_ID })}>
                         <label>
                           <input
                             type="checkbox"
                             checked={selectedHeroesIds.includes(hero.id)}
                             onChange={() => toggleHero(hero.id)}
-                            disabled={!selectedHeroesIds.includes(hero.id) && selectionLimitReached}
+                            disabled={(quest.chainId && hero.id === MAIN_HERO_ID)
+                              || (!selectedHeroesIds.includes(hero.id) && selectionLimitReached)}
                           />
                           {hero.name}
                           {' '}
@@ -654,6 +675,9 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                             {' '}
                             золота
                           </span>
+                          {hero.id === MAIN_HERO_ID && (
+                            <span className={styles.mainHeroTag}>Главный герой</span>
+                          )}
                         </label>
                       </div>
                     ))}
