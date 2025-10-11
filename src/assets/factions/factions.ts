@@ -1,4 +1,4 @@
-export type FactionId = 'guild' | 'guard' | 'cartel' | 'merchants';
+export type FactionId = 'guild' | 'guard' | 'cartel' | 'merchants' | 'citizens';
 
 export type Faction = {
   id: FactionId;
@@ -21,7 +21,7 @@ export const FACTIONS: Faction[] = [
     name: 'Совет гильдий',
     description: 'Ваша внутренняя репутация — чем она выше, тем больше доверия к вам в пределах гильдии.',
     baseWeight: 1.1,
-    minReputation: 20,
+    minReputation: -20,
     successRepDelta: 3,
     failureRepDelta: -4,
     successHeatDelta: -1,
@@ -31,7 +31,7 @@ export const FACTIONS: Faction[] = [
     name: 'Городская стража',
     description: 'Официальные патрули и законы. При высоком heat доверие падает.',
     baseWeight: 1,
-    minReputation: 10,
+    minReputation: -10,
     successRepDelta: 5,
     failureRepDelta: -7,
     successHeatDelta: -2,
@@ -61,11 +61,24 @@ export const FACTIONS: Faction[] = [
     failureHeatDelta: 6,
     heatWeightBonus: 0.02,
   },
+  {
+    id: 'citizens',
+    name: 'Жители Равенфорда',
+    description: 'Обычные горожане со своими мелкими проблемами — им нужна помощь и они быстро распространяют слухи.',
+    baseWeight: 1.5,
+    minReputation: -50,
+    successRepDelta: 2,
+    failureRepDelta: -2,
+    successHeatDelta: -1,
+    failureHeatDelta: 1,
+  },
 ];
 
-export const factionMap: Record<FactionId, Faction> = Object.fromEntries(
-  FACTIONS.map(faction => [faction.id, faction]),
-);
+export const factionMap: Record<FactionId, Faction> = FACTIONS.reduce((acc, faction) => {
+  acc[faction.id] = faction;
+
+  return acc;
+}, {} as Record<FactionId, Faction>);
 
 export type ReputationState = Record<FactionId, number>;
 

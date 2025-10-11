@@ -4,15 +4,16 @@ import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
-import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
-import { QuestsStore } from '../../../../features/Quests/Quests.store';
-import { UpgradeStore } from '../../../../entities/Upgrade/Upgrade.store';
-import type { IChar } from '../../../../shared/types/hero';
-import { QuestStatus, type IQuest } from '../../../../shared/types/quest';
+import { factionMap, type FactionId } from '../../../../assets/factions/factions';
 import { modifiers as questModifiers } from '../../../../assets/modifiers/modifiers';
 import { GUILD_RESOURCES } from '../../../../assets/resources/resources';
 import type { GuildResource } from '../../../../assets/resources/resources';
+import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
+import { UpgradeStore } from '../../../../entities/Upgrade/Upgrade.store';
+import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
+import { QuestsStore } from '../../../../features/Quests/Quests.store';
+import type { IChar } from '../../../../shared/types/hero';
+import { QuestStatus, type IQuest } from '../../../../shared/types/quest';
 
 import styles from './QuestDetailedCard.module.css';
 
@@ -42,16 +43,62 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
       }, {});
     }, []);
 
+    const factionDetails = useMemo(() => {
+      if (!quest.factionId) return null;
+      const faction = factionMap[quest.factionId as FactionId];
+      if (!faction) return null;
+
+      return {
+        name: faction.name,
+        reputationRequirement: quest.reputationRequirement ?? faction.minReputation,
+        successRepDelta: quest.successRepDelta ?? faction.successRepDelta,
+        failureRepDelta: quest.failureRepDelta ?? faction.failureRepDelta,
+        successHeatDelta: quest.successHeatDelta ?? faction.successHeatDelta ?? 0,
+        failureHeatDelta: quest.failureHeatDelta ?? faction.failureHeatDelta ?? 0,
+      };
+    }, [quest.failureHeatDelta, quest.factionId, quest.reputationRequirement, quest.successHeatDelta]);
+
+    const chainDetails = useMemo(() => {
+      if (!quest.chainId) return null;
+
+      const totalStages = quest.chainTotalStages ?? ((quest.chainStageIndex ?? 0) + 1);
+      const currentStage = (quest.chainStageIndex ?? 0) + 1;
+
+      return {
+        leaderTitle: quest.chainLeaderTitle ?? 'Лидер фракции',
+        leaderName: quest.chainLeaderName ?? 'Неизвестная наставница',
+        totalStages,
+        currentStage,
+        unlocksLeader: quest.unlocksLeader ?? false,
+      };
+    }, [
+      quest.chainId,
+      quest.chainLeaderName,
+      quest.chainLeaderTitle,
+      quest.chainStageIndex,
+      quest.chainTotalStages,
+      quest.unlocksLeader,
+    ]);
+
+    const formatDelta = (value: number) => {
+      if (value > 0) return `+${value}`;
+      if (value < 0) return `${value}`;
+
+      return '0';
+    };
+
     const maxPartySize = questStore.maxPartySize;
 
     const toggleHero = (id: string) => {
-      setSelectedHeroesIds(prev => {
+      setSelectedHeroesIds((prev) => {
         if (prev.includes(id)) {
           return prev.filter(h => h !== id);
         }
+
         if (prev.length >= maxPartySize) {
           return prev;
         }
+
         return [...prev, id];
       });
     };
@@ -218,6 +265,65 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                 <strong>{status}</strong>
               </p>
 
+              {factionDetails && (
+                <div className={styles.factionSection}>
+                  <div className={styles.factionSectionRow}>
+                    <strong>Заказчик:</strong>
+                    {' '}
+                    {factionDetails.name}
+                  </div>
+                  <div className={styles.factionSectionRow}>
+                    Требуется репутация:
+                    {' '}
+                    <strong>{factionDetails.reputationRequirement}</strong>
+                  </div>
+                  <div className={styles.factionSectionRow}>
+                    Репутация — успех:
+                    {' '}
+                    {formatDelta(factionDetails.successRepDelta)}
+                    , провал:
+                    {' '}
+                    {formatDelta(factionDetails.failureRepDelta)}
+                  </div>
+                  {(factionDetails.successHeatDelta || factionDetails.failureHeatDelta) && (
+                    <div className={styles.factionSectionRow}>
+                      Heat — успех:
+                      {' '}
+                      {formatDelta(factionDetails.successHeatDelta)}
+                      , провал:
+                      {' '}
+                      {formatDelta(factionDetails.failureHeatDelta)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {chainDetails && (
+                <div className={styles.chainSection}>
+                  <div className={styles.chainSectionRow}>
+                    Цепочка фракции — этап
+                    {' '}
+                    {chainDetails.currentStage}
+                    /
+                    {chainDetails.totalStages}
+                  </div>
+                  <div className={styles.chainSectionRow}>
+                    Куратор:
+                    {' '}
+                    {chainDetails.leaderName}
+                    {' '}
+                    (
+                    {chainDetails.leaderTitle}
+                    )
+                  </div>
+                  {chainDetails.unlocksLeader && (
+                    <div className={styles.chainSectionRowHighlight}>
+                      Успех откроет личный канал связи с лидером.
+                    </div>
+                  )}
+                </div>
+              )}
+
               <p>
                 Награда:
                 {' '}
@@ -265,12 +371,16 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                       <div key={`req-${resource.id}`} className={styles.resourceRewardItem} title={resource.description}>
                         <span className={styles.resourceRewardIcon}>{resource.icon}</span>
                         <span className={styles.resourceRewardName}>{resource.name}</span>
-                        <span className={styles.resourceRewardAmount}>-{resource.amount}</span>
+                        <span className={styles.resourceRewardAmount}>
+                          -
+                          {resource.amount}
+                        </span>
                       </div>
                     ))}
                   </div>
                   {hiddenRequirementsCount > 0 && (
-                    <p className={styles.hiddenInfo}>Неизвестно ещё ресурсов:
+                    <p className={styles.hiddenInfo}>
+                      Неизвестно ещё ресурсов:
                       {' '}
                       {hiddenRequirementsCount}
                       . Постройте разведцентр, чтобы раскрыть больше данных.
@@ -287,12 +397,16 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                       <div key={reward.id} className={styles.resourceRewardItem} title={reward.description}>
                         <span className={styles.resourceRewardIcon}>{reward.icon}</span>
                         <span className={styles.resourceRewardName}>{reward.name}</span>
-                        <span className={styles.resourceRewardAmount}>+{reward.amount}</span>
+                        <span className={styles.resourceRewardAmount}>
+                          +
+                          {reward.amount}
+                        </span>
                       </div>
                     ))}
                   </div>
                   {hiddenRewardsCount > 0 && (
-                    <p className={styles.hiddenInfo}>Есть ещё неизвестные награды:
+                    <p className={styles.hiddenInfo}>
+                      Есть ещё неизвестные награды:
                       {' '}
                       {hiddenRewardsCount}
                       . Улучшите разведку, чтобы увидеть полный список.
@@ -340,22 +454,32 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                 <div className={styles.synergySection}>
                   <strong>Химия отряда:</strong>
                   <div className={styles.synergySummary}>
-                    <span>Бонус к успеху: {partySynergy.successBonus >= 0 ? '+' : ''}{partySynergy.successBonus}%</span>
+                    <span>
+                      Бонус к успеху:
+                      {partySynergy.successBonus >= 0 ? '+' : ''}
+                      {partySynergy.successBonus}
+                      %
+                    </span>
                     {partySynergy.injuryMultiplier !== 1 && (
-                      <span>Модификатор травм: ×{partySynergy.injuryMultiplier.toFixed(2)}</span>
+                      <span>
+                        Модификатор травм: ×
+                        {partySynergy.injuryMultiplier.toFixed(2)}
+                      </span>
                     )}
                   </div>
-                  {partySynergy.notes.length === 0 ? (
-                    <p className={styles.synergyNoNotes}>Особых взаимодействий не обнаружено.</p>
-                  ) : (
-                    <ul className={styles.synergyNotes}>
-                      {partySynergy.notes.map(note => (
-                        <li key={note.id} className={note.type === 'bonus' ? styles.synergyNoteBonus : styles.synergyNotePenalty}>
-                          {note.text}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {partySynergy.notes.length === 0
+                    ? (
+                        <p className={styles.synergyNoNotes}>Особых взаимодействий не обнаружено.</p>
+                      )
+                    : (
+                        <ul className={styles.synergyNotes}>
+                          {partySynergy.notes.map(note => (
+                            <li key={note.id} className={note.type === 'bonus' ? styles.synergyNoteBonus : styles.synergyNotePenalty}>
+                              {note.text}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                 </div>
               )}
 
@@ -474,27 +598,30 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
             </div>
           </div>
           {quest.status === QuestStatus.NotStarted && (
-              <div className={clsx(styles.heroSelector)}>
-                <strong>Доступные герои для назначения:</strong>
-                <div className={styles.partyLimit}>Максимальный размер отряда: {maxPartySize}</div>
-                <div className={styles.heroSelectorScroller}>
-                  {availableForQuestHeroes.length === 0
-                    ? (
-                        <p>Нет доступных героев</p>
-                      )
-                    : availableForQuestHeroes.map(hero => (
-                        <div key={hero.id}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={selectedHeroesIds.includes(hero.id)}
-                              onChange={() => toggleHero(hero.id)}
-                              disabled={!selectedHeroesIds.includes(hero.id) && selectionLimitReached}
-                            />
-                            {hero.name}
-                            {' '}
-                            (
-                            {hero.type}
+            <div className={clsx(styles.heroSelector)}>
+              <strong>Доступные герои для назначения:</strong>
+              <div className={styles.partyLimit}>
+                Максимальный размер отряда:
+                {maxPartySize}
+              </div>
+              <div className={styles.heroSelectorScroller}>
+                {availableForQuestHeroes.length === 0
+                  ? (
+                      <p>Нет доступных героев</p>
+                    )
+                  : availableForQuestHeroes.map(hero => (
+                      <div key={hero.id}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={selectedHeroesIds.includes(hero.id)}
+                            onChange={() => toggleHero(hero.id)}
+                            disabled={!selectedHeroesIds.includes(hero.id) && selectionLimitReached}
+                          />
+                          {hero.name}
+                          {' '}
+                          (
+                          {hero.type}
                           {' '}
                           {hero.level}
                           {' '}
@@ -520,9 +647,9 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                       </div>
                     ))}
 
-                  {selectionLimitReached && (
-                    <p className={styles.limitWarning}>Максимальный состав достигнут.</p>
-                  )}
+                {selectionLimitReached && (
+                  <p className={styles.limitWarning}>Максимальный состав достигнут.</p>
+                )}
               </div>
             </div>
           )}

@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
+import { pickRandomTraitsForHero } from '../../assets/traits/traits';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
@@ -8,7 +9,6 @@ import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import type { HeroType } from '../../shared/types/hero';
 import { randomInRange } from '../../shared/utils/randomInRange';
 import { RecruitsStore } from '../Recruits/store/Recruits.store';
-import { pickRandomTraitsForHero } from '../../assets/traits/traits';
 
 @singleton()
 export class HeroesStore {
@@ -107,6 +107,7 @@ export class HeroesStore {
 
   generateStatsByType = (type: 'warrior' | 'mage' | 'rogue') => {
     const gearBonus = Math.round(this.upgradeStore.getNumericEffectSum('gear_tier_bonus'));
+
     switch (type) {
       case 'warrior':
         return {

@@ -40,11 +40,19 @@ export interface IQuest {
   reputationRequirement?: number;
   successHeatDelta?: number;
   failureHeatDelta?: number;
+  successRepDelta?: number;
+  failureRepDelta?: number;
   resourcePenalty?: {
     goldLoss?: number;
     injuryChance?: number;
     itemLossChance?: number;
   };
+  chainId?: string;
+  chainStageIndex?: number;
+  unlocksLeader?: boolean;
+  chainLeaderName?: string;
+  chainLeaderTitle?: string;
+  chainTotalStages?: number;
 }
 
 export type QuestNarrative = Pick<IQuest, 'title' | 'description' | 'failResult' | 'successResult' | 'timeoutResult'>;

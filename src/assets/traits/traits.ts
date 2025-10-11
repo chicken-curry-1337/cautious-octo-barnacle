@@ -1,4 +1,3 @@
-
 export type TraitRarity = 'common' | 'rare' | 'unique';
 
 export type Trait = {
@@ -185,6 +184,7 @@ export function pickRandomTraitsForHero(maxTraits: number): string[] {
 
     for (const trait of pool) {
       roll -= rarityWeights[trait.rarity];
+
       if (roll <= 0) {
         selected = trait;
         break;

@@ -13,6 +13,7 @@ type TReputation = {
   guard: number;
   cartel: number;
   merchants: number;
+  citizens: number;
 };
 
 type ActiveGuildStatus = {
@@ -30,6 +31,14 @@ export class GameStateStore {
     guard: 0,
     cartel: 0,
     merchants: 0,
+    citizens: 0,
+  };
+  factionLeadersUnlocked: Record<FactionId, boolean> = {
+    guild: false,
+    guard: false,
+    cartel: false,
+    merchants: false,
+    citizens: false,
   };
 
   activeStatuses: ActiveGuildStatus[] = [];
@@ -105,12 +114,41 @@ export class GameStateStore {
     this.heat += value;
   };
 
+  applyHeatDelta = (delta: number) => {
+    const adjusted = Math.round(delta);
+    if (adjusted === 0) return;
+
+    if (adjusted > 0) {
+      this.addHeat(adjusted);
+    } else {
+      this.heat = Math.max(0, this.heat + adjusted);
+    }
+  };
+
   decayHeat = () => {
     if (this.heat <= 0) return;
     const baseDecay = 1;
     const multiplier = this.upgradeStore.getNumericEffectProduct('heat_decay_mult');
     const decay = Math.max(1, Math.round(baseDecay * multiplier));
     this.heat = Math.max(0, this.heat - decay);
+  };
+
+  changeFactionReputation = (factionId: FactionId, delta: number) => {
+    const adjusted = Math.round(delta);
+    if (adjusted === 0) return;
+
+    const current = this.reputation[factionId] ?? 0;
+    this.reputation[factionId] = current + adjusted;
+  };
+
+  unlockFactionLeader = (factionId: FactionId) => {
+    if (this.factionLeadersUnlocked[factionId]) return;
+
+    this.factionLeadersUnlocked[factionId] = true;
+  };
+
+  isFactionLeaderUnlocked = (factionId: FactionId) => {
+    return this.factionLeadersUnlocked[factionId] ?? false;
   };
 
   getFactionReputation = (factionId: FactionId) => {

@@ -1,15 +1,14 @@
 import { useMemo, useState } from 'react';
 
-import clsx from 'clsx';
-
+import { clsx } from 'clsx';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
+import { traitMap } from '../../../../assets/traits/traits';
 import { GuildFinanceStore } from '../../../../entities/Finance/Finance.store';
 import type { HeroType } from '../../../../shared/types/hero';
 import { GuildStore } from '../../../../widgets/Guild/store/Guild.store';
 import { RecruitsStore } from '../../store/Recruits.store';
-import { traitMap } from '../../../../assets/traits/traits';
 
 import styles from './RecruitList.module.css';
 
@@ -126,17 +125,21 @@ export const RecruitList = observer(() => {
                         {openedTrait
                           && openedTrait.heroId === hero.id
                           && openedTrait.traitId === trait.id && (
-                            <div className={styles.traitDropdown}>
-                              {trait.description}
-                              <div className={styles.traitMeta}>
-                                Редкость: <strong>{trait.rarity === 'unique' ? 'Уникальная' : trait.rarity === 'rare' ? 'Редкая' : 'Обычная'}</strong>
-                              </div>
-                              {trait.synergyTags.length > 0 && (
-                                <div className={styles.traitMeta}>
-                                  Теги: <strong>{trait.synergyTags.join(', ')}</strong>
-                                </div>
-                              )}
+                          <div className={styles.traitDropdown}>
+                            {trait.description}
+                            <div className={styles.traitMeta}>
+                              Редкость:
+                              {' '}
+                              <strong>{trait.rarity === 'unique' ? 'Уникальная' : trait.rarity === 'rare' ? 'Редкая' : 'Обычная'}</strong>
                             </div>
+                            {trait.synergyTags.length > 0 && (
+                              <div className={styles.traitMeta}>
+                                Теги:
+                                {' '}
+                                <strong>{trait.synergyTags.join(', ')}</strong>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     ))}

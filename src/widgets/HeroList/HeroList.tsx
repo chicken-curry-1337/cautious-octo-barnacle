@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import clsx from 'clsx';
 
+import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 

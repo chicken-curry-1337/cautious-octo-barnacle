@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { FACTIONS, factionMap } from '../../assets/factions/factions';
+import { FACTIONS } from '../../assets/factions/factions';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
 
 import styles from './FactionPanel.module.css';
@@ -40,7 +40,7 @@ export const FactionPanel = observer(({ isOpen, onClose }: FactionPanelProps) =>
                 <p className={styles.factionDescription}>{faction.description}</p>
                 <div className={styles.metrics}>
                   <div>
-                    Репутация:
+                    Текущая репутация:
                     {' '}
                     <strong>{reputation}</strong>
                   </div>

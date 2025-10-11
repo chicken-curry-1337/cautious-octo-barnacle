@@ -26,7 +26,7 @@ export class GuildEventStore {
 
     reaction(
       () => this.timeStore.absoluteDay,
-      day => {
+      (day) => {
         this.onNewDay(day);
       },
       { fireImmediately: false },
@@ -39,6 +39,7 @@ export class GuildEventStore {
     const availableEvents = GUILD_EVENTS.filter((event) => {
       if (event.minDay > day) return false;
       if (!event.repeatable && this.completedNonRepeatable.has(event.id)) return false;
+
       if (event.requiredResources && !this.financeStore.canAffordResources(event.requiredResources)) {
         return false;
       }

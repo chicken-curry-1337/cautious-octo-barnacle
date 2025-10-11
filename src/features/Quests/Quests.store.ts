@@ -1,7 +1,20 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
+import { factionMap, pickFaction, type Faction, type FactionId } from '../../assets/factions/factions';
 import { modifiers as questModifiers } from '../../assets/modifiers/modifiers';
+import {
+  CITIZEN_TASKS,
+  FACTION_CONTRACT_TEMPLATES,
+  type CitizenTask,
+  type FactionContractTemplate,
+  type NonCitizenFactionId,
+} from '../../assets/quests/quests';
+import {
+  questChainsConfig,
+  type QuestChainDefinition,
+  type QuestChainStage,
+} from '../QuestChains/QuestChains.store';
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
 import { evaluatePartySynergy } from '../../assets/traits/traitSynergies';
 import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
@@ -16,11 +29,38 @@ import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
 // import { questChainsConfig } from '../QuestChains/QuestChains.store';
 
+const DEFAULT_FACTION_REWARD_RANGE: [number, number] = [70, 150];
+const DEFAULT_FACTION_DEADLINE_RANGE: [number, number] = [3, 5];
+const DEFAULT_FACTION_EXECUTION_RANGE: [number, number] = [3, 5];
+const DEFAULT_STAT_REQUIREMENTS = {
+  strength: [5, 15] as [number, number],
+  agility: [5, 15] as [number, number],
+  intelligence: [5, 15] as [number, number],
+};
+const CITIZEN_DEADLINE_RANGE: [number, number] = [2, 3];
+const CITIZEN_EXECUTION_RANGE: [number, number] = [1, 2];
+const FALLBACK_CITIZEN_TASK: CitizenTask = {
+  title: 'Помочь жителям',
+  description: 'Горожане просят гильдию помочь с повседневными заботами.',
+  successResult: 'Задача выполнена, жители благодарят гильдию.',
+  failResult: 'Жители остались без помощи и разочарованы.',
+  timeoutResult: 'Проблему решили другие добровольцы.',
+  goldRange: [15, 30],
+};
+
 // todo: refactor accord to FSD
 @singleton()
 export class QuestsStore {
   quests: IQuest[] = [];
-  questChainsProgress: Record<string, number> = { slime: 0 };
+  private static readonly CHAIN_REPUTATION_THRESHOLD = 20;
+  questChainsProgress: Record<string, number> = Object.keys(questChainsConfig).reduce<Record<string, number>>(
+    (acc, chainId) => {
+      acc[chainId] = 0;
+
+      return acc;
+    },
+    {},
+  );
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -153,6 +193,10 @@ export class QuestsStore {
       resourceRewards?: Record<string, number>;
       requiredResources?: Record<string, number>;
       isIllegal?: boolean;
+      factionId?: FactionId;
+      reputationRequirement?: number;
+      successHeatDelta?: number;
+      failureHeatDelta?: number;
     },
   ) => {
     const questReward = reward ?? randomInRange(50, 150);
@@ -188,6 +232,10 @@ export class QuestsStore {
       requiredResources: options?.requiredResources ?? {},
       isStory: options?.isStory ?? false,
       isIllegal: options?.isIllegal ?? false,
+      factionId: options?.factionId,
+      reputationRequirement: options?.reputationRequirement,
+      successHeatDelta: options?.successHeatDelta,
+      failureHeatDelta: options?.failureHeatDelta,
     };
     this.quests.push(newQuest);
   };
@@ -203,6 +251,7 @@ export class QuestsStore {
       // Проверка на истечение времени принятия
       if (quest.status === QuestStatus.NotStarted && this.timeStore.absoluteDay > quest.deadlineAccept) {
         quest.status = QuestStatus.FailedDeadline;
+        this.applyFactionOutcome(quest, 'timeout');
 
         return false;
       }
@@ -233,6 +282,8 @@ export class QuestsStore {
           this.financeStore.addGold(rewardWithUpgrades - heroComission);
           console.log(`hero comission: ${heroComission}`);
           this.grantQuestResources(quest);
+          this.applyFactionOutcome(quest, 'success');
+          this.advanceQuestChainProgress(quest);
 
           if (quest.isStory) {
             this.difficultyStore.onStoryQuestCompleted();
@@ -290,6 +341,8 @@ export class QuestsStore {
               this.gameStateStore.addHeat(heatGain);
             }
           }
+
+          this.applyFactionOutcome(quest, 'failure');
         }
 
         if (success) {
@@ -318,7 +371,7 @@ export class QuestsStore {
 
       for (let i = 0; i < newQuestsCount; i++) {
         const quest = this.generateRandomQuest();
-        this.quests.push(quest);
+        if (quest) this.quests.push(quest);
       }
     }
   };
@@ -357,6 +410,8 @@ export class QuestsStore {
       }
 
       this.grantQuestResources(quest);
+      this.applyFactionOutcome(quest, 'success');
+      this.advanceQuestChainProgress(quest);
       this.grantHeroExperience(assignedHeroes);
 
       if (quest.isStory) {
@@ -520,6 +575,211 @@ export class QuestsStore {
     return rewards;
   };
 
+  private pickCitizenTask = (): CitizenTask | null => {
+    if (CITIZEN_TASKS.length === 0) return null;
+
+    const index = randomInRange(0, CITIZEN_TASKS.length - 1);
+
+    return CITIZEN_TASKS[index];
+  };
+
+  private buildCitizenResourceRewards = (task: CitizenTask): Record<string, number> => {
+    const rewards: Record<string, number> = {};
+
+    if (task.woodRange) {
+      const amount = randomInRange(task.woodRange[0], task.woodRange[1]);
+      if (amount > 0) rewards.timber = amount;
+    }
+
+    if (task.herbRange) {
+      const amount = randomInRange(task.herbRange[0], task.herbRange[1]);
+      if (amount > 0) rewards.healing_herbs = amount;
+    }
+
+    return rewards;
+  };
+
+  private resolveFactionTemplate = (faction: Faction): FactionContractTemplate | null => {
+    if (faction.id === 'citizens') return null;
+
+    const templates = FACTION_CONTRACT_TEMPLATES[faction.id as NonCitizenFactionId];
+    if (!templates || templates.length === 0) return null;
+
+    const index = randomInRange(0, templates.length - 1);
+
+    return templates[index];
+  };
+
+  private buildTemplateResourceRewards = (template: FactionContractTemplate | null, multiplier: number): Record<string, number> => {
+    if (!template?.resourceRewards) {
+      return this.getRandomResourceRewards();
+    }
+
+    const rewards: Record<string, number> = {};
+
+    Object.entries(template.resourceRewards).forEach(([resourceId, range]) => {
+      const amount = Math.round(randomInRange(range[0], range[1]) * multiplier);
+
+      if (amount > 0) {
+        rewards[resourceId] = amount;
+      }
+    });
+
+    return rewards;
+  };
+
+  private buildTemplateRequiredResources = (template: FactionContractTemplate | null): Record<string, number> => {
+    if (!template?.requiredResources) return {};
+
+    const requirements: Record<string, number> = {};
+
+    Object.entries(template.requiredResources).forEach(([resourceId, range]) => {
+      const amount = Math.round(randomInRange(range[0], range[1]));
+
+      if (amount > 0) {
+        requirements[resourceId] = amount;
+      }
+    });
+
+    return requirements;
+  };
+
+  private rollStatRequirement = (range: [number, number], multiplier: number) => {
+    const value = randomInRange(range[0], range[1]) * multiplier;
+
+    return Math.max(1, Math.floor(value));
+  };
+
+  private rollReward = (range: [number, number], multiplier: number) => {
+    return Math.max(0, Math.round(randomInRange(range[0], range[1]) * multiplier));
+  };
+
+  private rollResourcePenalty = (): IQuest['resourcePenalty'] | undefined => {
+    const penaltyBaseChance = 0.7;
+    const penaltyChanceModifier = this.upgradeStore.getNumericEffectProduct('rare_contract_chance_mult');
+    const threshold = penaltyBaseChance / Math.max(1, penaltyChanceModifier);
+    const shouldHavePenalty = Math.random() < threshold;
+
+    if (!shouldHavePenalty) return undefined;
+
+    const baseMultiplier = 1 + this.difficultyStore.difficultyLevel * 0.3;
+    const goldLoss = randomInRange(10, 50) * baseMultiplier;
+    const injuryChance = randomInRange(10, 50) * baseMultiplier;
+    const itemLossChance = Math.random() < 0.3 ? randomInRange(10, 30) : 0;
+
+    return {
+      goldLoss: Math.round(goldLoss),
+      injuryChance: Math.min(Math.round(injuryChance), 100),
+      itemLossChance: Math.round(itemLossChance),
+    };
+  };
+
+  private hasActiveChainStage = (chainId: string, stageIndex: number) => {
+    return this.quests.some(
+      quest =>
+        quest.chainId === chainId
+        && quest.chainStageIndex === stageIndex
+        && (quest.status === QuestStatus.NotStarted || quest.status === QuestStatus.InProgress),
+    );
+  };
+
+  private createChainQuest = (
+    chain: QuestChainDefinition,
+    stage: QuestChainStage,
+    stageIndex: number,
+  ): IQuest => {
+    const faction = factionMap[chain.factionId];
+    const multiplier = 1 + this.difficultyStore.difficultyLevel * 0.25;
+    const deadlineRange = stage.deadlineRange ?? DEFAULT_FACTION_DEADLINE_RANGE;
+    const executionRange = stage.executionRange ?? DEFAULT_FACTION_EXECUTION_RANGE;
+
+    const deadlineAccept = this.timeStore.absoluteDay + randomInRange(deadlineRange[0], deadlineRange[1]);
+    const executionTime = randomInRange(executionRange[0], executionRange[1]);
+    const reward = this.rollReward([stage.rewardMin, stage.rewardMax], multiplier);
+
+    const requiredStrength = randomInRange(stage.reqStats.str[0], stage.reqStats.str[1]);
+    const requiredAgility = randomInRange(stage.reqStats.agi[0], stage.reqStats.agi[1]);
+    const requiredIntelligence = randomInRange(stage.reqStats.int[0], stage.reqStats.int[1]);
+
+    const resourceRewards = stage.resourceRewards ? { ...stage.resourceRewards } : {};
+    const requiredResources = stage.requiredResources ? { ...stage.requiredResources } : {};
+    const successHeatDelta = stage.successHeatDelta ?? faction.successHeatDelta;
+    const failureHeatDelta = stage.failureHeatDelta ?? faction.failureHeatDelta;
+
+    return {
+      id: crypto.randomUUID(),
+      dateCreated: this.timeStore.absoluteDay,
+      title: stage.title,
+      description: stage.description,
+      successResult: stage.successResult,
+      failResult: stage.failResult,
+      deadlineResult: stage.deadlineResult,
+      reward,
+      assignedHeroIds: [],
+      completed: false,
+      deadlineAccept,
+      executionTime,
+      executionDeadline: null,
+      timeoutResult: stage.deadlineResult,
+      requiredStrength,
+      requiredAgility,
+      requiredIntelligence,
+      modifiers: [],
+      resourceRewards,
+      requiredResources,
+      status: QuestStatus.NotStarted,
+      isStory: true,
+      isIllegal: stage.isIllegal ?? faction.illegal ?? false,
+      factionId: chain.factionId,
+      reputationRequirement: Math.max(
+        QuestsStore.CHAIN_REPUTATION_THRESHOLD,
+        faction.minReputation,
+      ),
+      successHeatDelta,
+      failureHeatDelta,
+      successRepDelta: faction.successRepDelta,
+      failureRepDelta: faction.failureRepDelta,
+      resourcePenalty: undefined,
+      chainId: chain.id,
+      chainStageIndex: stageIndex,
+      unlocksLeader: stage.unlockLeader ?? false,
+      chainLeaderName: chain.leaderName,
+      chainLeaderTitle: chain.leaderTitle,
+      chainTotalStages: chain.stages.length,
+    };
+  };
+
+  private generateChainQuest = (): IQuest | null => {
+    for (const chain of Object.values(questChainsConfig)) {
+      const progress = this.questChainsProgress[chain.id] ?? 0;
+      if (progress >= chain.stages.length) continue;
+
+      const reputation = this.gameStateStore.getFactionReputation(chain.factionId);
+      if (reputation < QuestsStore.CHAIN_REPUTATION_THRESHOLD) continue;
+
+      if (this.hasActiveChainStage(chain.id, progress)) continue;
+
+      const stage = chain.stages[progress];
+      return this.createChainQuest(chain, stage, progress);
+    }
+
+    return null;
+  };
+
+  private advanceQuestChainProgress = (quest: IQuest) => {
+    if (!quest.chainId) return;
+    const chain = questChainsConfig[quest.chainId];
+    if (!chain) return;
+
+    const currentIndex = quest.chainStageIndex ?? 0;
+    const nextIndex = Math.max(this.questChainsProgress[quest.chainId] ?? 0, currentIndex + 1);
+    this.questChainsProgress[quest.chainId] = Math.min(nextIndex, chain.stages.length);
+
+    if (quest.unlocksLeader) {
+      this.gameStateStore.unlockFactionLeader(chain.factionId);
+    }
+  };
+
   private grantHeroExperience = (heroes: HeroStore[]) => {
     const xpMultiplier = this.xpGainMultiplier;
     const baseLevels = Math.floor(xpMultiplier);
@@ -551,6 +811,40 @@ export class QuestsStore {
     });
   };
 
+  private applyFactionOutcome = (quest: IQuest, outcome: 'success' | 'failure' | 'timeout') => {
+    if (!quest.factionId) return;
+
+    const factionId = quest.factionId as FactionId;
+    const faction = factionMap[factionId];
+    if (!faction) return;
+
+    if (outcome === 'success') {
+      const successRepDelta = quest.successRepDelta ?? faction.successRepDelta;
+
+      if (successRepDelta) {
+        this.gameStateStore.changeFactionReputation(factionId, successRepDelta);
+      }
+      const heatDelta = quest.successHeatDelta ?? faction.successHeatDelta ?? 0;
+
+      if (heatDelta) {
+        this.gameStateStore.applyHeatDelta(heatDelta);
+      }
+
+      return;
+    }
+
+    const failureRepDelta = quest.failureRepDelta ?? faction.failureRepDelta;
+
+    if (failureRepDelta) {
+      this.gameStateStore.changeFactionReputation(factionId, failureRepDelta);
+    }
+    const heatDelta = quest.failureHeatDelta ?? faction.failureHeatDelta ?? 0;
+
+    if (heatDelta) {
+      this.gameStateStore.applyHeatDelta(heatDelta);
+    }
+  };
+
   rerollNewQuests = (count = 1) => {
     if (!this.boardUnlocked) return false;
     const availableNewQuests = this.newQuests;
@@ -567,7 +861,8 @@ export class QuestsStore {
     for (let i = 0; i < rerollCount; i++) {
       const questToReplace = availableNewQuests[i];
       this.quests = this.quests.filter(q => q.id !== questToReplace.id);
-      this.quests.push(this.generateRandomQuest());
+      const replacement = this.generateRandomQuest();
+      if (replacement) this.quests.push(replacement);
     }
 
     return true;
@@ -613,145 +908,126 @@ export class QuestsStore {
     quest.executionDeadline = this.timeStore.absoluteDay + effectiveDuration;
   };
 
-  generateRandomQuest = (): IQuest => {
-    const titles = [
-      'Спасти деревню',
-      'Найти древний артефакт',
-      'Защитить караван',
-      'Исследовать заброшенный храм',
-      'Поймать разбойников',
-    ];
+  private createCitizenQuest = (faction: Faction): IQuest => {
+    const task = this.pickCitizenTask() ?? FALLBACK_CITIZEN_TASK;
 
-    const descriptions = [
-      'Деревня подвергается нападениям бандитов. Нужно защитить жителей.',
-      'Артефакт обладает магической силой и должен быть возвращён в гильдию.',
-      'Караван с товарами под угрозой нападения, нужна охрана.',
-      'В заброшенном храме появляются странные создания, нужно разобраться.',
-      'Группа разбойников терроризирует окрестности, необходимо их поймать.',
-    ];
-
-    const successResults = [
-      'Деревня спасена, жители устроили пир в вашу честь.',
-      'Артефакт найден и доставлен в гильдию. Мудрецы уже изучают его свойства.',
-      'Караван благополучно добрался до города. Торговцы щедро отблагодарили героев.',
-      'Храм очищен от чудовищ. Исследователи гильдии начали его изучение.',
-      'Разбойники схвачены и переданы местным властям. Мир восстановлен.',
-    ];
-
-    const failResults = [
-      'Деревня сожжена, уцелевшие жители в панике бежали.',
-      'Артефакт так и не был найден. Его сила может попасть не в те руки.',
-      'Караван был разграблен. Остатки сожжены, торговцы разорены.',
-      'Герои не вернулись из храма. Оттуда доносятся всё более зловещие звуки.',
-      'Разбойники ускользнули и теперь действуют ещё более дерзко.',
-    ];
-
-    const timeoutResults = [
-      'Пока герои собирались, деревня была уничтожена. Спасать уже некого.',
-      'Артефакт исчез из места силы. Кто-то другой успел первым.',
-      'Караван ушёл без защиты и был атакован. Остались лишь обугленные повозки.',
-      'Существа в храме усилились. Теперь туда не осмеливается сунуться ни один герой.',
-      'Разбойники ушли в подполье. Теперь их будет куда сложнее выследить.',
-    ];
-
-    const idx = Math.floor(Math.random() * titles.length);
-    const reward = randomInRange(50, 150);
-    const deadlineAccept = this.timeStore.absoluteDay + randomInRange(3, 5);
-    const executionTime = randomInRange(3, 5);
-
-    // Требования к статам — чтобы было разное, сделаем рандом в разумных пределах
-    const multiplier = 1 + this.difficultyStore.difficultyLevel * 0.2;
-
-    const requiredStrength = Math.floor(randomInRange(5, 15) * multiplier);
-    const requiredAgility = Math.floor(randomInRange(5, 15) * multiplier);
-    const requiredIntelligence = Math.floor(
-      randomInRange(5, 15) * multiplier,
+    const deadlineAccept = this.timeStore.absoluteDay + randomInRange(
+      CITIZEN_DEADLINE_RANGE[0],
+      CITIZEN_DEADLINE_RANGE[1],
+    );
+    const executionTime = randomInRange(
+      CITIZEN_EXECUTION_RANGE[0],
+      CITIZEN_EXECUTION_RANGE[1],
     );
 
-    // todo: сюжетные цепочки надо создавать сразу. И показывать каждый новый квест только в том случае, если предыдущий выполнен
-    // for (const chainId in questChainsConfig) {
-    //   const stageIndex = this.questChainsProgress[chainId] ?? 0;
+    const requiredStrength = randomInRange(2, 6);
+    const requiredAgility = randomInRange(2, 6);
+    const requiredIntelligence = randomInRange(2, 6);
 
-    //   if (stageIndex < questChainsConfig[chainId].length) {
-    //     console.log(2);
-    //     const stage = questChainsConfig[chainId][stageIndex];
-    //     this.questChainsProgress[chainId] = stageIndex + 1;
-
-    //     return {
-    //       id: crypto.randomUUID(),
-    //       dateCreated: this.timeStore.absoluteDay,
-    //       title: stage.title,
-    //       description: stage.description,
-    //       successResult: stage.successResult,
-    //       failResult: stage.failResult,
-    //       deadlineResult: stage.deadlineResult,
-    //       reward: randomInRange(stage.rewardMin, stage.rewardMax),
-    //       assignedHeroIds: [],
-    //       completed: false,
-    //       deadlineAccept,
-    //       timeoutResult: '',
-    //       requiredStrength: randomInRange(...stage.reqStats.str),
-    //       requiredAgility: randomInRange(...stage.reqStats.agi),
-    //       requiredIntelligence: randomInRange(...stage.reqStats.int),
-    //       status: QuestStatus.NotStarted,
-    //       executionTime: 10,
-    //       executionDeadline: null,
-    //     };
-    //   } else {
-    //     console.log(3);
-    //   }
-    // }
-
-    // 🎲 Генерация штрафов
-    const penaltyBaseChance = 0.7;
-    const penaltyChanceModifier = this.upgradeStore.getNumericEffectProduct('rare_contract_chance_mult');
-    const shouldHavePenalty = Math.random() < penaltyBaseChance / Math.max(1, penaltyChanceModifier);
-
-    const isIllegal = Math.random() < 0.35;
-
-    let resourcePenalty;
-
-    if (shouldHavePenalty) {
-      const baseMultiplier = 1 + this.difficultyStore.difficultyLevel * 0.3;
-
-      const goldLoss = randomInRange(10, 50) * baseMultiplier;
-      const injuryChance = randomInRange(10, 50) * baseMultiplier;
-      const itemLossChance
-        = Math.random() < 0.3 ? randomInRange(10, 30) : 0;
-
-      resourcePenalty = {
-        goldLoss: Math.round(goldLoss),
-        injuryChance: Math.min(Math.round(injuryChance), 100),
-        itemLossChance: Math.round(itemLossChance),
-      };
-    }
+    const resourceRewards = this.buildCitizenResourceRewards(task);
 
     return {
       id: crypto.randomUUID(),
       dateCreated: this.timeStore.absoluteDay,
-      title: titles[idx],
-      description: descriptions[idx],
-      successResult: successResults[idx],
-      failResult: failResults[idx],
-      deadlineResult: timeoutResults[idx],
+      title: task.title,
+      description: task.description,
+      successResult: task.successResult,
+      failResult: task.failResult,
+      deadlineResult: task.timeoutResult,
+      reward: this.rollReward(task.goldRange, 1),
+      assignedHeroIds: [],
+      completed: false,
+      deadlineAccept,
+      executionTime,
+      executionDeadline: null,
+      timeoutResult: task.timeoutResult,
+      requiredStrength,
+      requiredAgility,
+      requiredIntelligence,
+      modifiers: [],
+      resourceRewards,
+      requiredResources: {},
+      status: QuestStatus.NotStarted,
+      isStory: false,
+      isIllegal: false,
+      factionId: faction.id,
+      reputationRequirement: faction.minReputation,
+      successHeatDelta: faction.successHeatDelta,
+      failureHeatDelta: faction.failureHeatDelta,
+    };
+  };
+
+  private createFactionQuest = (faction: Faction): IQuest => {
+    const template = this.resolveFactionTemplate(faction);
+    const multiplier = 1 + this.difficultyStore.difficultyLevel * 0.25;
+
+    const deadlineRange = template?.deadlineRange ?? DEFAULT_FACTION_DEADLINE_RANGE;
+    const executionRange = template?.executionRange ?? DEFAULT_FACTION_EXECUTION_RANGE;
+
+    const deadlineAccept = this.timeStore.absoluteDay + randomInRange(deadlineRange[0], deadlineRange[1]);
+    const executionTime = randomInRange(executionRange[0], executionRange[1]);
+
+    const rewardRange = template?.goldRange ?? DEFAULT_FACTION_REWARD_RANGE;
+    const reward = this.rollReward(rewardRange, multiplier);
+
+    const stats = template?.stats ?? DEFAULT_STAT_REQUIREMENTS;
+    const requiredStrength = this.rollStatRequirement(stats.strength, multiplier);
+    const requiredAgility = this.rollStatRequirement(stats.agility, multiplier);
+    const requiredIntelligence = this.rollStatRequirement(stats.intelligence, multiplier);
+
+    const resourcePenalty = this.rollResourcePenalty();
+    const resourceRewards = this.buildTemplateResourceRewards(template, multiplier);
+    const requiredResources = this.buildTemplateRequiredResources(template);
+
+    const successHeatDelta = template?.successHeatDelta ?? faction.successHeatDelta;
+    const failureHeatDelta = template?.failureHeatDelta ?? faction.failureHeatDelta;
+
+    return {
+      id: crypto.randomUUID(),
+      dateCreated: this.timeStore.absoluteDay,
+      title: template?.title ?? 'Контракт фракции',
+      description: template?.description ?? 'Фракция предлагает контракт со стандартными условиями.',
+      successResult: template?.successResult ?? 'Контракт выполнен, доверие укрепилось.',
+      failResult: template?.failResult ?? 'Контракт сорван, отношения ухудшились.',
+      deadlineResult: template?.timeoutResult ?? 'Фракция нашла других исполнителей.',
       reward,
       assignedHeroIds: [],
       completed: false,
       deadlineAccept,
       executionTime,
       executionDeadline: null,
-      timeoutResult: timeoutResults[idx],
+      timeoutResult: template?.timeoutResult ?? 'Контракт больше не актуален.',
       requiredStrength,
       requiredAgility,
       requiredIntelligence,
       modifiers: this.getRandomModifiers(),
-      resourceRewards: this.getRandomResourceRewards(),
-      requiredResources: {},
+      resourceRewards,
+      requiredResources,
       status: QuestStatus.NotStarted,
       isStory: false,
-      isIllegal,
+      isIllegal: template?.illegalOverride ?? (faction.illegal ?? false),
+      factionId: faction.id,
+      reputationRequirement: faction.minReputation,
+      successHeatDelta,
+      failureHeatDelta,
+      successRepDelta: template?.successRepDelta,
+      failureRepDelta: template?.failureRepDelta,
       resourcePenalty,
     };
+  };
+
+  generateRandomQuest = (): IQuest | null => {
+    const chainQuest = this.generateChainQuest();
+    if (chainQuest) return chainQuest;
+
+    const faction = pickFaction(this.gameStateStore.reputation, this.gameStateStore.heat);
+    if (!faction) return null;
+
+    if (faction.id === 'citizens') {
+      return this.createCitizenQuest(faction);
+    }
+
+    return this.createFactionQuest(faction);
   };
 
   get sortedQuests() {
