@@ -1,16 +1,22 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 import { container } from 'tsyringe';
 
 import { type TUpgrade, GUILD_UPGRADES } from '../../assets/upgrades/upgrades';
 import { GuildFinanceStore } from '../Finance/Finance.store';
+import { TimeStore } from '../TimeStore/TimeStore';
 import { FactionsStore } from '../Factions/Factions.store';
 
 @singleton()
 export class UpgradeStore {
   upgradeMap: Record<string, TUpgrade> = {};
+  private upgradesCompletedToday = 0;
+  private currentDay = 0;
 
-  constructor(@inject(GuildFinanceStore) private financeStore: GuildFinanceStore) {
+  constructor(
+    @inject(GuildFinanceStore) private financeStore: GuildFinanceStore,
+    @inject(TimeStore) public timeStore: TimeStore,
+  ) {
     makeAutoObservable(this);
 
     // Сначала инициализируем апгрейды без dependents
@@ -27,6 +33,18 @@ export class UpgradeStore {
         this.upgradeMap[depId]?.dependents.push(upgrade.id);
       });
     });
+
+    // track day changes to reset daily upgrade cap
+    this.currentDay = this.timeStore.absoluteDay;
+    reaction(
+      () => this.timeStore.absoluteDay,
+      (day) => {
+        if (day !== this.currentDay) {
+          this.currentDay = day;
+          this.upgradesCompletedToday = 0;
+        }
+      },
+    );
   }
 
   get upgrades() {
@@ -54,6 +72,8 @@ export class UpgradeStore {
     if (!upgrade) return false;
     if (!this.isAvailable(upgradeId)) return false;
     if (!this.meetsFactionRequirements(upgrade)) return false;
+    // enforce daily cap on number of upgrades
+    if (this.upgradesCompletedToday >= 4) return false;
 
     const goldOk = this.financeStore.canAffordGold(upgrade.cost);
     const resourceOk = upgrade.resourceCost
@@ -81,6 +101,7 @@ export class UpgradeStore {
       }
 
       upgrade.done = true;
+      this.upgradesCompletedToday += 1;
 
       return true;
     }

@@ -8,6 +8,7 @@ export type FinanceCategory =
   | 'quest_penalty'
   | 'quest_refund'
   | 'salary'
+  | 'rent'
   | 'recruitment'
   | 'upgrade'
   | 'loan_in'
@@ -95,15 +96,17 @@ export class FinanceAnalyticsStore {
   recordIncome = (category: FinanceCategory, amount: number) => {
     if (amount <= 0) return;
 
-    this.currentSummary.incomeByCategory[category] += amount;
-    this.allTimeIncome[category] += amount;
+    this.currentSummary.incomeByCategory[category] =
+      (this.currentSummary.incomeByCategory[category] ?? 0) + amount;
+    this.allTimeIncome[category] = (this.allTimeIncome[category] ?? 0) + amount;
   };
 
   recordExpense = (category: FinanceCategory, amount: number) => {
     if (amount <= 0) return;
 
-    this.currentSummary.expenseByCategory[category] += amount;
-    this.allTimeExpense[category] += amount;
+    this.currentSummary.expenseByCategory[category] =
+      (this.currentSummary.expenseByCategory[category] ?? 0) + amount;
+    this.allTimeExpense[category] = (this.allTimeExpense[category] ?? 0) + amount;
   };
 
   get currentNet() {

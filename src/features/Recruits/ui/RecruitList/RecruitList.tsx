@@ -44,6 +44,7 @@ export const RecruitList = observer(() => {
       <h3>Кандидаты на найм</h3>
       {recruitStore.recruits.map((hero) => {
         const canAfford = financeStore.canAffordGold(hero.recruitCost);
+        const canHire = canAfford && guildStore.hasFreeHeroSlot;
 
         return (
           <div key={hero.id} className={styles.card}>
@@ -151,9 +152,9 @@ export const RecruitList = observer(() => {
               {hero.recruitCost}
             </div>
             <button
-              onClick={() => canAfford && guildStore.hireCandidate(hero.id)}
-              className={`${styles.hire} ${canAfford ? '' : styles.hireDisabled}`}
-              disabled={!canAfford}
+              onClick={() => canHire && guildStore.hireCandidate(hero.id)}
+              className={`${styles.hire} ${canHire ? '' : styles.hireDisabled}`}
+              disabled={!canHire}
             >
               Нанять
             </button>

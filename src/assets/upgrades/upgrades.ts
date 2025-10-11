@@ -60,6 +60,7 @@ const SIMPLE_NUMBER_KEYS = new Set([
   'emergency_loan',
   'reroll_traits_token_daily',
   'new_hero_start_level',
+  'guild_size_level',
 ]);
 
 const passThroughKeys = new Map<string, string>([
@@ -113,6 +114,9 @@ export const describeUpgradeEffects = (upgrade: TUpgrade): string[] => {
           break;
         case 'formation_bonus':
           descriptions.push(`Бонус строевых формирований: +${value * 3}%`);
+          break;
+        case 'guild_size_level':
+          descriptions.push(`Размер здания гильдии: +${value} ур.`);
           break;
         case 'emergency_loan':
           descriptions.push(`Открывает экстренный займ на ${value} золота`);
@@ -643,5 +647,35 @@ export const GUILD_UPGRADES: TUpgrade[] = [
     dependents: [],
     effects: { recruit_quality_mult: 1.25, recruit_pool_slots: 1 },
     tags: ['recruitment', 'rarity'],
+  },
+  {
+    id: 'up_guild_hall_expand_1',
+    name: 'Расширение здания гильдии I',
+    icon: '#',
+    done: false,
+    requires: [],
+    dependents: ['up_guild_hall_expand_2'],
+    cost: 200,
+    effects: { guild_size_level: 1 },
+    tags: ['capacity', 'infrastructure'],
+    resourceCost: {
+      timber: 150,
+      iron_ore: 80,
+    },
+  },
+  {
+    id: 'up_guild_hall_expand_2',
+    name: 'Расширение здания гильдии II',
+    icon: '#',
+    done: false,
+    requires: ['up_guild_hall_expand_1'],
+    dependents: [],
+    cost: 350,
+    effects: { guild_size_level: 1 },
+    tags: ['capacity', 'infrastructure'],
+    resourceCost: {
+      timber: 220,
+      iron_ore: 150,
+    },
   },
 ];
