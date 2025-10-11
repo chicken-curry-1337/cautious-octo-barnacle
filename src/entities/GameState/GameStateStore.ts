@@ -44,6 +44,7 @@ export class GameStateStore {
   };
 
   activeStatuses: ActiveGuildStatus[] = [];
+  private syncing: boolean = false;
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -55,6 +56,7 @@ export class GameStateStore {
     reaction(
       () => this.timeStore.absoluteDay,
       () => {
+        if (this.syncing) return;
         this.tickStatuses();
         this.decayHeat();
       },
@@ -64,6 +66,7 @@ export class GameStateStore {
     reaction(
       () => this.timeStore.monthIndex,
       () => {
+        if (this.syncing) return;
         if (this.timeStore.absoluteDay === 0) return;
         this.applyMonthlyReputationDecay();
       },
@@ -171,4 +174,55 @@ export class GameStateStore {
   getFactionReputation = (factionId: FactionId) => {
     return this.reputation[factionId];
   };
+
+  setSyncing = (value: boolean) => {
+    this.syncing = value;
+  };
+
+  loadSnapshot = (snapshot: GameStateSnapshot) => {
+    this.gold = snapshot.gold ?? this.gold;
+    this.heat = snapshot.heat ?? this.heat;
+    if (snapshot.reputation) {
+      this.reputation = {
+        ...this.reputation,
+        ...snapshot.reputation,
+      };
+    }
+
+    if (snapshot.factionLeadersUnlocked) {
+      this.factionLeadersUnlocked = {
+        ...this.factionLeadersUnlocked,
+        ...snapshot.factionLeadersUnlocked,
+      };
+    }
+
+    if (snapshot.activeStatuses) {
+      this.activeStatuses = snapshot.activeStatuses
+        .map(({ id, remainingDays }) => {
+          const source = this.findStatusById(id);
+          if (!source) return null;
+
+          return {
+            id,
+            remainingDays,
+            source,
+          };
+        })
+        .filter((status): status is ActiveGuildStatus => Boolean(status));
+    } else {
+      this.activeStatuses = [];
+    }
+  };
+
+  private findStatusById = (statusId: string) => {
+    return [...GUILD_BUFFS, ...GUILD_DEBUFFS].find(status => status.id === statusId) ?? null;
+  };
 }
+
+export type GameStateSnapshot = {
+  gold: number;
+  heat: number;
+  reputation: Record<FactionId, number>;
+  activeStatuses: Array<{ id: string; remainingDays: number }>;
+  factionLeadersUnlocked: Record<FactionId, boolean>;
+};

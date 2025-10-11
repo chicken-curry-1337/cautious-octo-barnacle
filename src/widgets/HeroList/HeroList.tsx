@@ -69,7 +69,7 @@ const HeroList: React.FC = observer(() => {
                       {getTypeLabel(hero.type)}
                       )
                     </em>
-                    {!hero.assignedQuestId && (
+                    {!hero.assignedQuestId && !hero?.isMainHero && (
                       <button
                         onClick={() => heroesStore.fireHero(hero.id)}
                         className={styles.fireButton}

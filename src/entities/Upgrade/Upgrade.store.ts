@@ -147,4 +147,12 @@ export class UpgradeStore {
 
     return this.financeStore.applyEmergencyLoan(amount, interest);
   };
+
+  loadSnapshot = (completedUpgradeIds: string[]) => {
+    const completedSet = new Set(completedUpgradeIds);
+
+    Object.values(this.upgradeMap).forEach((upgrade) => {
+      upgrade.done = completedSet.has(upgrade.id);
+    });
+  };
 }

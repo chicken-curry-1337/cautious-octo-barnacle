@@ -7,7 +7,7 @@ import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { HeroStore } from '../../entities/Hero/Hero.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
-import type { HeroType } from '../../shared/types/hero';
+import type { HeroType, IHero } from '../../shared/types/hero';
 import { randomInRange } from '../../shared/utils/randomInRange';
 import { RecruitsStore } from '../Recruits/store/Recruits.store';
 
@@ -15,6 +15,7 @@ import { RecruitsStore } from '../Recruits/store/Recruits.store';
 export class HeroesStore {
   heroesMap: Record<string, HeroStore> = {};
   readonly mainHeroId = MAIN_HERO_ID;
+  private syncing: boolean = false;
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -39,6 +40,8 @@ export class HeroesStore {
   }
 
   onNextDay = () => {
+    if (this.syncing) return;
+
     this.heroes.forEach((hero) => {
       if (hero.injured && typeof hero.injuredTimeout === 'number') {
         hero.setInjuredTimeout({
@@ -176,5 +179,25 @@ export class HeroesStore {
       injured: false,
       assignedQuestId: null,
     });
+  };
+
+  setSyncing = (value: boolean) => {
+    this.syncing = value;
+  };
+
+  loadSnapshot = (heroes: IHero[]) => {
+    const nextMap: Record<string, HeroStore> = {};
+
+    heroes.forEach((hero) => {
+      nextMap[hero.id] = new HeroStore({
+        ...hero,
+        traits: hero.traits ?? [],
+        assignedQuestId: hero.assignedQuestId ?? null,
+        isMainHero: hero.isMainHero ?? false,
+      });
+    });
+
+    this.heroesMap = nextMap;
+    this.initializeMainHero();
   };
 }

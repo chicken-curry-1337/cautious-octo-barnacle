@@ -16,6 +16,7 @@ export class GuildEventStore {
   currentEvent: ActiveGuildEvent | null = null;
   history: { eventId: string; optionId: string; day: number }[] = [];
   private completedNonRepeatable = new Set<string>();
+  private syncing: boolean = false;
 
   constructor(
     @inject(TimeStore) private timeStore: TimeStore,
@@ -27,6 +28,7 @@ export class GuildEventStore {
     reaction(
       () => this.timeStore.absoluteDay,
       (day) => {
+        if (this.syncing) return;
         this.onNewDay(day);
       },
       { fireImmediately: false },
@@ -116,4 +118,35 @@ export class GuildEventStore {
 
     return !option.resourceCost || this.financeStore.canAffordResources(option.resourceCost);
   }
+
+  getCompletedNonRepeatableIds = () => Array.from(this.completedNonRepeatable);
+
+  setSyncing = (value: boolean) => {
+    this.syncing = value;
+  };
+
+  loadSnapshot = (snapshot: GuildEventSnapshot) => {
+    this.history = snapshot.history ?? [];
+    this.completedNonRepeatable = new Set(snapshot.completedNonRepeatable ?? []);
+
+    if (snapshot.currentEvent) {
+      const baseEvent = GUILD_EVENTS.find(event => event.id === snapshot.currentEvent.id);
+      if (baseEvent) {
+        this.currentEvent = {
+          ...baseEvent,
+          dayTriggered: snapshot.currentEvent.dayTriggered,
+        };
+      } else {
+        this.currentEvent = null;
+      }
+    } else {
+      this.currentEvent = null;
+    }
+  };
 }
+
+export type GuildEventSnapshot = {
+  currentEvent?: { id: string; dayTriggered: number } | null;
+  history?: { eventId: string; optionId: string; day: number }[];
+  completedNonRepeatable?: string[];
+};

@@ -62,6 +62,7 @@ export class QuestsStore {
     },
     {},
   );
+  private syncing: boolean = false;
 
   constructor(
     @inject(TimeStore) public timeStore: TimeStore,
@@ -76,6 +77,7 @@ export class QuestsStore {
     reaction(
       () => this.timeStore.absoluteDay,
       () => {
+        if (this.syncing) return;
         this.onNextDay();
       },
     );
@@ -1093,4 +1095,31 @@ export class QuestsStore {
   getQuestById(questId: string) {
     return this.quests.find(q => q.id === questId) ?? null;
   }
+
+  setSyncing = (value: boolean) => {
+    this.syncing = value;
+  };
+
+  loadSnapshot = (snapshot: QuestsSnapshot) => {
+    const knownHeroIds = new Set(this.heroesStore.heroes.map(hero => hero.id));
+
+    this.quests = (snapshot.quests ?? []).map((quest) => ({
+      ...quest,
+      modifiers: quest.modifiers ?? [],
+      assignedHeroIds: (quest.assignedHeroIds ?? []).filter(id => knownHeroIds.has(id)),
+      resourceRewards: quest.resourceRewards ?? {},
+      requiredResources: quest.requiredResources ?? {},
+    }));
+
+    const progress: Record<string, number> = {};
+    Object.keys(questChainsConfig).forEach((chainId) => {
+      progress[chainId] = snapshot.questChainsProgress?.[chainId] ?? 0;
+    });
+    this.questChainsProgress = progress;
+  };
 }
+
+export type QuestsSnapshot = {
+  quests?: IQuest[];
+  questChainsProgress?: Record<string, number>;
+};

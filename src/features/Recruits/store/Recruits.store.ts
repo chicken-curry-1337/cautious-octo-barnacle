@@ -5,7 +5,7 @@ import { pickRandomTraitsForHero } from '../../../assets/traits/traits';
 import { RecruitStore } from '../../../entities/Recruit/Recruit.store';
 import { TimeStore } from '../../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../../entities/Upgrade/Upgrade.store';
-import type { HeroType, IChar } from '../../../shared/types/hero';
+import type { HeroType, IChar, IRecruitCandidate } from '../../../shared/types/hero';
 import { randomInRange } from '../../../shared/utils/randomInRange';
 
 @singleton()
@@ -35,12 +35,15 @@ export class RecruitsStore {
     ],
   };
 
+  private syncing: boolean = false;
+
   constructor(@inject(TimeStore) public timeStore: TimeStore, @inject(UpgradeStore) public upgradeStore: UpgradeStore) {
     makeAutoObservable(this);
 
     reaction(
       () => this.timeStore.absoluteDay,
       () => {
+        if (this.syncing) return;
         this.onNextDay();
       },
     );
@@ -187,5 +190,22 @@ export class RecruitsStore {
     if (desired === 0) return [];
 
     return pickRandomTraitsForHero(desired);
+  };
+
+  setSyncing = (value: boolean) => {
+    this.syncing = value;
+  };
+
+  loadSnapshot = (candidates: IRecruitCandidate[]) => {
+    const map: Record<string, RecruitStore> = {};
+
+    candidates.forEach((candidate) => {
+      map[candidate.id] = new RecruitStore({
+        ...candidate,
+        traits: candidate.traits ?? [],
+      });
+    });
+
+    this.recruitMap = map;
   };
 }

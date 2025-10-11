@@ -11,6 +11,7 @@ export class GuildFinanceStore {
   loanBalance: number = 0;
   loanInterestPerDay: number = 0;
   emergencyLoanTaken: boolean = false;
+  private syncing: boolean = false;
 
   constructor(@inject(TimeStore) public timeStore: TimeStore) {
     makeAutoObservable(this);
@@ -18,12 +19,14 @@ export class GuildFinanceStore {
     this.initializeResources();
 
     reaction(() => this.timeStore.monthName, (month) => {
+      if (this.syncing) return;
       console.log(month);
     });
 
     reaction(
       () => this.timeStore.absoluteDay,
       () => {
+        if (this.syncing) return;
         this.applyDailyInterest();
       },
       { fireImmediately: false },
@@ -123,4 +126,32 @@ export class GuildFinanceStore {
     const interest = Math.max(0, this.loanBalance * this.loanInterestPerDay);
     this.loanBalance = Math.round(this.loanBalance + interest);
   }
+
+  setSyncing = (value: boolean) => {
+    this.syncing = value;
+  };
+
+  loadSnapshot = (snapshot: FinanceSnapshot) => {
+    this.gold = snapshot.gold ?? this.gold;
+    this.loanBalance = snapshot.loanBalance ?? 0;
+    this.loanInterestPerDay = snapshot.loanInterestPerDay ?? 0;
+    this.emergencyLoanTaken = snapshot.emergencyLoanTaken ?? false;
+
+    const mergedResources: Record<string, number> = {};
+    GUILD_RESOURCES.forEach((resource) => {
+      const amount = snapshot.resources?.[resource.id];
+      mergedResources[resource.id] = typeof amount === 'number'
+        ? amount
+        : resource.startingAmount ?? 0;
+    });
+    this.resources = mergedResources;
+  };
 }
+
+export type FinanceSnapshot = {
+  gold: number;
+  resources: Record<string, number>;
+  loanBalance: number;
+  loanInterestPerDay: number;
+  emergencyLoanTaken: boolean;
+};

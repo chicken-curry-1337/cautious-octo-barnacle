@@ -97,6 +97,12 @@ export class TimeStore {
     this.absoluteDay++;
   };
 
+  setAbsoluteDay = (day: number) => {
+    if (Number.isNaN(day)) return;
+
+    this.absoluteDay = Math.max(0, Math.floor(day));
+  };
+
   isLeapYear(year: number) {
     return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   }
