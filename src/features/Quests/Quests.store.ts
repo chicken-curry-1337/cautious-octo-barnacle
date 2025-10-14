@@ -22,6 +22,7 @@ import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
 import { FactionsStore } from '../../entities/Factions/Factions.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
+import { CityStore } from '../../entities/City/City.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
 import {
@@ -73,6 +74,7 @@ export class QuestsStore {
     @inject(GameStateStore) public gameStateStore: GameStateStore,
     @inject(UpgradeStore) public upgradeStore: UpgradeStore,
     @inject(FactionsStore) public factionsStore: FactionsStore,
+    @inject(CityStore) public cityStore: CityStore,
   ) {
     makeAutoObservable(this);
 
@@ -202,6 +204,7 @@ export class QuestsStore {
       reputationRequirement?: number;
       successHeatDelta?: number;
       failureHeatDelta?: number;
+      districtId?: string;
     },
   ) => {
     const questReward = reward ?? randomInRange(50, 150);
@@ -212,6 +215,10 @@ export class QuestsStore {
     const requiredStrength = randomInRange(5, 15);
     const requiredAgility = randomInRange(5, 15);
     const requiredIntelligence = randomInRange(5, 15);
+
+    const districtId = options?.districtId
+      ?? this.cityStore.pickDistrictForFaction(options?.factionId as FactionId | undefined)
+      ?? this.cityStore.pickDistrictForFaction(undefined);
 
     const newQuest: IQuest = {
       id: crypto.randomUUID(),
@@ -241,6 +248,7 @@ export class QuestsStore {
       reputationRequirement: options?.reputationRequirement,
       successHeatDelta: options?.successHeatDelta,
       failureHeatDelta: options?.failureHeatDelta,
+      districtId: districtId ?? undefined,
     };
     this.quests.push(newQuest);
   };
@@ -256,6 +264,7 @@ export class QuestsStore {
       // Проверка на истечение времени принятия
       if (quest.status === QuestStatus.NotStarted && this.timeStore.absoluteDay > quest.deadlineAccept) {
         quest.status = QuestStatus.FailedDeadline;
+        this.cityStore.applyQuestOutcome(quest.districtId, 'timeout', quest.title, quest.factionId as FactionId | undefined);
 
         return false;
       }
@@ -282,6 +291,7 @@ export class QuestsStore {
           this.grantQuestResources(quest);
           this.applyFactionOutcome(quest, 'success');
           this.advanceQuestChainProgress(quest);
+          this.cityStore.applyQuestOutcome(quest.districtId, 'success', quest.title, quest.factionId as FactionId | undefined);
 
           if (quest.isStory) {
             this.difficultyStore.onStoryQuestCompleted();
@@ -337,10 +347,12 @@ export class QuestsStore {
 
             if (heatGain > 0) {
               this.gameStateStore.addHeat(heatGain);
+              this.cityStore.applyHeatChange(heatGain);
             }
           }
 
           this.applyFactionOutcome(quest, 'failure');
+          this.cityStore.applyQuestOutcome(quest.districtId, 'failure', quest.title, quest.factionId as FactionId | undefined);
         }
 
         if (success) {
@@ -392,6 +404,7 @@ export class QuestsStore {
       this.grantQuestResources(quest);
       this.applyFactionOutcome(quest, 'success');
       this.advanceQuestChainProgress(quest);
+      this.cityStore.applyQuestOutcome(quest.districtId, 'success', quest.title, quest.factionId as FactionId | undefined);
       this.grantHeroExperience(assignedHeroes);
 
       if (quest.isStory) {
@@ -727,6 +740,7 @@ export class QuestsStore {
       chainLeaderTitle: chain.leaderTitle,
       chainTotalStages: chain.stages.length,
       chainLeaderPortrait: chain.leaderPortraitUrl,
+      districtId: stage.districtId ?? this.cityStore.pickDistrictForFaction(chain.factionId as FactionId) ?? undefined,
     };
   };
 
@@ -814,6 +828,7 @@ export class QuestsStore {
 
       if (heatDelta) {
         this.gameStateStore.applyHeatDelta(heatDelta);
+        this.cityStore.applyHeatChange(heatDelta);
       }
 
       return;
@@ -828,6 +843,7 @@ export class QuestsStore {
 
     if (heatDelta) {
       this.gameStateStore.applyHeatDelta(heatDelta);
+      this.cityStore.applyHeatChange(heatDelta);
     }
   };
 
@@ -919,6 +935,7 @@ export class QuestsStore {
     const requiredIntelligence = randomInRange(2, 6);
 
     const resourceRewards = this.buildCitizenResourceRewards(task);
+    const districtId = this.cityStore.pickDistrictForFaction(faction.id);
 
     return {
       id: crypto.randomUUID(),
@@ -948,6 +965,7 @@ export class QuestsStore {
       reputationRequirement: faction.minReputation,
       successHeatDelta: faction.successHeatDelta,
       failureHeatDelta: faction.failureHeatDelta,
+      districtId: districtId ?? undefined,
     };
   };
 
@@ -975,6 +993,7 @@ export class QuestsStore {
 
     const successHeatDelta = template?.successHeatDelta ?? faction.successHeatDelta;
     const failureHeatDelta = template?.failureHeatDelta ?? faction.failureHeatDelta;
+    const districtId = this.cityStore.pickDistrictForFaction(faction.id as FactionId);
 
     return {
       id: crypto.randomUUID(),
@@ -1007,6 +1026,7 @@ export class QuestsStore {
       successRepDelta: template?.successRepDelta,
       failureRepDelta: template?.failureRepDelta,
       resourcePenalty,
+      districtId: districtId ?? undefined,
     };
   };
 

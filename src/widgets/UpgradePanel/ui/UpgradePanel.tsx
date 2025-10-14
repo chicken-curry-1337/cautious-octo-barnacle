@@ -4,11 +4,11 @@ import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
-import { GUILD_RESOURCES } from '../../../assets/resources/resources';
 import { factionMap } from '../../../assets/factions/factions';
+import { GUILD_RESOURCES } from '../../../assets/resources/resources';
 import { describeUpgradeEffects } from '../../../assets/upgrades/upgrades';
-import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
 import { FactionsStore } from '../../../entities/Factions/Factions.store';
+import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
 import { UpgradeStore } from '../../../entities/Upgrade/Upgrade.store';
 
 import styles from './UpgradePanel.module.css';

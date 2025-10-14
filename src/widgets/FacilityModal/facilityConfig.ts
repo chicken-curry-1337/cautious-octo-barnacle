@@ -1,15 +1,15 @@
-import type { DialogueData } from '../../entities/Dialogue/Dialogue.store';
-import { infirmaryCaretakerDialogue } from '../../assets/dialogues/facilities/medicDialogue';
-import { workshopCaretakerDialogue } from '../../assets/dialogues/facilities/workshopDialogue';
-import { guildHallDialogue } from '../../assets/dialogues/facilities/guildHallDialogue';
-import { contractBoardDialogue } from '../../assets/dialogues/facilities/contractBoardDialogue';
-import { dispatchDialogue } from '../../assets/dialogues/facilities/dispatchDialogue';
-import { quartersDialogue } from '../../assets/dialogues/facilities/quartersDialogue';
 import { barracksDialogue } from '../../assets/dialogues/facilities/barracksDialogue';
-import { intelCenterDialogue } from '../../assets/dialogues/facilities/intelDialogue';
+import { contractBoardDialogue } from '../../assets/dialogues/facilities/contractBoardDialogue';
 import { diplomacyDialogue } from '../../assets/dialogues/facilities/diplomacyDialogue';
+import { dispatchDialogue } from '../../assets/dialogues/facilities/dispatchDialogue';
 import { financeDialogue } from '../../assets/dialogues/facilities/financeDialogue';
+import { guildHallDialogue } from '../../assets/dialogues/facilities/guildHallDialogue';
+import { intelCenterDialogue } from '../../assets/dialogues/facilities/intelDialogue';
+import { infirmaryCaretakerDialogue } from '../../assets/dialogues/facilities/medicDialogue';
+import { quartersDialogue } from '../../assets/dialogues/facilities/quartersDialogue';
 import { shadowNetworkDialogue } from '../../assets/dialogues/facilities/shadowDialogue';
+import { workshopCaretakerDialogue } from '../../assets/dialogues/facilities/workshopDialogue';
+import type { DialogueData } from '../../entities/Dialogue/Dialogue.store';
 
 type CaretakerInfo = {
   name: string;

@@ -4,10 +4,10 @@ import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
+import { traitMap } from '../../assets/traits/traits';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
 import { QuestsStore } from '../../features/Quests/Quests.store';
 import { SquadsStore } from '../../features/Squads/Squads.store';
-import { traitMap } from '../../assets/traits/traits';
 
 import styles from './SquadManagerModal.module.css';
 
@@ -206,15 +206,15 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
                                 .filter(Boolean)
                                 .map(trait => (
                                   <span
-                                    key={`${hero.id}-${trait!.id}`}
+                                    key={`${hero.id}-${trait.id}`}
                                     className={clsx(
                                       styles.heroTrait,
-                                      trait!.rarity === 'rare' && styles.heroTraitRare,
-                                      trait!.rarity === 'unique' && styles.heroTraitUnique,
+                                      trait.rarity === 'rare' && styles.heroTraitRare,
+                                      trait.rarity === 'unique' && styles.heroTraitUnique,
                                     )}
                                   >
-                                    <span className={styles.heroTraitName}>{trait!.name}</span>
-                                    <span className={styles.heroTraitDesc}>{trait!.description}</span>
+                                    <span className={styles.heroTraitName}>{trait.name}</span>
+                                    <span className={styles.heroTraitDesc}>{trait.description}</span>
                                   </span>
                                 ))}
                             </div>
@@ -263,7 +263,7 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
             </div>
           )}
 
-        {notice && <div className={clsx(styles.message, styles.notice)}>{notice}</div>}
+          {notice && <div className={clsx(styles.message, styles.notice)}>{notice}</div>}
           {error && <div className={clsx(styles.message, styles.error)}>{error}</div>}
 
           <div className={styles.squadList}>

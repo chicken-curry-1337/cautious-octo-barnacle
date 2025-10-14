@@ -4,15 +4,16 @@ import { observer } from 'mobx-react-lite';
 
 import { RecruitList } from '../../features/Recruits/ui/RecruitList/RecruitList';
 import { BottomPanel } from '../BottomPanel/BottomPanel';
+import CityBoardModal from '../CityBoard/CityBoardModal';
 import { DialogueWidget } from '../DialogueWidget/DialogueWidget';
+import { FacilityHubModal } from '../FacilityModal/FacilityHubModal';
+import { FacilityModal } from '../FacilityModal/FacilityModal';
 import { FactionPanel } from '../FactionPanel/FactionPanel';
+import { FinanceReportModal } from '../FinanceReport/FinanceReportModal';
 import { GuildEventWidget } from '../GuildEventWidget/GuildEventWidget';
 import HeroList from '../HeroList/HeroList';
 import { InventoryPanel } from '../InventoryPanel/InventoryPanel';
 import QuestTabs from '../Quests/ui/QuestList/ui/QuestTabs/QuestTabs';
-import { FinanceReportModal } from '../FinanceReport/FinanceReportModal';
-import { FacilityHubModal } from '../FacilityModal/FacilityHubModal';
-import { FacilityModal } from '../FacilityModal/FacilityModal';
 import SquadManagerModal from '../Squads/SquadManagerModal';
 import { TopPanel } from '../TopPanel/ui/TopPanel';
 import { UpgradePanel } from '../UpgradePanel/ui/UpgradePanel';
@@ -24,6 +25,7 @@ export const Game = observer(() => {
   const [showFinanceReport, setShowFinanceReport] = useState(false);
   const [showFacilityHub, setShowFacilityHub] = useState(false);
   const [showSquads, setShowSquads] = useState(false);
+  const [showCityBoard, setShowCityBoard] = useState(false);
   const [openFacilityId, setOpenFacilityId] = useState<string | null>(null);
 
   return (
@@ -39,6 +41,8 @@ export const Game = observer(() => {
         showFinanceReport={showFinanceReport}
         onToggleFacilities={() => setShowFacilityHub(prev => !prev)}
         showFacilities={showFacilityHub}
+        onToggleCity={() => setShowCityBoard(prev => !prev)}
+        showCity={showCityBoard}
         onToggleSquads={() => setShowSquads(prev => !prev)}
         showSquads={showSquads}
       />
@@ -58,6 +62,7 @@ export const Game = observer(() => {
           setOpenFacilityId(id);
         }}
       />
+      <CityBoardModal isOpen={showCityBoard} onClose={() => setShowCityBoard(false)} />
       <SquadManagerModal isOpen={showSquads} onClose={() => setShowSquads(false)} />
       <FacilityModal facilityId={openFacilityId} onClose={() => setOpenFacilityId(null)} />
       <RecruitList />

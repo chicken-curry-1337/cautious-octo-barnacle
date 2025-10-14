@@ -31,6 +31,7 @@ export interface QuestChainStage {
   failureHeatDelta?: number;
   isIllegal?: boolean;
   unlockLeader?: boolean;
+  districtId?: string;
 }
 
 export interface QuestChainDefinition {

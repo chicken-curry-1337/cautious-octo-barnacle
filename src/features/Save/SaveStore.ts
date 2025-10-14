@@ -18,6 +18,7 @@ import { HeroesStore } from '../Heroes/Heroes.store';
 import { QuestsStore, type QuestsSnapshot } from '../Quests/Quests.store';
 import { RecruitsStore } from '../Recruits/store/Recruits.store';
 import { SquadsStore, type Squad } from '../Squads/Squads.store';
+import { CityStore, type CitySnapshot } from '../../entities/City/City.store';
 
 type GameSnapshot = {
   version: number;
@@ -37,6 +38,7 @@ type GameSnapshot = {
   };
   events: GuildEventSnapshot;
   squads: Squad[];
+  city: CitySnapshot;
 };
 
 @singleton()
@@ -57,6 +59,7 @@ export class SaveStore {
     @inject(UpgradeStore) private upgradeStore: UpgradeStore,
     @inject(GuildEventStore) private guildEventStore: GuildEventStore,
     @inject(SquadsStore) private squadsStore: SquadsStore,
+    @inject(CityStore) private cityStore: CityStore,
   ) {
     makeAutoObservable(this);
 
@@ -199,6 +202,7 @@ export class SaveStore {
         name: squad.name,
         heroIds: [...squad.heroIds],
       })),
+      city: this.cityStore.getSnapshot(),
     };
   }
 
@@ -236,6 +240,7 @@ export class SaveStore {
         completedNonRepeatable: eventsSnapshot.completedNonRepeatable ?? [],
       });
       this.squadsStore.loadSnapshot(snapshot.squads ?? []);
+      this.cityStore.loadSnapshot(snapshot.city ?? null);
 
       const assignmentMap = new Map<string, string>();
       this.questsStore.quests.forEach((quest) => {
@@ -261,6 +266,7 @@ export class SaveStore {
     this.questsStore.setSyncing(value);
     this.guildEventStore.setSyncing(value);
     this.squadsStore.setSyncing(value);
+    this.cityStore.setSyncing(value);
   }
 
   private readSnapshot(): GameSnapshot | null {

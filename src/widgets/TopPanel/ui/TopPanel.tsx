@@ -22,6 +22,8 @@ type TopPanelProps = {
   showFacilities?: boolean;
   onToggleSquads?: () => void;
   showSquads?: boolean;
+  onToggleCity?: () => void;
+  showCity?: boolean;
 };
 
 export const TopPanel = observer(({
@@ -37,6 +39,8 @@ export const TopPanel = observer(({
   showFacilities = false,
   onToggleSquads,
   showSquads = false,
+  onToggleCity,
+  showCity = false,
 }: TopPanelProps) => {
   const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
   const saveStore = useMemo(() => container.resolve(SaveStore), []);
@@ -93,6 +97,15 @@ export const TopPanel = observer(({
           onClick={onToggleFacilities}
         >
           {showFacilities ? 'Скрыть помещения' : 'Помещения'}
+        </button>
+      )}
+      {onToggleCity && (
+        <button
+          type="button"
+          className={styles.cityButton}
+          onClick={onToggleCity}
+        >
+          {showCity ? 'Скрыть город' : 'Город'}
         </button>
       )}
       {onToggleSquads && (
