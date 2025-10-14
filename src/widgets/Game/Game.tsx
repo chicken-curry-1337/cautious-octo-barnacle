@@ -13,6 +13,7 @@ import QuestTabs from '../Quests/ui/QuestList/ui/QuestTabs/QuestTabs';
 import { FinanceReportModal } from '../FinanceReport/FinanceReportModal';
 import { FacilityHubModal } from '../FacilityModal/FacilityHubModal';
 import { FacilityModal } from '../FacilityModal/FacilityModal';
+import SquadManagerModal from '../Squads/SquadManagerModal';
 import { TopPanel } from '../TopPanel/ui/TopPanel';
 import { UpgradePanel } from '../UpgradePanel/ui/UpgradePanel';
 
@@ -22,6 +23,7 @@ export const Game = observer(() => {
   const [showFactions, setShowFactions] = useState(false);
   const [showFinanceReport, setShowFinanceReport] = useState(false);
   const [showFacilityHub, setShowFacilityHub] = useState(false);
+  const [showSquads, setShowSquads] = useState(false);
   const [openFacilityId, setOpenFacilityId] = useState<string | null>(null);
 
   return (
@@ -37,6 +39,8 @@ export const Game = observer(() => {
         showFinanceReport={showFinanceReport}
         onToggleFacilities={() => setShowFacilityHub(prev => !prev)}
         showFacilities={showFacilityHub}
+        onToggleSquads={() => setShowSquads(prev => !prev)}
+        showSquads={showSquads}
       />
       <GuildEventWidget />
       <UpgradePanel
@@ -54,6 +58,7 @@ export const Game = observer(() => {
           setOpenFacilityId(id);
         }}
       />
+      <SquadManagerModal isOpen={showSquads} onClose={() => setShowSquads(false)} />
       <FacilityModal facilityId={openFacilityId} onClose={() => setOpenFacilityId(null)} />
       <RecruitList />
       <HeroList />

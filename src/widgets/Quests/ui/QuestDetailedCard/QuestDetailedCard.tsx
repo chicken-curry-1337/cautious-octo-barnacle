@@ -13,6 +13,7 @@ import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
 import { QuestsStore } from '../../../../features/Quests/Quests.store';
+import { SquadsStore } from '../../../../features/Squads/Squads.store';
 import type { IChar } from '../../../../shared/types/hero';
 import { QuestStatus, type IQuest } from '../../../../shared/types/quest';
 
@@ -28,6 +29,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
   ({ quest, onAssign, onClose }) => {
     const questStore = container.resolve(QuestsStore);
     const heroesStore = container.resolve(HeroesStore);
+    const squadsStore = container.resolve(SquadsStore);
     const { absoluteDay } = container.resolve(TimeStore);
     const upgradeStore = container.resolve(UpgradeStore);
 
@@ -36,6 +38,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
 
     const [selectedHeroesIds, setSelectedHeroesIds] = useState<string[]>([]);
     const [openedModifierId, setOpenedModifierId] = useState<string | null>(null);
+    const [squadMessage, setSquadMessage] = useState<{ type: 'error' | 'notice'; text: string } | null>(null);
     const resourceMap = useMemo(() => {
       return GUILD_RESOURCES.reduce<Record<string, GuildResource>>((acc, resource) => {
         acc[resource.id] = resource;
@@ -135,6 +138,47 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
       h => !quest.assignedHeroIds.includes(h.id) && h.assignedQuestId === null,
     );
 
+    const availableHeroIds = useMemo(
+      () => new Set(availableForQuestHeroes.map(hero => hero.id)),
+      [availableForQuestHeroes],
+    );
+
+    const questAllowsSquads = quest.status === QuestStatus.NotStarted && !quest.isStory;
+
+    const squadEntries = useMemo(() => {
+      return squadsStore.squads.map((squad) => {
+        const members = squad.heroIds
+          .map(id => heroes.find(hero => hero.id === id))
+          .filter((hero): hero is IChar => Boolean(hero));
+
+        let reason: string | null = null;
+
+        if (squad.heroIds.length === 0) {
+          reason = 'Нет участников';
+        } else if (!questAllowsSquads) {
+          reason = quest.isStory
+            ? 'Сюжетное задание требует ручного управления'
+            : 'Задание уже в работе';
+        } else {
+          const unavailable = squad.heroIds.filter(id => !availableHeroIds.has(id));
+          if (unavailable.length > 0) {
+            reason = 'Не все герои доступны';
+          } else if (quest.assignedHeroIds.length + members.length > maxPartySize) {
+            reason = 'Превышен лимит отряда';
+          }
+        }
+
+        const canAssign = reason === null;
+
+        return {
+          squad,
+          members,
+          canAssign,
+          reason,
+        };
+      });
+    }, [availableHeroIds, heroes, maxPartySize, quest.assignedHeroIds, questAllowsSquads, quest.isStory, squadsStore.squads]);
+
     useEffect(() => {
       if (!quest.chainId) return;
       if (quest.assignedHeroIds.includes(MAIN_HERO_ID)) return;
@@ -227,6 +271,36 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
     const hiddenRequirementsCount = requiredResources.length - visibleRequiredResources.length;
 
     const selectionLimitReached = selectedHeroesIds.length >= maxPartySize;
+
+    const handleAssignSquad = (squadId: string) => {
+      const entry = squadEntries.find(item => item.squad.id === squadId);
+      if (!entry) return;
+      if (!entry.canAssign) {
+        if (entry.reason) {
+          setSquadMessage({ type: 'error', text: entry.reason });
+        }
+
+        return;
+      }
+
+      const heroIds = entry.squad.heroIds.filter(id => availableHeroIds.has(id));
+      if (heroIds.length === 0) {
+        setSquadMessage({ type: 'error', text: 'В отряде нет доступных героев.' });
+
+        return;
+      }
+
+      try {
+        onAssign(quest.id, heroIds);
+        setSelectedHeroesIds([]);
+        setSquadMessage({ type: 'notice', text: `Отряд «${entry.squad.name}» отправлен на задание.` });
+      } catch (err) {
+        setSquadMessage({
+          type: 'error',
+          text: err instanceof Error ? err.message : 'Не удалось отправить отряд.',
+        });
+      }
+    };
 
     return (
       <>
@@ -605,18 +679,62 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
               )}
             </div>
           </div>
-          {quest.status === QuestStatus.NotStarted && (
-            <div className={clsx(styles.heroSelector)}>
-              <strong>Доступные герои для назначения:</strong>
-              <div className={styles.partyLimit}>
-                Максимальный размер отряда:
-                {maxPartySize}
+        {quest.status === QuestStatus.NotStarted && (
+          <div className={clsx(styles.heroSelector)}>
+            <strong>Доступные герои для назначения:</strong>
+            <div className={styles.partyLimit}>
+              Максимальный размер отряда:
+              {maxPartySize}
+            </div>
+            {questAllowsSquads && squadsStore.squads.length > 0 && (
+              <div className={styles.squadSection}>
+                <strong>Готовые отряды:</strong>
+                {squadMessage && (
+                  <div
+                    className={clsx(
+                      styles.squadMessage,
+                      squadMessage.type === 'error' ? styles.squadError : styles.squadNotice,
+                    )}
+                  >
+                    {squadMessage.text}
+                  </div>
+                )}
+                <div className={styles.squadList}>
+                  {squadEntries.length === 0 ? (
+                    <span className={styles.squadUnavailable}>Нет сохранённых отрядов.</span>
+                  ) : (
+                    squadEntries.map(entry => (
+                      <div key={entry.squad.id} className={styles.squadItem}>
+                        <div className={styles.squadInfo}>
+                          <span className={styles.squadName}>{entry.squad.name}</span>
+                          <span className={styles.squadMeta}>
+                            {entry.members.length > 0
+                              ? entry.members.map(member => member.name).join(', ')
+                              : 'Нет участников'}
+                          </span>
+                          {entry.reason && (
+                            <span className={styles.squadUnavailable}>{entry.reason}</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.squadAssignButton}
+                          onClick={() => handleAssignSquad(entry.squad.id)}
+                          disabled={!entry.canAssign}
+                        >
+                          Отправить
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-              <div className={styles.heroSelectorScroller}>
-                {availableForQuestHeroes.length === 0
-                  ? (
-                      <p>Нет доступных героев</p>
-                    )
+            )}
+            <div className={styles.heroSelectorScroller}>
+              {availableForQuestHeroes.length === 0
+                ? (
+                    <p>Нет доступных героев</p>
+                  )
                   : availableForQuestHeroes.map(hero => (
                       <div key={hero.id} className={clsx({ [styles.mainHeroItem]: hero.id === MAIN_HERO_ID })}>
                         <label>
@@ -667,18 +785,19 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
           )}
 
           {quest.status === QuestStatus.NotStarted && (
-            <button
-              className={clsx(styles.assignBtn, {
-                [styles.assignBtnActive]: selectedHeroesIds.length !== 0,
-              })}
-              disabled={availableForQuestHeroes.length === 0 || selectedHeroesIds.length === 0}
-              onClick={() => {
-                console.log('click');
-                onAssign(quest.id, selectedHeroesIds);
-                setSelectedHeroesIds([]);
-              }}
-            >
-              Назначить героев
+          <button
+            className={clsx(styles.assignBtn, {
+              [styles.assignBtnActive]: selectedHeroesIds.length !== 0,
+            })}
+            disabled={availableForQuestHeroes.length === 0 || selectedHeroesIds.length === 0}
+            onClick={() => {
+              console.log('click');
+              setSquadMessage(null);
+              onAssign(quest.id, selectedHeroesIds);
+              setSelectedHeroesIds([]);
+            }}
+          >
+            Назначить героев
             </button>
           )}
         </div>

@@ -20,6 +20,8 @@ type TopPanelProps = {
   showFinanceReport?: boolean;
   onToggleFacilities?: () => void;
   showFacilities?: boolean;
+  onToggleSquads?: () => void;
+  showSquads?: boolean;
 };
 
 export const TopPanel = observer(({
@@ -33,6 +35,8 @@ export const TopPanel = observer(({
   showFinanceReport = false,
   onToggleFacilities,
   showFacilities = false,
+  onToggleSquads,
+  showSquads = false,
 }: TopPanelProps) => {
   const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
   const saveStore = useMemo(() => container.resolve(SaveStore), []);
@@ -89,6 +93,15 @@ export const TopPanel = observer(({
           onClick={onToggleFacilities}
         >
           {showFacilities ? 'Скрыть помещения' : 'Помещения'}
+        </button>
+      )}
+      {onToggleSquads && (
+        <button
+          type="button"
+          className={styles.squadsButton}
+          onClick={onToggleSquads}
+        >
+          {showSquads ? 'Скрыть отряды' : 'Отряды'}
         </button>
       )}
       {onToggleFactions && (
