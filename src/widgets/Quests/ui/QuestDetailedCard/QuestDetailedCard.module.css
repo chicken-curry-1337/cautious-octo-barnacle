@@ -6,7 +6,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  height: 480px;
+  min-height: 480px;
   border-radius: 8px;
   background-color: #fafafa;
   box-shadow: 0 2px 20px 6px rgba(0, 0, 0, 0.5);
@@ -468,6 +468,17 @@ p {
 .squadMeta {
   font-size: 12px;
   color: #334155;
+}
+
+.squadSynergyNotes {
+  margin-left: 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #1d4ed8;
+}
+
+.squadSynergyNotes li {
+  margin-bottom: 2px;
 }
 
 .squadAssignButton {

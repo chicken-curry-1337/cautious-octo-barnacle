@@ -5,7 +5,9 @@ import { observer } from 'mobx-react-lite';
 import { container } from 'tsyringe';
 
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
+import { QuestsStore } from '../../features/Quests/Quests.store';
 import { SquadsStore } from '../../features/Squads/Squads.store';
+import { traitMap } from '../../assets/traits/traits';
 
 import styles from './SquadManagerModal.module.css';
 
@@ -17,11 +19,17 @@ type SquadManagerModalProps = {
 const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps) => {
   const squadsStore = useMemo(() => container.resolve(SquadsStore), []);
   const heroesStore = useMemo(() => container.resolve(HeroesStore), []);
+  const questsStore = useMemo(() => container.resolve(QuestsStore), []);
   const [editingSquadId, setEditingSquadId] = useState<string | null>(null);
   const [formName, setFormName] = useState('');
   const [formHeroIds, setFormHeroIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const formSynergyKey = formHeroIds.slice().sort().join('|');
+  const formSynergy = useMemo(() => {
+    return questsStore.getPartySynergySummary(formHeroIds);
+  }, [questsStore, formSynergyKey]);
 
   useEffect(() => {
     if (!editingSquadId) return;
@@ -93,6 +101,7 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
       }
 
       cancelEdit();
+
       if (message) {
         setNotice(message);
       }
@@ -103,6 +112,7 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
 
   const handleDisband = (squadId: string) => {
     squadsStore.disbandSquad(squadId);
+
     if (editingSquadId === squadId) {
       cancelEdit();
     }
@@ -150,7 +160,7 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
                 </span>
                 <div className={styles.heroesList}>
                   {heroes.length === 0 && <span>Нет доступных героев.</span>}
-                  {heroes.map(hero => {
+                  {heroes.map((hero) => {
                     const inSquad = formHeroIds.includes(hero.id);
                     const unavailable = hero.assignedQuestId !== null || hero.injured;
                     const statusMessages: string[] = [];
@@ -189,6 +199,26 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
                           {statusMessages.length > 0 && (
                             <span className={styles.heroStatus}>{statusMessages.join(', ')}</span>
                           )}
+                          {(hero.traits?.length ?? 0) > 0 && (
+                            <div className={styles.heroTraits}>
+                              {hero.traits
+                                .map(traitId => traitMap[traitId])
+                                .filter(Boolean)
+                                .map(trait => (
+                                  <span
+                                    key={`${hero.id}-${trait!.id}`}
+                                    className={clsx(
+                                      styles.heroTrait,
+                                      trait!.rarity === 'rare' && styles.heroTraitRare,
+                                      trait!.rarity === 'unique' && styles.heroTraitUnique,
+                                    )}
+                                  >
+                                    <span className={styles.heroTraitName}>{trait!.name}</span>
+                                    <span className={styles.heroTraitDesc}>{trait!.description}</span>
+                                  </span>
+                                ))}
+                            </div>
+                          )}
                         </div>
                       </label>
                     );
@@ -211,10 +241,29 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
                   Отмена
                 </button>
               </div>
+              <div className={styles.formSynergy}>
+                Бонус к успеху:
+                {' '}
+                {formSynergy.successBonus >= 0 ? '+' : ''}
+                {formSynergy.successBonus}
+                %
+                {' • '}
+                Модификатор травм:
+                {' '}
+                ×
+                {formSynergy.injuryMultiplier.toFixed(2)}
+                {formSynergy.notes.length > 0 && (
+                  <ul className={styles.formSynergyNotes}>
+                    {formSynergy.notes.map(note => (
+                      <li key={note.id}>{note.text}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
 
-          {notice && <div className={clsx(styles.message, styles.notice)}>{notice}</div>}
+        {notice && <div className={clsx(styles.message, styles.notice)}>{notice}</div>}
           {error && <div className={clsx(styles.message, styles.error)}>{error}</div>}
 
           <div className={styles.squadList}>
@@ -227,7 +276,8 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
               const members = squad.heroIds
                 .map(id => heroMap[id])
                 .filter(Boolean)
-                .map(hero => `${hero!.name} (${hero!.type})`);
+                .map(hero => `${hero.name} (${hero.type})`);
+              const synergy = questsStore.getPartySynergySummary(squad.heroIds);
 
               return (
                 <article key={squad.id} className={styles.squadCard}>
@@ -244,6 +294,23 @@ const SquadManagerModal = observer(({ isOpen, onClose }: SquadManagerModalProps)
                   <div className={styles.squadMembers}>
                     {members.length > 0 ? members.join(', ') : 'Нет участников'}
                   </div>
+                  <div className={styles.squadSynergy}>
+                    Бонус к успеху:
+                    {' '}
+                    {synergy.successBonus >= 0 ? '+' : ''}
+                    {synergy.successBonus}
+                    %
+                    {' • '}
+                    Травмы ×
+                    {synergy.injuryMultiplier.toFixed(2)}
+                  </div>
+                  {synergy.notes.length > 0 && (
+                    <ul className={styles.squadSynergyNotes}>
+                      {synergy.notes.map(note => (
+                        <li key={`${squad.id}-${note.id}`}>{note.text}</li>
+                      ))}
+                    </ul>
+                  )}
                   <div className={styles.squadActions}>
                     <button
                       type="button"

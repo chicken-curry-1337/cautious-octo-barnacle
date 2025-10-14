@@ -108,6 +108,45 @@
   color: rgba(242, 246, 255, 0.8);
 }
 
+.heroTraits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.heroTrait {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.heroTraitRare {
+  background: rgba(129, 140, 248, 0.18);
+  border-color: rgba(129, 140, 248, 0.4);
+}
+
+.heroTraitUnique {
+  background: rgba(249, 115, 22, 0.18);
+  border-color: rgba(249, 115, 22, 0.45);
+}
+
+.heroTraitName {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.heroTraitDesc {
+  font-size: 11px;
+  color: rgba(226, 232, 240, 0.85);
+}
+
 .heroName {
   font-weight: 600;
   font-size: 14px;
@@ -117,6 +156,27 @@
 .heroStatus {
   font-size: 12px;
   color: #ffb4af;
+}
+
+.formSynergy {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(59, 201, 145, 0.12);
+  border: 1px solid rgba(59, 201, 145, 0.24);
+  color: #16a34a;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+
+.formSynergyNotes {
+  margin-left: 14px;
+  font-size: 12px;
+  color: rgba(52, 211, 153, 0.85);
+}
+
+.formSynergyNotes li {
+  margin-bottom: 4px;
 }
 
 .actions {
@@ -174,6 +234,22 @@
 .squadMembers {
   font-size: 13px;
   color: rgba(242, 246, 255, 0.78);
+}
+
+.squadSynergy {
+  font-size: 12px;
+  color: rgba(148, 211, 255, 0.9);
+}
+
+.squadSynergyNotes {
+  margin-left: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(191, 219, 254, 0.85);
+}
+
+.squadSynergyNotes li {
+  margin-bottom: 2px;
 }
 
 .squadActions {

@@ -37,10 +37,6 @@ export const QuestList = observer(
       return quests.find(q => q.id === selectedQuestId);
     }, [quests, selectedQuestId]);
 
-    useEffect(() => {
-      console.log(quest);
-    }, [quest]);
-
     return (
       <>
         <div className={styles.container}>
