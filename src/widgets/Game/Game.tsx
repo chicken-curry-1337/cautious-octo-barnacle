@@ -11,6 +11,8 @@ import HeroList from '../HeroList/HeroList';
 import { InventoryPanel } from '../InventoryPanel/InventoryPanel';
 import QuestTabs from '../Quests/ui/QuestList/ui/QuestTabs/QuestTabs';
 import { FinanceReportModal } from '../FinanceReport/FinanceReportModal';
+import { FacilityHubModal } from '../FacilityModal/FacilityHubModal';
+import { FacilityModal } from '../FacilityModal/FacilityModal';
 import { TopPanel } from '../TopPanel/ui/TopPanel';
 import { UpgradePanel } from '../UpgradePanel/ui/UpgradePanel';
 
@@ -19,6 +21,8 @@ export const Game = observer(() => {
   const [showInventory, setShowInventory] = useState(false);
   const [showFactions, setShowFactions] = useState(false);
   const [showFinanceReport, setShowFinanceReport] = useState(false);
+  const [showFacilityHub, setShowFacilityHub] = useState(false);
+  const [openFacilityId, setOpenFacilityId] = useState<string | null>(null);
 
   return (
     <>
@@ -31,12 +35,26 @@ export const Game = observer(() => {
         showFactions={showFactions}
         onToggleFinance={() => setShowFinanceReport(prev => !prev)}
         showFinanceReport={showFinanceReport}
+        onToggleFacilities={() => setShowFacilityHub(prev => !prev)}
+        showFacilities={showFacilityHub}
       />
       <GuildEventWidget />
-      <UpgradePanel isOpen={showUpgrades} onClose={() => setShowUpgrades(false)} />
+      <UpgradePanel
+        isOpen={showUpgrades}
+        onClose={() => setShowUpgrades(false)}
+      />
       <InventoryPanel isOpen={showInventory} onClose={() => setShowInventory(false)} />
       <FactionPanel isOpen={showFactions} onClose={() => setShowFactions(false)} />
       <FinanceReportModal isOpen={showFinanceReport} onClose={() => setShowFinanceReport(false)} />
+      <FacilityHubModal
+        isOpen={showFacilityHub}
+        onClose={() => setShowFacilityHub(false)}
+        onOpenFacility={(id) => {
+          setShowFacilityHub(false);
+          setOpenFacilityId(id);
+        }}
+      />
+      <FacilityModal facilityId={openFacilityId} onClose={() => setOpenFacilityId(null)} />
       <RecruitList />
       <HeroList />
       {/* <HeroCreator /> */}

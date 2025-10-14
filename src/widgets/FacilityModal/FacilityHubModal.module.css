@@ -1,0 +1,145 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 10, 21, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 38;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  width: min(760px, 94vw);
+  max-height: 90vh;
+  background: #0f1726;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #f3f6ff;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 26px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.closeButton {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.body {
+  padding: 20px 26px 24px;
+  overflow-y: auto;
+  display: grid;
+  gap: 18px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: rgba(18, 28, 44, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.cardOpen {
+  border-color: rgba(99, 198, 255, 0.32);
+  box-shadow: 0 0 0 1px rgba(99, 198, 255, 0.2);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.status {
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.statusOpen {
+  background: rgba(80, 190, 120, 0.15);
+  color: #8af3b5;
+}
+
+.statusAvailable {
+  background: rgba(115, 169, 255, 0.15);
+  color: #a9c7ff;
+}
+
+.description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(243, 246, 255, 0.84);
+}
+
+.caretaker {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.notes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: rgba(243, 246, 255, 0.68);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, #4f8df9, #7aa6ff);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #0c1624;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 13px;
+  color: rgba(243, 246, 255, 0.7);
+}

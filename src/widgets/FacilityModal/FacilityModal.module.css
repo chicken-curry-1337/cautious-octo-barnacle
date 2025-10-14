@@ -1,0 +1,242 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 12, 26, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  width: min(720px, 92vw);
+  max-height: 90vh;
+  background: #111927;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #f2f6ff;
+}
+
+.header {
+  padding: 20px 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: grid;
+  gap: 20px;
+}
+
+.caretakerCard {
+  display: flex;
+  gap: 16px;
+  background: rgba(18, 30, 44, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px;
+  align-items: flex-start;
+}
+
+.portrait {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.portrait img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.caretakerInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.caretakerName {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.caretakerRole {
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.greeting {
+  margin-top: 8px;
+  font-size: 15px;
+  color: rgba(242, 246, 255, 0.82);
+}
+
+.description {
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(242, 246, 255, 0.88);
+}
+
+.ambientList {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(242, 246, 255, 0.75);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, #4f8df9, #7aa6ff);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  color: #0b1320;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.primaryButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.primaryButton:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.secondaryButton {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  color: #f2f6ff;
+  cursor: pointer;
+  transition: border 0.12s ease, transform 0.12s ease;
+}
+
+.secondaryButton:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  transform: translateY(-1px);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.upgradeList {
+  display: grid;
+  gap: 12px;
+}
+
+.upgradeCard {
+  background: rgba(18, 30, 44, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.upgradeHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.upgradeTitle {
+  font-weight: 600;
+}
+
+.upgradeStatus {
+  font-size: 13px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.upgradeStatusReady {
+  background: rgba(79, 141, 249, 0.16);
+  color: #7aa6ff;
+}
+
+.costRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 14px;
+  color: rgba(242, 246, 255, 0.8);
+}
+
+.resourceTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.insufficient {
+  color: #ff7b74;
+}
+
+.messages {
+  font-size: 14px;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.error {
+  background: rgba(255, 96, 88, 0.12);
+  border: 1px solid rgba(255, 96, 88, 0.32);
+  color: #ffb4af;
+}
+
+.notice {
+  background: rgba(108, 207, 112, 0.12);
+  border: 1px solid rgba(108, 207, 112, 0.32);
+  color: #b5f4b7;
+}

@@ -8,8 +8,8 @@ import { GUILD_RESOURCES } from '../../../assets/resources/resources';
 import { factionMap } from '../../../assets/factions/factions';
 import { describeUpgradeEffects } from '../../../assets/upgrades/upgrades';
 import { GuildFinanceStore } from '../../../entities/Finance/Finance.store';
-import { UpgradeStore } from '../../../entities/Upgrade/Upgrade.store';
 import { FactionsStore } from '../../../entities/Factions/Factions.store';
+import { UpgradeStore } from '../../../entities/Upgrade/Upgrade.store';
 
 import styles from './UpgradePanel.module.css';
 

@@ -18,6 +18,8 @@ type TopPanelProps = {
   showFactions?: boolean;
   onToggleFinance?: () => void;
   showFinanceReport?: boolean;
+  onToggleFacilities?: () => void;
+  showFacilities?: boolean;
 };
 
 export const TopPanel = observer(({
@@ -29,6 +31,8 @@ export const TopPanel = observer(({
   showFactions = false,
   onToggleFinance,
   showFinanceReport = false,
+  onToggleFacilities,
+  showFacilities = false,
 }: TopPanelProps) => {
   const gameStateStore = useMemo(() => container.resolve(GameStateStore), []);
   const saveStore = useMemo(() => container.resolve(SaveStore), []);
@@ -76,6 +80,15 @@ export const TopPanel = observer(({
           onClick={onToggleUpgrades}
         >
           {showUpgrades ? 'Скрыть апгрейды' : 'Апгрейды'}
+        </button>
+      )}
+      {onToggleFacilities && (
+        <button
+          type="button"
+          className={styles.facilityButton}
+          onClick={onToggleFacilities}
+        >
+          {showFacilities ? 'Скрыть помещения' : 'Помещения'}
         </button>
       )}
       {onToggleFactions && (
