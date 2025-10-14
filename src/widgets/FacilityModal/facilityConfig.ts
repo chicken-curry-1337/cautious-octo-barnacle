@@ -1,6 +1,15 @@
 import type { DialogueData } from '../../entities/Dialogue/Dialogue.store';
 import { infirmaryCaretakerDialogue } from '../../assets/dialogues/facilities/medicDialogue';
 import { workshopCaretakerDialogue } from '../../assets/dialogues/facilities/workshopDialogue';
+import { guildHallDialogue } from '../../assets/dialogues/facilities/guildHallDialogue';
+import { contractBoardDialogue } from '../../assets/dialogues/facilities/contractBoardDialogue';
+import { dispatchDialogue } from '../../assets/dialogues/facilities/dispatchDialogue';
+import { quartersDialogue } from '../../assets/dialogues/facilities/quartersDialogue';
+import { barracksDialogue } from '../../assets/dialogues/facilities/barracksDialogue';
+import { intelCenterDialogue } from '../../assets/dialogues/facilities/intelDialogue';
+import { diplomacyDialogue } from '../../assets/dialogues/facilities/diplomacyDialogue';
+import { financeDialogue } from '../../assets/dialogues/facilities/financeDialogue';
+import { shadowNetworkDialogue } from '../../assets/dialogues/facilities/shadowDialogue';
 
 type CaretakerInfo = {
   name: string;
@@ -37,6 +46,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'В большом зале висят штандарты прошлых побед.',
       'Столы заставлены картами и журналами миссий.',
     ],
+    dialogue: guildHallDialogue,
     upgradeIds: ['up_guild_hall_expand_1', 'up_guild_hall_expand_2'],
   },
   {
@@ -54,6 +64,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'На стенах висят объявления от граждан и фракций.',
       'Помощники сортируют свежие заказы по степени опасности.',
     ],
+    dialogue: contractBoardDialogue,
     upgradeIds: ['1', 'up_board_plus', 'up_board_plus_2', 'up_merchants_exchange'],
   },
   {
@@ -71,6 +82,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'Сложенные карты показывают маршруты отрядов.',
       'На столах мигают арканные метки с обновлениями миссий.',
     ],
+    dialogue: dispatchDialogue,
     upgradeIds: ['up_dispatch', 'up_dispatch_pro', 'up_parallel', 'up_parallel_2', 'up_tactics'],
   },
   {
@@ -88,6 +100,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'Герои обсуждают свои последние задания в общей столовой.',
       'Наставники проверяют физподготовку новобранцев.',
     ],
+    dialogue: quartersDialogue,
     upgradeIds: ['up_quarters', 'up_quarters_lux', 'up_citizen_hall', 'up_mentors', 'up_mentors_guildschool'],
   },
   {
@@ -141,6 +154,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'Новички проходят испытания на ловкость и выдержку.',
       'Доска с результатами боёв мотивирует рекрутов.',
     ],
+    dialogue: barracksDialogue,
     upgradeIds: ['up_barracks', 'up_barracks_elite'],
   },
   {
@@ -158,6 +172,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'На стенах висят карты с отметками подозрительных зон.',
       'Гонцы передают донесения прямо из диких земель.',
     ],
+    dialogue: intelCenterDialogue,
     upgradeIds: ['up_scouthub', 'up_whispernet', 'up_whispernet_black'],
   },
   {
@@ -175,6 +190,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'На полках хранятся свитки договоров и печати городского совета.',
       'Представители фракций обсуждают условия сотрудничества.',
     ],
+    dialogue: diplomacyDialogue,
     upgradeIds: ['up_lobby', 'up_lobby_guild', 'up_guard_watchtower'],
   },
   {
@@ -192,6 +208,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'Звук счётов и шелест бумаг создают ощущение покоя.',
       'На стене висит диаграмма доходов по категориям.',
     ],
+    dialogue: financeDialogue,
     upgradeIds: ['up_insurance', 'up_black_budget'],
   },
   {
@@ -209,6 +226,7 @@ export const FACILITY_DEFINITIONS: FacilityDefinition[] = [
       'Шёпот агентов растворяется в полумраке.',
       'Под витражами лежат запечатанные досье на городских чиновников.',
     ],
+    dialogue: shadowNetworkDialogue,
     upgradeIds: ['up_fence', 'up_safehouse', 'up_cartel_passage', 'up_cleaners'],
   },
 ];
