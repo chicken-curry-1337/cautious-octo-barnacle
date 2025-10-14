@@ -250,6 +250,7 @@ export class QuestsStore {
       failureHeatDelta: options?.failureHeatDelta,
       districtId: districtId ?? undefined,
     };
+    this.applyDistrictFlavor(newQuest, districtId ?? null);
     this.quests.push(newQuest);
   };
 
@@ -935,9 +936,11 @@ export class QuestsStore {
     const requiredIntelligence = randomInRange(2, 6);
 
     const resourceRewards = this.buildCitizenResourceRewards(task);
-    const districtId = this.cityStore.pickDistrictForFaction(faction.id);
+    const districtId = task.districtId
+      ?? this.cityStore.pickDistrictForFaction(faction.id)
+      ?? this.cityStore.pickDistrictForFaction('citizens');
 
-    return {
+    const quest: IQuest = {
       id: crypto.randomUUID(),
       dateCreated: this.timeStore.absoluteDay,
       title: task.title,
@@ -967,6 +970,10 @@ export class QuestsStore {
       failureHeatDelta: faction.failureHeatDelta,
       districtId: districtId ?? undefined,
     };
+
+    this.applyDistrictFlavor(quest, districtId ?? null);
+
+    return quest;
   };
 
   private createFactionQuest = (faction: Faction): IQuest => {
@@ -993,9 +1000,10 @@ export class QuestsStore {
 
     const successHeatDelta = template?.successHeatDelta ?? faction.successHeatDelta;
     const failureHeatDelta = template?.failureHeatDelta ?? faction.failureHeatDelta;
-    const districtId = this.cityStore.pickDistrictForFaction(faction.id as FactionId);
+    const districtId = template?.districtId
+      ?? this.cityStore.pickDistrictForFaction(faction.id as FactionId);
 
-    return {
+    const quest: IQuest = {
       id: crypto.randomUUID(),
       dateCreated: this.timeStore.absoluteDay,
       title: template?.title ?? 'Контракт фракции',
@@ -1028,6 +1036,10 @@ export class QuestsStore {
       resourcePenalty,
       districtId: districtId ?? undefined,
     };
+
+    this.applyDistrictFlavor(quest, districtId ?? null);
+
+    return quest;
   };
 
   generateRandomQuest = (): IQuest | null => {
@@ -1114,6 +1126,24 @@ export class QuestsStore {
       progress[chainId] = snapshot.questChainsProgress?.[chainId] ?? 0;
     });
     this.questChainsProgress = progress;
+  };
+
+  private applyDistrictFlavor = (quest: IQuest, districtId: string | null) => {
+    if (!districtId) return;
+    const district = this.cityStore.getDistrictById(districtId);
+    if (!district) return;
+
+    const replaceText = (text?: string | null) => {
+      if (!text) return text;
+      return text.replace(/\{\{district\}\}/g, district.name);
+    };
+
+    quest.title = replaceText(quest.title) ?? quest.title;
+    quest.description = replaceText(quest.description) ?? quest.description;
+    quest.successResult = replaceText(quest.successResult) ?? quest.successResult;
+    quest.failResult = replaceText(quest.failResult) ?? quest.failResult;
+    quest.deadlineResult = replaceText(quest.deadlineResult) ?? quest.deadlineResult;
+    quest.timeoutResult = replaceText(quest.timeoutResult) ?? quest.timeoutResult;
   };
 }
 

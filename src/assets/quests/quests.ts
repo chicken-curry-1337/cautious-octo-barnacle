@@ -9,6 +9,7 @@ export type CitizenTask = {
   goldRange: [number, number];
   woodRange?: [number, number];
   herbRange?: [number, number];
+  districtId?: string;
 };
 
 export type FactionContractTemplate = {
@@ -32,45 +33,68 @@ export type FactionContractTemplate = {
   successRepDelta?: number;
   failureRepDelta?: number;
   illegalOverride?: boolean;
+  districtId?: string;
 };
 
 export type NonCitizenFactionId = Exclude<FactionId, 'citizens'>;
 
 export const CITIZEN_TASKS: CitizenTask[] = [
   {
-    title: 'Найти пропавшую кошку',
-    description: 'Соседка просит помочь найти её любимицу, которая убежала во дворы.',
-    successResult: 'Кошка найдена и возвращена хозяйке. Жители в восторге.',
-    failResult: 'Герои вернулись ни с чем, жители расстроены.',
-    timeoutResult: 'Пока искали, кошка сама вернулась домой. Помощь больше не требуется.',
-    goldRange: [20, 45],
+    title: 'Найти котёнка лавочника',
+    description: 'Торговцы с рынка в {{district}} потеряли любимца, который забрался на крыши прилавков.',
+    successResult: 'Котёнок найден и возвращён, благодарные лавочники дарят свежие товары.',
+    failResult: 'Поиски не увенчались успехом — торговцы разочарованы.',
+    timeoutResult: 'Пока гильдия собиралась, котёнок сам вернулся к хозяевам.',
+    goldRange: [22, 48],
+    districtId: 'market',
   },
   {
-    title: 'Принести дрова для семейной лавки',
-    description: 'У лавочника закончились дрова для печи. Он просит помочь пополнить запас.',
-    successResult: 'Запасы привезены вовремя, лавочник тепло благодарит.',
-    failResult: 'Дров не хватило, лавка работала вполсилы и потеряла клиентов.',
-    timeoutResult: 'Соседние мастера уже помогли, заказ отменён.',
+    title: 'Привезти дрова в поселение',
+    description: 'Жители окрестных деревень возле {{district}} просят пополнить запас дров к холодной ночи.',
+    successResult: 'Дрова привезены вовремя, жители обещают поддержку гильдии.',
+    failResult: 'Запасы пришлось делить с соседями — деревня едва согрелась.',
+    timeoutResult: 'Соседи нашли другого поставщика, контракт сорван.',
     goldRange: [18, 35],
     woodRange: [10, 22],
+    districtId: 'outskirts',
   },
   {
     title: 'Собрать лечебные травы',
-    description: 'Лекарь просит собрать травы вокруг города, чтобы ускорить лечение жителей.',
-    successResult: 'Травы собраны, лекарь доволен и делится наградой.',
-    failResult: 'Часть трав испорчена по пути, лекарю пришлось искать другие источники.',
-    timeoutResult: 'Травы уже собрали другие помощники.',
+    description: 'Полевая знахарка из {{district}} просит пополнить запасы редких трав на болотных кочках.',
+    successResult: 'Зелья сварены вовремя, знахарка благодарит гильдию.',
+    failResult: 'Часть трав испорчена, жители не получают лечение вовремя.',
+    timeoutResult: 'Травы собрали деревенские дети, контракт потерян.',
     goldRange: [25, 40],
     herbRange: [6, 16],
+    districtId: 'outskirts',
   },
   {
-    title: 'Починить забор на окраине',
-    description: 'Жители просят подлатать забор, который защищает их от диких зверей.',
-    successResult: 'Забор починен, семья чувствует себя в безопасности.',
-    failResult: 'Наполовину починенный забор не выдержал ночи, звери снова проникли во двор.',
-    timeoutResult: 'Жители решили собрать деньги и нанять плотника позже.',
+    title: 'Укрепить защитный частокол',
+    description: 'Крестьяне из {{district}} просят укрепить частокол, чтобы звери и разбойники не проникали в поселение.',
+    successResult: 'Частокол выдержал первую ночь, жители чувствуют себя защищёнными.',
+    failResult: 'Частокол рухнул, стража вынуждена дежурить круглосуточно.',
+    timeoutResult: 'Жители наняли местного плотника, контракт утрачено.',
     goldRange: [22, 38],
     woodRange: [8, 18],
+    districtId: 'outskirts',
+  },
+  {
+    title: 'Помочь с разгрузкой каравана',
+    description: 'Капитаны из {{district}} ищут надёжную команду для разгрузки ночного каравана и охраны складов.',
+    successResult: 'Грузы разгружены без происшествий, купцы довольны.',
+    failResult: 'Часть товара пропала, купцы требуют компенсацию.',
+    timeoutResult: 'Караван нашёл другую гильдию, порт недоволен промедлением.',
+    goldRange: [28, 55],
+    districtId: 'harbor',
+  },
+  {
+    title: 'Патруль в переулках',
+    description: 'Жители {{district}} жалуются на ночные гуляния банды и просят провести показательный патруль.',
+    successResult: 'Патруль показал силу гильдии, банда временно исчезла.',
+    failResult: 'Отряд попал в засаду, в переулках стало ещё опаснее.',
+    timeoutResult: 'Местные наняли картельщиков, чтобы разогнать хулиганов.',
+    goldRange: [30, 52],
+    districtId: 'shadows',
   },
 ];
 
@@ -78,8 +102,8 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
   guild: [
     {
       title: 'Организовать тренировочный сбор',
-      description: 'Совет гильдий хочет проверить слаженность отрядов на специально подготовленном полигоне.',
-      successResult: 'Герои блестяще прошли сборы и подняли дух всей гильдии.',
+      description: 'Совет гильдий хочет проверить слаженность отрядов на полигоне в {{district}}.',
+      successResult: 'Герои блестяще прошли сборы на плацу {{district}}, подняв дух всей гильдии.',
       failResult: 'Сборы завершились неудачно: выявлены пробелы в подготовке и падает доверие к руководству.',
       timeoutResult: 'Совет гильдий нашёл других инструкторов для тренировок.',
       goldRange: [70, 120],
@@ -92,11 +116,12 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
         guild_renown: [4, 8],
         iron_ore: [12, 22],
       },
+      districtId: 'arcane_spire',
     },
     {
       title: 'Отладить алхимическую лабораторию',
-      description: 'Алхимики просят навести порядок в лаборатории и собрать свежие ингредиенты.',
-      successResult: 'Лаборатория сияет чистотой, а запасы пополнены — исследования ускоряются.',
+      description: 'Алхимики из {{district}} просят навести порядок в лаборатории и пополнить запасы ингредиентов.',
+      successResult: 'Лаборатория в {{district}} сияет чистотой, исследования ускоряются.',
       failResult: 'В лаборатории произошёл выброс паров, пришлось закрыть на проверку.',
       timeoutResult: 'Алхимики нашли другой отряд, готовый помочь немедленно.',
       goldRange: [65, 110],
@@ -112,11 +137,12 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       requiredResources: {
         timber: [10, 18],
       },
+      districtId: 'arcane_spire',
     },
     {
       title: 'Вербовка перспективного бойца',
-      description: 'Гильдия приметела талантливого бойца на окраине. Нужно убедить его вступить.',
-      successResult: 'Боец присоединился и укрепил влияние гильдии.',
+      description: 'Гильдия приметила талантливого бойца на улицах {{district}}. Нужно убедить его вступить.',
+      successResult: 'Боец из {{district}} присоединился и укрепил влияние гильдии.',
       failResult: 'Переговоры сорвались, слухи о неудаче разошлись по городу.',
       timeoutResult: 'Кандидат уже подписал контракт с другой гильдией.',
       goldRange: [80, 135],
@@ -129,13 +155,14 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
         guild_renown: [6, 12],
       },
       successHeatDelta: -2,
+      districtId: 'market',
     },
   ],
   guard: [
     {
       title: 'Ночной патруль ворот',
-      description: 'Городская стража просит усилить ночной патруль у южных ворот.',
-      successResult: 'Ночь прошла без происшествий, стража довольна сотрудничеством.',
+      description: 'Стража просит усилить ночной патруль у ворот в районе {{district}}.',
+      successResult: 'Ночь в {{district}} прошла без происшествий, стража довольна сотрудничеством.',
       failResult: 'Патруль пропустил пару подозрительных повозок — доверие падает.',
       timeoutResult: 'Стража нашла другое подкрепление.',
       goldRange: [90, 150],
@@ -150,11 +177,12 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       },
       successHeatDelta: -3,
       failureHeatDelta: 5,
+      districtId: 'harbor',
     },
     {
       title: 'Ликвидировать контрабандистов в канализации',
-      description: 'В канализации поселилась контрабанда. Нужен быстрый и решительный рейд.',
-      successResult: 'Логово ликвидировано, улицы стали безопаснее.',
+      description: 'В подземных ходах под {{district}} поселилась контрабанда. Нужен быстрый рейд.',
+      successResult: 'Логово под {{district}} ликвидировано, улицы стали безопаснее.',
       failResult: 'Бандиты ушли раньше времени и вывели стражу на ложный след.',
       timeoutResult: 'Контрабандисты успели покинуть логово, след остывает.',
       goldRange: [110, 170],
@@ -172,10 +200,11 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       },
       successHeatDelta: -4,
       failureHeatDelta: 6,
+      districtId: 'shadows',
     },
     {
       title: 'Расследовать подкупленного писаря',
-      description: 'Стража подозревает чиновника в сливе информации преступникам.',
+      description: 'Стража подозревает писаря из {{district}} в сливе информации преступникам.',
       successResult: 'Коррупционная схема раскрыта, доверие к гильдии растёт.',
       failResult: 'Доказательств оказалось недостаточно, гильдию обвиняют в клевете.',
       timeoutResult: 'Чиновник спешно уехал из города, расследование застопорилось.',
@@ -194,13 +223,14 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       },
       successHeatDelta: -2,
       failureHeatDelta: 3,
+      districtId: 'crownward',
     },
   ],
   merchants: [
     {
       title: 'Сопроводить караван специй',
-      description: 'Торговая лига отправляет караван с дорогими специями на северный рынок.',
-      successResult: 'Караван прибыл вовремя, торговцы отблагодарили гильдию.',
+      description: 'Торговая лига отправляет караван с дорогими специями через причалы {{district}} и просит организовать охрану.',
+      successResult: 'Караван прибыл вовремя, торговцы из {{district}} отблагодарили гильдию.',
       failResult: 'Нападение разбойников уничтожило часть товара, убытки значительны.',
       timeoutResult: 'Караван ушёл без защиты и попал в засаду.',
       goldRange: [120, 190],
@@ -216,11 +246,12 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       requiredResources: {
         iron_ore: [10, 16],
       },
+      districtId: 'harbor',
     },
     {
       title: 'Заключить договор со степными кланами',
-      description: 'Необходимо провести переговоры и привезти образцы товаров.',
-      successResult: 'Контракт заключён, торговля расширяется.',
+      description: 'Необходимо провести переговоры с кланами на площади {{district}} и привезти образцы товаров.',
+      successResult: 'Контракт заключён, торговля в {{district}} расширяется.',
       failResult: 'Переговоры зашли в тупик, репутация подмочена.',
       timeoutResult: 'Кланы подписали контракт с конкурентами.',
       goldRange: [140, 210],
@@ -236,10 +267,11 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       requiredResources: {
         guild_renown: [4, 6],
       },
+      districtId: 'market',
     },
     {
       title: 'Стабилизировать рынок городского зерна',
-      description: 'Нужно вмешаться в цепочку поставок и предотвратить рост цен.',
+      description: 'Нужно вмешаться в цепочку поставок в {{district}} и предотвратить рост цен.',
       successResult: 'Поставки нормализованы, жители довольны справедливой ценой.',
       failResult: 'Срыв поставок привёл к дефициту и недовольству.',
       timeoutResult: 'Конкуренты скупили зерно и диктуют цены.',
@@ -256,12 +288,13 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       requiredResources: {
         guild_renown: [4, 6],
       },
+      districtId: 'market',
     },
   ],
   cartel: [
     {
       title: 'Переправить запрещённые артефакты',
-      description: 'Картель хочет, чтобы вы незаметно переправили ящик артефактов через город.',
+      description: 'Картель хочет, чтобы вы незаметно переправили ящик артефактов через переулки {{district}}.',
       successResult: 'Артефакты доставлены, картель доволен.',
       failResult: 'Груз конфискован, картель подозревает предательство.',
       timeoutResult: 'Артефакты нашли другие курьеры, кредит доверия исчерпан.',
@@ -277,10 +310,11 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       successHeatDelta: 5,
       failureHeatDelta: 8,
       illegalOverride: true,
+      districtId: 'shadows',
     },
     {
       title: 'Подкупить чиновника налоговой службы',
-      description: 'Нужно обеспечить лояльность чиновника, отвечающего за инспекции складов.',
+      description: 'Нужно обеспечить лояльность чиновника в канцелярии {{district}}, отвечающего за инспекции складов.',
       successResult: 'Чиновник согласился, проверки проводятся номинально.',
       failResult: 'Подкуп раскрыт, поднята тревога.',
       timeoutResult: 'Конкурирующая группировка успела связаться первой.',
@@ -299,10 +333,11 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       successHeatDelta: 4,
       failureHeatDelta: 7,
       illegalOverride: true,
+      districtId: 'crownward',
     },
     {
       title: 'Устранить свидетелей сделки',
-      description: 'Пара свидетелей мешает картелю. Нужна тихая и решительная операция.',
+      description: 'Пара свидетелей мешает картелю. Нужна тихая операция в трущобах {{district}}.',
       successResult: 'Все угрозы устранены, следы замяты.',
       failResult: 'Свидетели сбежали и унесли с собой компромат.',
       timeoutResult: 'Свидетели уже покинули город и ищут защиты у стражи.',
@@ -319,6 +354,7 @@ export const FACTION_CONTRACT_TEMPLATES: Record<NonCitizenFactionId, FactionCont
       successHeatDelta: 6,
       failureHeatDelta: 9,
       illegalOverride: true,
+      districtId: 'shadows',
     },
   ],
 };

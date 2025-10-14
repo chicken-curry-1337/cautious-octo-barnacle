@@ -9,6 +9,7 @@ import { MAIN_HERO_ID } from '../../../../assets/heroes/mainHero';
 import { modifiers as questModifiers } from '../../../../assets/modifiers/modifiers';
 import { GUILD_RESOURCES } from '../../../../assets/resources/resources';
 import type { GuildResource } from '../../../../assets/resources/resources';
+import { CityStore } from '../../../../entities/City/City.store';
 import { TimeStore } from '../../../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../../../entities/Upgrade/Upgrade.store';
 import { HeroesStore } from '../../../../features/Heroes/Heroes.store';
@@ -32,6 +33,7 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
     const squadsStore = container.resolve(SquadsStore);
     const { absoluteDay } = container.resolve(TimeStore);
     const upgradeStore = container.resolve(UpgradeStore);
+    const cityStore = container.resolve(CityStore);
 
     // heroes теперь из mobx state напрямую — компонент будет реактивно обновляться
     const { heroes, availableHeroes } = heroesStore;
@@ -219,6 +221,8 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
       return '#43a047'; // зелёный
     };
 
+    const district = quest.districtId ? cityStore.getDistrictById(quest.districtId) : null;
+
     const rewardMultiplier = quest.isIllegal
       ? upgradeStore.getNumericEffectProduct('illegal_reward_mult')
       : upgradeStore.getNumericEffectProduct('legal_reward_mult');
@@ -352,6 +356,24 @@ export const QuestDetailedCard: React.FC<QuestDetailedCardProps> = observer(
                 {' '}
                 <strong>{status}</strong>
               </p>
+
+              {district && (
+                <div className={styles.districtSection}>
+                  <strong>Район:</strong>
+                  {' '}
+                  {district.name}
+                  {district.control.factionId && district.control.factionId !== 'neutral' && (
+                    <span>
+                      {' '}
+                      (под контролем
+                      {' '}
+                      {factionMap[district.control.factionId]?.name ?? 'неизвестно'}
+                      )
+                    </span>
+                  )}
+                  <div className={styles.districtDescription}>{district.description}</div>
+                </div>
+              )}
 
               {factionDetails && (
                 <div className={styles.factionSection}>

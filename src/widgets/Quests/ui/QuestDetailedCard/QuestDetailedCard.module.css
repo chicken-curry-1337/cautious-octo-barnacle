@@ -184,6 +184,23 @@ p {
   margin-left: 0.25rem;
 }
 
+.districtSection {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5f5;
+  background: #eef2ff;
+  font-size: 0.9rem;
+  color: #1e3a8a;
+  display: grid;
+  gap: 6px;
+}
+
+.districtDescription {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
 .minStake {
   font-size: 0.85rem;
   margin-top: 4px;
