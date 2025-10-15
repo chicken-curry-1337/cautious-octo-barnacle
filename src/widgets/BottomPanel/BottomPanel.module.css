@@ -4,33 +4,78 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 10px 20px;
-    background: #fff;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    padding: 12px 20px;
+    background: #0f172a;
+    box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.45);
+    color: #e2e8f0;
+    display: grid;
+    gap: 10px;
 }
 
-.date {
+.topRow {
     display: flex;
-    flex-flow: row nowrap;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .dayText {
-    font-weight: bold;
+    font-weight: 600;
     font-size: 1.1rem;
 }
 
 .button {
-    background-color: #4f46e5;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
 }
 
 .button:hover {
-    background-color: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+}
+
+.heroismRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.heroismLabel {
+    font-size: 0.95rem;
+}
+
+.heroismMeter {
+    display: grid;
+    gap: 4px;
+    min-width: 240px;
+}
+
+.heroismMeterTrack {
+    position: relative;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.25);
+    overflow: hidden;
+}
+
+.heroismMeterFill {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4ade80, #38bdf8);
+}
+
+.heroismScale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: rgba(148, 163, 184, 0.9);
 }

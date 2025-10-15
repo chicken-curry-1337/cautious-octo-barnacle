@@ -46,31 +46,33 @@ export const Game = observer(() => {
         onToggleSquads={() => setShowSquads(prev => !prev)}
         showSquads={showSquads}
       />
-      <GuildEventWidget />
-      <UpgradePanel
-        isOpen={showUpgrades}
-        onClose={() => setShowUpgrades(false)}
-      />
-      <InventoryPanel isOpen={showInventory} onClose={() => setShowInventory(false)} />
-      <FactionPanel isOpen={showFactions} onClose={() => setShowFactions(false)} />
-      <FinanceReportModal isOpen={showFinanceReport} onClose={() => setShowFinanceReport(false)} />
-      <FacilityHubModal
-        isOpen={showFacilityHub}
-        onClose={() => setShowFacilityHub(false)}
-        onOpenFacility={(id) => {
-          setShowFacilityHub(false);
-          setOpenFacilityId(id);
-        }}
-      />
-      <CityBoardModal isOpen={showCityBoard} onClose={() => setShowCityBoard(false)} />
-      <SquadManagerModal isOpen={showSquads} onClose={() => setShowSquads(false)} />
-      <FacilityModal facilityId={openFacilityId} onClose={() => setOpenFacilityId(null)} />
-      <RecruitList />
-      <HeroList />
-      {/* <HeroCreator /> */}
-      <DialogueWidget />
-      {/* <Guild /> */}
-      <QuestTabs />
+      <div className="main">
+        <GuildEventWidget />
+        <UpgradePanel
+          isOpen={showUpgrades}
+          onClose={() => setShowUpgrades(false)}
+        />
+        <InventoryPanel isOpen={showInventory} onClose={() => setShowInventory(false)} />
+        <FactionPanel isOpen={showFactions} onClose={() => setShowFactions(false)} />
+        <FinanceReportModal isOpen={showFinanceReport} onClose={() => setShowFinanceReport(false)} />
+        <FacilityHubModal
+          isOpen={showFacilityHub}
+          onClose={() => setShowFacilityHub(false)}
+          onOpenFacility={(id) => {
+            setShowFacilityHub(false);
+            setOpenFacilityId(id);
+          }}
+        />
+        <CityBoardModal isOpen={showCityBoard} onClose={() => setShowCityBoard(false)} />
+        <SquadManagerModal isOpen={showSquads} onClose={() => setShowSquads(false)} />
+        <FacilityModal facilityId={openFacilityId} onClose={() => setOpenFacilityId(null)} />
+        <RecruitList />
+        <HeroList />
+        {/* <HeroCreator /> */}
+        <DialogueWidget />
+        {/* <Guild /> */}
+        <QuestTabs />
+      </div>
       <BottomPanel />
       {/* <Notifications /> */}
     </>

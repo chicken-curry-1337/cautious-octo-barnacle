@@ -17,6 +17,7 @@ type ActiveGuildStatus = {
 export class GameStateStore {
   gold: number = 100;
   heat: number = 0;
+  heroism: number = 0;
 
   activeStatuses: ActiveGuildStatus[] = [];
   private syncing: boolean = false;
@@ -113,6 +114,13 @@ export class GameStateStore {
     this.heat = Math.max(0, this.heat - decay);
   };
 
+  changeHeroism = (delta: number) => {
+    if (!delta) return;
+    const adjusted = Math.round(delta);
+    const next = this.heroism + adjusted;
+    this.heroism = Math.max(-1000, Math.min(1000, next));
+  };
+
   setSyncing = (value: boolean) => {
     this.syncing = value;
   };
@@ -120,6 +128,7 @@ export class GameStateStore {
   loadSnapshot = (snapshot: GameStateSnapshot) => {
     this.gold = snapshot.gold ?? this.gold;
     this.heat = snapshot.heat ?? this.heat;
+    this.heroism = snapshot.heroism ?? this.heroism;
 
     if (snapshot.activeStatuses) {
       this.activeStatuses = snapshot.activeStatuses
@@ -147,5 +156,6 @@ export class GameStateStore {
 export type GameStateSnapshot = {
   gold: number;
   heat: number;
+  heroism?: number;
   activeStatuses: Array<{ id: string; remainingDays: number }>;
 };

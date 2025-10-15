@@ -140,6 +140,7 @@ export class SaveStore {
       gameState: {
         gold: this.gameStateStore.gold,
         heat: this.gameStateStore.heat,
+        heroism: this.gameStateStore.heroism,
         activeStatuses: this.gameStateStore.activeStatuses.map(status => ({
           id: status.id,
           remainingDays: status.remainingDays,

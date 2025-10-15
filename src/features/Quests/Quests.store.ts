@@ -265,6 +265,7 @@ export class QuestsStore {
       // Проверка на истечение времени принятия
       if (quest.status === QuestStatus.NotStarted && this.timeStore.absoluteDay > quest.deadlineAccept) {
         quest.status = QuestStatus.FailedDeadline;
+        this.applyFactionOutcome(quest, 'timeout');
         this.cityStore.applyQuestOutcome(quest.districtId, 'timeout', quest.title, quest.factionId as FactionId | undefined);
 
         return false;
@@ -815,6 +816,11 @@ export class QuestsStore {
     const faction = factionMap[factionId];
     if (!faction) return;
 
+    const heroismDelta = this.computeHeroismDelta(quest, outcome);
+    if (heroismDelta) {
+      this.gameStateStore.changeHeroism(heroismDelta);
+    }
+
     if (outcome === 'timeout') {
       return;
     }
@@ -1126,6 +1132,33 @@ export class QuestsStore {
       progress[chainId] = snapshot.questChainsProgress?.[chainId] ?? 0;
     });
     this.questChainsProgress = progress;
+  };
+
+  private computeHeroismDelta = (quest: IQuest, outcome: 'success' | 'failure' | 'timeout'): number => {
+    const factionId = quest.factionId as FactionId | undefined;
+    const isIllegal = quest.isIllegal ?? false;
+
+    const matrix: Record<'guard' | 'citizens' | 'guild' | 'merchants' | 'cartel' | 'neutral', { success: number; failure: number; timeout: number }> = {
+      guard: { success: 45, failure: -30, timeout: -18 },
+      citizens: { success: 35, failure: -22, timeout: -14 },
+      guild: { success: 22, failure: -12, timeout: -8 },
+      merchants: { success: 18, failure: -10, timeout: -6 },
+      cartel: { success: -40, failure: 22, timeout: 10 },
+      neutral: { success: 10, failure: -6, timeout: -4 },
+    };
+
+    const key: keyof typeof matrix = factionId && matrix[factionId as keyof typeof matrix]
+      ? factionId as keyof typeof matrix
+      : 'neutral';
+
+    const baseDelta = matrix[key][outcome];
+    if (!baseDelta) return 0;
+
+    const illegalModifier = isIllegal
+      ? (outcome === 'success' ? -20 : outcome === 'failure' ? 12 : -6)
+      : 0;
+
+    return baseDelta + illegalModifier;
   };
 
   private applyDistrictFlavor = (quest: IQuest, districtId: string | null) => {
