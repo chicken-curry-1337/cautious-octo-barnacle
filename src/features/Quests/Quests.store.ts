@@ -1,7 +1,15 @@
 import { makeAutoObservable, reaction } from 'mobx';
 import { inject, singleton } from 'tsyringe';
 
+import {
+  GUILD_LEADER_ID,
+  GUARD_LEADER_ID,
+  MERCHANTS_LEADER_ID,
+  CARTEL_LEADER_ID,
+  CITIZENS_LEADER_ID,
+} from '../../assets/characters/factionLeaders';
 import { factionMap, pickFaction, type Faction, type FactionId } from '../../assets/factions/factions';
+import { MAIN_HERO_ID } from '../../assets/heroes/mainHero';
 import { modifiers as questModifiers } from '../../assets/modifiers/modifiers';
 import {
   CITIZEN_TASKS,
@@ -13,16 +21,16 @@ import {
 import { GUILD_RESOURCES } from '../../assets/resources/resources';
 import { evaluatePartySynergy } from '../../assets/traits/traitSynergies';
 import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
-import { MAIN_HERO_ID } from '../../assets/heroes/mainHero';
+import { CityStore } from '../../entities/City/City.store';
 import { DifficultyStore } from '../../entities/Difficulty/Difficulty.store';
+import { FactionsStore } from '../../entities/Factions/Factions.store';
 import { GuildFinanceStore } from '../../entities/Finance/Finance.store';
 import { GameStateStore } from '../../entities/GameState/GameStateStore';
 import type { HeroStore } from '../../entities/Hero/Hero.store';
+import { RelationshipsStore } from '../../entities/Relationships/Relationships.store';
 import { TimeStore } from '../../entities/TimeStore/TimeStore';
 import { UpgradeStore } from '../../entities/Upgrade/Upgrade.store';
-import { FactionsStore } from '../../entities/Factions/Factions.store';
 import { HeroesStore } from '../../features/Heroes/Heroes.store';
-import { CityStore } from '../../entities/City/City.store';
 import { QuestStatus, type IQuest } from '../../shared/types/quest';
 import { randomInRange } from '../../shared/utils/randomInRange';
 import {
@@ -39,6 +47,23 @@ const DEFAULT_STAT_REQUIREMENTS = {
   strength: [5, 15] as [number, number],
   agility: [5, 15] as [number, number],
   intelligence: [5, 15] as [number, number],
+};
+
+const FACTION_RELATION_TARGETS: Record<FactionId, string> = {
+  guild: GUILD_LEADER_ID,
+  guard: GUARD_LEADER_ID,
+  merchants: MERCHANTS_LEADER_ID,
+  cartel: CARTEL_LEADER_ID,
+  citizens: CITIZENS_LEADER_ID,
+};
+
+const DISTRICT_RELATION_TARGETS: Record<string, string> = {
+  harbor: 'caretaker_allen',
+  market: 'caretaker_mila',
+  crownward: 'caretaker_karen',
+  shadows: 'caretaker_shade',
+  arcane_spire: 'caretaker_kaia',
+  outskirts: 'caretaker_lena',
 };
 const CITIZEN_DEADLINE_RANGE: [number, number] = [2, 3];
 const CITIZEN_EXECUTION_RANGE: [number, number] = [1, 2];
@@ -64,6 +89,7 @@ export class QuestsStore {
     },
     {},
   );
+
   private syncing: boolean = false;
 
   constructor(
@@ -75,6 +101,7 @@ export class QuestsStore {
     @inject(UpgradeStore) public upgradeStore: UpgradeStore,
     @inject(FactionsStore) public factionsStore: FactionsStore,
     @inject(CityStore) public cityStore: CityStore,
+    @inject(RelationshipsStore) public relationshipsStore: RelationshipsStore,
   ) {
     makeAutoObservable(this);
 
@@ -217,7 +244,7 @@ export class QuestsStore {
     const requiredIntelligence = randomInRange(5, 15);
 
     const districtId = options?.districtId
-      ?? this.cityStore.pickDistrictForFaction(options?.factionId as FactionId | undefined)
+      ?? this.cityStore.pickDistrictForFaction(options?.factionId)
       ?? this.cityStore.pickDistrictForFaction(undefined);
 
     const newQuest: IQuest = {
@@ -742,7 +769,7 @@ export class QuestsStore {
       chainLeaderTitle: chain.leaderTitle,
       chainTotalStages: chain.stages.length,
       chainLeaderPortrait: chain.leaderPortraitUrl,
-      districtId: stage.districtId ?? this.cityStore.pickDistrictForFaction(chain.factionId as FactionId) ?? undefined,
+      districtId: stage.districtId ?? this.cityStore.pickDistrictForFaction(chain.factionId) ?? undefined,
     };
   };
 
@@ -809,6 +836,57 @@ export class QuestsStore {
     });
   };
 
+  private adjustFactionRelationship = (quest: IQuest, outcome: 'success' | 'failure' | 'timeout') => {
+    const leaderTargets = new Set<string>();
+    const caretakerTargets = new Set<string>();
+
+    const factionId = quest.factionId as FactionId | undefined;
+
+    if (factionId) {
+      const leaderId = FACTION_RELATION_TARGETS[factionId];
+      if (leaderId) {
+        leaderTargets.add(leaderId);
+      }
+    }
+
+    if (quest.chainId) {
+      const chain = questChainsConfig[quest.chainId];
+      if (chain) {
+        const leaderId = FACTION_RELATION_TARGETS[chain.factionId];
+        if (leaderId) {
+          leaderTargets.add(leaderId);
+        }
+      }
+    }
+
+    if (quest.districtId) {
+      const caretakerId = DISTRICT_RELATION_TARGETS[quest.districtId];
+      if (caretakerId) {
+        caretakerTargets.add(caretakerId);
+      }
+    }
+
+    if (leaderTargets.size === 0 && caretakerTargets.size === 0) {
+      return;
+    }
+
+    const relationDeltas = {
+      success: { leader: 8, caretaker: 6 },
+      failure: { leader: -10, caretaker: -7 },
+      timeout: { leader: -6, caretaker: -5 },
+    } as const;
+
+    const deltas = relationDeltas[outcome];
+
+    leaderTargets.forEach((targetId) => {
+      this.relationshipsStore.changeRelationship(targetId, deltas.leader);
+    });
+
+    caretakerTargets.forEach((targetId) => {
+      this.relationshipsStore.changeRelationship(targetId, deltas.caretaker);
+    });
+  };
+
   private applyFactionOutcome = (quest: IQuest, outcome: 'success' | 'failure' | 'timeout') => {
     if (!quest.factionId) return;
 
@@ -816,7 +894,10 @@ export class QuestsStore {
     const faction = factionMap[factionId];
     if (!faction) return;
 
+    this.adjustFactionRelationship(quest, outcome);
+
     const heroismDelta = this.computeHeroismDelta(quest, outcome);
+
     if (heroismDelta) {
       this.gameStateStore.changeHeroism(heroismDelta);
     }
@@ -1007,7 +1088,7 @@ export class QuestsStore {
     const successHeatDelta = template?.successHeatDelta ?? faction.successHeatDelta;
     const failureHeatDelta = template?.failureHeatDelta ?? faction.failureHeatDelta;
     const districtId = template?.districtId
-      ?? this.cityStore.pickDistrictForFaction(faction.id as FactionId);
+      ?? this.cityStore.pickDistrictForFaction(faction.id);
 
     const quest: IQuest = {
       id: crypto.randomUUID(),
@@ -1119,7 +1200,7 @@ export class QuestsStore {
   loadSnapshot = (snapshot: QuestsSnapshot) => {
     const knownHeroIds = new Set(this.heroesStore.heroes.map(hero => hero.id));
 
-    this.quests = (snapshot.quests ?? []).map((quest) => ({
+    this.quests = (snapshot.quests ?? []).map(quest => ({
       ...quest,
       modifiers: quest.modifiers ?? [],
       assignedHeroIds: (quest.assignedHeroIds ?? []).filter(id => knownHeroIds.has(id)),
@@ -1168,6 +1249,7 @@ export class QuestsStore {
 
     const replaceText = (text?: string | null) => {
       if (!text) return text;
+
       return text.replace(/\{\{district\}\}/g, district.name);
     };
 

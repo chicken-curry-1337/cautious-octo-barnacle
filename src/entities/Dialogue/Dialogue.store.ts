@@ -6,6 +6,7 @@ import { inject, singleton } from 'tsyringe';
 // import { UPGRADE_1_ID } from '../../assets/upgrades/upgrades';
 import { TimeStore } from '../TimeStore/TimeStore';
 import { UpgradeStore } from '../Upgrade/Upgrade.store';
+import { RelationshipsStore } from '../Relationships/Relationships.store';
 
 export interface ICharacter {
   id: string;
@@ -46,7 +47,8 @@ export class DialogueStore {
   queueIndex: number = 0;
 
   constructor(@inject(TimeStore) public timeStore: TimeStore,
-    @inject(UpgradeStore) public upgradeStore: UpgradeStore) {
+    @inject(UpgradeStore) public upgradeStore: UpgradeStore,
+    @inject(RelationshipsStore) private relationshipsStore: RelationshipsStore) {
     makeAutoObservable(this);
 
     // todo: для запуска диалогов добавляем reaction на нужный диалог, дату, тег, состояние итп. пример:
@@ -176,9 +178,10 @@ export class DialogueStore {
   get currentNode() {
     if (!this.dialogueData) return null;
 
-    return (
-      this.dialogueData.nodes.find(node => node.id === this.currentId) ?? null
-    );
+    const baseNode = this.dialogueData.nodes.find(node => node.id === this.currentId) ?? null;
+    if (!baseNode) return null;
+
+    return this.renderNode(baseNode);
   }
 
   get characters() {
@@ -202,4 +205,17 @@ export class DialogueStore {
       this.currentNode!.visibleCharacterIds.includes(c.id),
     );
   }
+
+  private renderNode = (node: DialogueNode): DialogueNode => {
+    const apply = (value?: string) => this.relationshipsStore.applyPlaceholders(value) ?? value ?? '';
+
+    return {
+      ...node,
+      text: apply(node.text),
+      options: node.options?.map(option => ({
+        ...option,
+        text: apply(option.text) ?? option.text,
+      })) ?? [],
+    };
+  };
 }
